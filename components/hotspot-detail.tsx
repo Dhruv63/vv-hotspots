@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { X, MapPin, Users, Navigation, Clock, Zap, Star } from "lucide-react"
+import { X, MapPin, Users, Navigation, Clock, Zap, Star, MessageSquare } from "lucide-react"
 import { StarRating } from "@/components/ui/star-rating"
 import type { Hotspot } from "@/lib/types"
 
@@ -11,6 +11,7 @@ interface HotspotDetailProps {
   activeCheckins: number
   averageRating: number
   userRating: number | null
+  userReview?: string | null
   isCheckedIn: boolean
   onClose: () => void
   onCheckIn: () => void
@@ -70,6 +71,7 @@ export function HotspotDetail({
   activeCheckins,
   averageRating,
   userRating,
+  userReview,
   isCheckedIn,
   onClose,
   onCheckIn,
@@ -104,7 +106,7 @@ export function HotspotDetail({
   const imageUrl = getHotspotImage(hotspot)
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 md:bottom-4 md:left-auto md:right-4 md:w-96 z-30 bg-cyber-dark border-t-2 md:border-2 border-cyber-cyan md:rounded-lg max-h-[85vh] overflow-y-auto shadow-[0_0_30px_rgba(0,255,255,0.3)]">
+    <div className="fixed inset-x-0 bottom-0 md:absolute md:inset-auto md:bottom-4 md:right-4 md:w-96 z-[1000] bg-cyber-dark border-t-2 md:border-2 border-cyber-cyan md:rounded-lg max-h-[80vh] overflow-y-auto shadow-[0_0_30px_rgba(0,255,255,0.3)]">
       {/* Glowing header bar */}
       <div className="h-1 w-full bg-gradient-to-r from-cyber-cyan via-cyber-pink to-cyber-purple" />
 
@@ -235,6 +237,17 @@ export function HotspotDetail({
               <span className="text-cyber-purple text-xs font-mono">Your rating:</span>
               <StarRating rating={userRating} size="sm" />
               <span className="text-cyber-light font-mono text-sm font-bold">{userRating}/5</span>
+            </div>
+          )}
+
+          {/* User's review display */}
+          {userReview && (
+            <div className="p-2 bg-cyber-purple/10 border border-cyber-purple/30 rounded">
+              <div className="flex items-center gap-1 mb-1">
+                <MessageSquare className="w-3 h-3 text-cyber-purple" />
+                <span className="text-cyber-purple text-xs font-mono">Your review:</span>
+              </div>
+              <p className="text-cyber-light/80 text-sm italic">&quot;{userReview}&quot;</p>
             </div>
           )}
 

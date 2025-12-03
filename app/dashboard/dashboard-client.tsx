@@ -357,7 +357,7 @@ export function DashboardClient({
           />
         </div>
 
-        <div className="flex-1 relative">
+        <div className="flex-1 relative z-0">
           <MapView
             hotspots={hotspots}
             selectedHotspot={selectedHotspot}
@@ -367,23 +367,23 @@ export function DashboardClient({
             onCheckIn={handleCheckIn}
             isLoading={isLoading}
           />
-
-          {selectedHotspot && (
-            <HotspotDetail
-              hotspot={selectedHotspot}
-              activeCheckins={activeCheckins[selectedHotspot.id] || 0}
-              averageRating={averageRatings[selectedHotspot.id] || 0}
-              userRating={userRatings[selectedHotspot.id] || null}
-              userReview={userReviews[selectedHotspot.id] || null}
-              isCheckedIn={userCurrentCheckin === selectedHotspot.id}
-              onClose={handleCloseDetail}
-              onCheckIn={() => handleCheckIn(selectedHotspot)}
-              onCheckOut={handleCheckOut}
-              onRate={handleRate}
-              isLoading={isLoading}
-            />
-          )}
         </div>
+
+        {selectedHotspot && (
+          <HotspotDetail
+            hotspot={selectedHotspot}
+            activeCheckins={activeCheckins[selectedHotspot.id] || 0}
+            averageRating={averageRatings[selectedHotspot.id] || 0}
+            userRating={userRatings[selectedHotspot.id] || null}
+            userReview={userReviews[selectedHotspot.id] || null}
+            isCheckedIn={userCurrentCheckin === selectedHotspot.id}
+            onClose={handleCloseDetail}
+            onCheckIn={() => handleCheckIn(selectedHotspot)}
+            onCheckOut={handleCheckOut}
+            onRate={handleRate}
+            isLoading={isLoading}
+          />
+        )}
 
         <div
           className={`fixed md:relative right-0 z-30 h-[calc(100%-4rem)] md:h-full w-full md:w-72 lg:w-80 bg-cyber-dark border-l border-cyber-gray transition-transform duration-300 ${
