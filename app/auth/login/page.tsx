@@ -27,14 +27,33 @@ export default function LoginPage() {
     const supabase = createClient()
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      console.log("[v0] Attempting login for:", email)
+
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
-      if (error) throw error
-      router.push("/dashboard")
-      router.refresh()
+
+      console.log("[v0] Sign in response:", { data, error: signInError })
+
+      if (signInError) {
+        console.log("[v0] Sign in error:", signInError.message)
+        throw signInError
+      }
+
+      if (!data.session) {
+        console.log("[v0] No session returned")
+        throw new Error("No session returned. Please try again.")
+      }
+
+      console.log("[v0] Login successful, session established")
+
+      await new Promise((resolve) => setTimeout(resolve, 100))
+
+      // Force a hard navigation to ensure middleware runs
+      window.location.href = "/dashboard"
     } catch (err) {
+      console.log("[v0] Login error:", err)
       setError(err instanceof Error ? err.message : "Login failed")
     } finally {
       setIsLoading(false)

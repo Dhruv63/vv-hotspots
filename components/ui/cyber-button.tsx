@@ -24,11 +24,12 @@ const CyberButton = forwardRef<HTMLButtonElement, CyberButtonProps>(
       lg: "px-6 py-3 text-lg",
     }
 
-    const glowClass = glowing
+    const glowStyles = glowing
       ? {
-          cyan: "neon-pulse",
-          pink: "neon-border-pink",
-          purple: "neon-border-purple",
+          cyan: "shadow-[0_0_20px_rgba(0,255,255,0.5),0_0_40px_rgba(0,255,255,0.3),inset_0_0_20px_rgba(0,255,255,0.1)] animate-pulse",
+          pink: "shadow-[0_0_20px_rgba(255,0,110,0.5),0_0_40px_rgba(255,0,110,0.3),inset_0_0_20px_rgba(255,0,110,0.1)] animate-pulse",
+          purple:
+            "shadow-[0_0_20px_rgba(183,0,255,0.5),0_0_40px_rgba(183,0,255,0.3),inset_0_0_20px_rgba(183,0,255,0.1)] animate-pulse",
           ghost: "",
         }[variant]
       : ""
@@ -37,16 +38,20 @@ const CyberButton = forwardRef<HTMLButtonElement, CyberButtonProps>(
       <button
         ref={ref}
         className={cn(
-          "font-mono font-semibold border-2 transition-all duration-300 cyber-clip-sm glitch-hover",
-          "disabled:opacity-50 disabled:cursor-not-allowed",
+          "font-mono font-semibold border-2 transition-all duration-300 relative overflow-hidden",
+          "disabled:opacity-50 disabled:cursor-not-allowed disabled:animate-none",
+          "active:scale-95",
           variants[variant],
           sizes[size],
-          glowClass,
+          glowStyles,
           className,
         )}
         {...props}
       >
-        {children}
+        {glowing && (
+          <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
+        )}
+        <span className="relative z-10 flex items-center justify-center">{children}</span>
       </button>
     )
   },

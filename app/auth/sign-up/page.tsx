@@ -41,7 +41,9 @@ export default function SignUpPage() {
     const supabase = createClient()
 
     try {
-      const { error } = await supabase.auth.signUp({
+      console.log("[v0] Attempting signup for:", email)
+
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -51,9 +53,28 @@ export default function SignUpPage() {
           },
         },
       })
-      if (error) throw error
-      router.push("/auth/sign-up-success")
+
+      console.log("[v0] Sign up response:", { data, error: signUpError })
+
+      if (signUpError) {
+        console.log("[v0] Sign up error:", signUpError.message)
+        throw signUpError
+      }
+
+      if (data.user && !data.session) {
+        // Email confirmation required
+        console.log("[v0] Email confirmation required")
+        router.push("/auth/sign-up-success")
+      } else if (data.session) {
+        // Auto-confirmed (for development)
+        console.log("[v0] Auto-login after signup")
+        await new Promise((resolve) => setTimeout(resolve, 100))
+        window.location.href = "/dashboard"
+      } else {
+        router.push("/auth/sign-up-success")
+      }
     } catch (err) {
+      console.log("[v0] Sign up error:", err)
       setError(err instanceof Error ? err.message : "Sign up failed")
     } finally {
       setIsLoading(false)

@@ -225,13 +225,13 @@
   animation: glitch 0.3s ease-in-out;
 }
 
-/* Angular clip paths for cyberpunk cards */
+/* Angular clip paths for cyberpunk cards - reduced clip to prevent content cutoff */
 .cyber-clip {
-  clip-path: polygon(0 10px, 10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+  clip-path: polygon(0 5px, 5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%);
 }
 
 .cyber-clip-sm {
-  clip-path: polygon(0 5px, 5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%);
+  clip-path: polygon(0 3px, 3px 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%);
 }
 
 /* Pulse animation for check-in button */
@@ -305,4 +305,33 @@
 
 .leaflet-control-attribution a {
   color: var(--color-cyber-cyan) !important;
+}
+
+/* Add shimmer animation for glowing buttons */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+/* Add glow animation for map markers */
+@keyframes marker-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 5px var(--color-cyber-cyan));
+  }
+  50% {
+    filter: drop-shadow(0 0 15px var(--color-cyber-cyan)) drop-shadow(0 0 25px var(--color-cyber-cyan));
+  }
+}
+
+.marker-glow {
+  animation: marker-glow 2s ease-in-out infinite;
 }

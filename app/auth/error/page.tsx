@@ -6,9 +6,10 @@ import { CyberCard } from "@/components/ui/cyber-card"
 export default async function AuthErrorPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>
+  searchParams: Promise<{ error?: string; message?: string }>
 }) {
   const params = await searchParams
+  const errorMessage = params?.error || params?.message
 
   return (
     <div className="min-h-screen bg-cyber-black scanlines flex items-center justify-center p-4">
@@ -29,9 +30,9 @@ export default async function AuthErrorPage({
           <h1 className="font-mono text-2xl font-bold text-cyber-light mb-2">{"> AUTH ERROR"}</h1>
           <p className="text-cyber-gray mb-4">Something went wrong during authentication.</p>
 
-          {params?.error && (
+          {errorMessage && (
             <div className="p-3 bg-cyber-pink/10 border border-cyber-pink text-cyber-pink text-sm font-mono mb-6">
-              Error: {params.error}
+              {errorMessage}
             </div>
           )}
 

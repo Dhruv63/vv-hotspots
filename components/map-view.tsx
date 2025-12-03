@@ -34,7 +34,6 @@ export function MapView({ hotspots, selectedHotspot, onHotspotSelect, activeChec
   useEffect(() => {
     const loadLeaflet = async () => {
       const leaflet = await import("leaflet")
-      // Fix default marker icons
       delete (leaflet.Icon.Default.prototype as any)._getIconUrl
       leaflet.Icon.Default.mergeOptions({
         iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
@@ -46,66 +45,81 @@ export function MapView({ hotspots, selectedHotspot, onHotspotSelect, activeChec
     loadLeaflet()
   }, [])
 
-  // Create custom marker icon
   const createMarkerIcon = useCallback(
     (hotspot: Hotspot, isSelected: boolean) => {
       if (!L) return null
 
       const color = categoryColors[hotspot.category] || categoryColors.other
       const activeCount = activeCheckins[hotspot.id] || 0
-      const size = isSelected ? 44 : 36
+      const size = isSelected ? 48 : 40
+      const hasActiveUsers = activeCount > 0
 
       const html = `
       <div style="
         position: relative;
         width: ${size}px;
         height: ${size}px;
+        cursor: pointer;
       ">
         <div style="
           width: 100%;
           height: 100%;
-          background: ${color}20;
-          border: 2px solid ${color};
+          background: ${color}30;
+          border: 3px solid ${color};
           border-radius: 50% 50% 50% 0;
           transform: rotate(-45deg);
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 0 ${isSelected ? "15px" : "8px"} ${color};
-          transition: all 0.2s ease;
+          box-shadow: 0 0 ${isSelected ? "20px" : hasActiveUsers ? "15px" : "8px"} ${color}${hasActiveUsers ? "" : "80"};
+          transition: all 0.3s ease;
+          ${hasActiveUsers ? `animation: pulse 2s infinite;` : ""}
         ">
           <div style="
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            height: 14px;
             background: ${color};
             border-radius: 50%;
             transform: rotate(45deg);
           "></div>
         </div>
         ${
-          activeCount > 0
+          hasActiveUsers
             ? `
           <div style="
             position: absolute;
-            top: -6px;
-            right: -6px;
-            min-width: 18px;
-            height: 18px;
-            background: #00ffff;
-            border-radius: 9px;
+            top: -8px;
+            right: -8px;
+            min-width: 22px;
+            height: 22px;
+            background: linear-gradient(135deg, #00ffff 0%, #00cccc 100%);
+            border: 2px solid #0a0a0f;
+            border-radius: 11px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 10px;
+            font-size: 11px;
             font-weight: bold;
             color: #0a0a0f;
-            padding: 0 4px;
+            padding: 0 5px;
             font-family: monospace;
+            box-shadow: 0 0 10px #00ffff;
+            animation: glow 1.5s ease-in-out infinite alternate;
           ">${activeCount}</div>
         `
             : ""
         }
       </div>
+      <style>
+        @keyframes pulse {
+          0%, 100% { transform: rotate(-45deg) scale(1); }
+          50% { transform: rotate(-45deg) scale(1.05); }
+        }
+        @keyframes glow {
+          from { box-shadow: 0 0 5px #00ffff; }
+          to { box-shadow: 0 0 15px #00ffff, 0 0 20px #00ffff; }
+        }
+      </style>
     `
 
       return L.divIcon({
@@ -128,7 +142,6 @@ export function MapView({ hotspots, selectedHotspot, onHotspotSelect, activeChec
       zoomControl: true,
     })
 
-    // Add tile layer (OpenStreetMap)
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(map)
@@ -142,17 +155,15 @@ export function MapView({ hotspots, selectedHotspot, onHotspotSelect, activeChec
     }
   }, [L])
 
-  // Update markers when hotspots or selection changes
+  // Update markers when hotspots, selection, or activeCheckins changes
   useEffect(() => {
     if (!isLoaded || !mapRef.current || !L) return
 
-    // Clear existing markers
     markersRef.current.forEach((marker) => {
       marker.remove()
     })
     markersRef.current = []
 
-    // Create new markers
     hotspots.forEach((hotspot) => {
       const isSelected = selectedHotspot?.id === hotspot.id
       const icon = createMarkerIcon(hotspot, isSelected)
@@ -168,8 +179,13 @@ export function MapView({ hotspots, selectedHotspot, onHotspotSelect, activeChec
           onHotspotSelect(hotspot)
         })
 
-      // Add tooltip
-      marker.bindTooltip(hotspot.name, {
+      const activeCount = activeCheckins[hotspot.id] || 0
+      const tooltipContent =
+        activeCount > 0
+          ? `<strong>${hotspot.name}</strong><br/><span style="color: #00ffff;">${activeCount} here now</span>`
+          : hotspot.name
+
+      marker.bindTooltip(tooltipContent, {
         permanent: false,
         direction: "top",
         className: "cyber-tooltip",
@@ -177,7 +193,7 @@ export function MapView({ hotspots, selectedHotspot, onHotspotSelect, activeChec
 
       markersRef.current.push(marker)
     })
-  }, [isLoaded, hotspots, selectedHotspot, onHotspotSelect, createMarkerIcon, L])
+  }, [isLoaded, hotspots, selectedHotspot, onHotspotSelect, createMarkerIcon, L, activeCheckins])
 
   // Pan to selected hotspot
   useEffect(() => {
@@ -188,7 +204,6 @@ export function MapView({ hotspots, selectedHotspot, onHotspotSelect, activeChec
 
   return (
     <div className="relative w-full h-full">
-      {/* Leaflet CSS */}
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 
       <div ref={mapContainerRef} className="w-full h-full" />
@@ -202,14 +217,13 @@ export function MapView({ hotspots, selectedHotspot, onHotspotSelect, activeChec
         </div>
       )}
 
-      {/* Custom tooltip styles */}
       <style jsx global>{`
         .cyber-tooltip {
           background: #12121a !important;
           border: 1px solid #00ffff !important;
           color: #e0e0e0 !important;
           font-family: monospace !important;
-          padding: 4px 8px !important;
+          padding: 6px 10px !important;
           box-shadow: 0 0 10px rgba(0, 255, 255, 0.3) !important;
         }
         .cyber-tooltip::before {
