@@ -112,11 +112,18 @@ export default async function DashboardPage() {
     .maybeSingle()
 
   // Get user's ratings
-  const { data: userRatings } = await supabase.from("ratings").select("hotspot_id, rating").eq("user_id", user.id)
+  const { data: userRatings } = await supabase
+    .from("ratings")
+    .select("hotspot_id, rating, review")
+    .eq("user_id", user.id)
 
   const userRatingsMap: Record<string, number> = {}
+  const userReviewsMap: Record<string, string> = {}
   userRatings?.forEach((r) => {
     userRatingsMap[r.hotspot_id] = r.rating
+    if (r.review) {
+      userReviewsMap[r.hotspot_id] = r.review
+    }
   })
 
   return (
@@ -128,6 +135,7 @@ export default async function DashboardPage() {
       activityFeed={activityFeed}
       userCurrentCheckin={userCheckin?.hotspot_id || null}
       userRatings={userRatingsMap}
+      userReviews={userReviewsMap}
     />
   )
 }

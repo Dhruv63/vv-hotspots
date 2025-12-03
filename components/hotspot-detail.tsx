@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { X, MapPin, Users, Navigation, Clock, Zap } from "lucide-react"
+import { X, MapPin, Users, Navigation, Clock, Zap, Star } from "lucide-react"
 import { StarRating } from "@/components/ui/star-rating"
 import type { Hotspot } from "@/lib/types"
 
@@ -77,14 +77,23 @@ export function HotspotDetail({
   onRate,
   isLoading = false,
 }: HotspotDetailProps) {
-  const [pendingRating, setPendingRating] = useState<number | null>(null)
   const [isRating, setIsRating] = useState(false)
+  const [ratingSuccess, setRatingSuccess] = useState(false)
 
   const handleRating = async (rating: number) => {
-    setPendingRating(rating)
+    console.log("[v0] Star clicked in HotspotDetail, rating:", rating)
     setIsRating(true)
-    await onRate(rating)
-    setIsRating(false)
+    setRatingSuccess(false)
+    try {
+      await onRate(rating)
+      console.log("[v0] Rating completed successfully")
+      setRatingSuccess(true)
+      setTimeout(() => setRatingSuccess(false), 2000)
+    } catch (err) {
+      console.log("[v0] Rating failed in HotspotDetail:", err)
+    } finally {
+      setIsRating(false)
+    }
   }
 
   const openInMaps = () => {
@@ -93,16 +102,6 @@ export function HotspotDetail({
   }
 
   const imageUrl = getHotspotImage(hotspot)
-
-  const handleCheckInClick = () => {
-    console.log("[v0] Check-in button clicked in HotspotDetail for:", hotspot.name)
-    onCheckIn()
-  }
-
-  const handleCheckOutClick = () => {
-    console.log("[v0] Check-out button clicked in HotspotDetail for:", hotspot.name)
-    onCheckOut()
-  }
 
   return (
     <div className="absolute bottom-0 left-0 right-0 md:bottom-4 md:left-auto md:right-4 md:w-96 z-30 bg-cyber-dark border-t-2 md:border-2 border-cyber-cyan md:rounded-lg max-h-[85vh] overflow-y-auto shadow-[0_0_30px_rgba(0,255,255,0.3)]">
@@ -174,8 +173,8 @@ export function HotspotDetail({
           </div>
         </div>
 
+        {/* Check-in button */}
         <div className="space-y-3 p-4 bg-gradient-to-b from-cyber-cyan/10 to-cyber-black/30 rounded-lg border-2 border-cyber-cyan/50 shadow-[0_0_20px_rgba(0,255,255,0.2)]">
-          {/* Current status indicator */}
           {isCheckedIn && (
             <div className="flex items-center gap-2 p-2 bg-cyber-cyan/20 border border-cyber-cyan rounded">
               <span className="w-3 h-3 bg-cyber-cyan rounded-full animate-pulse" />
@@ -185,7 +184,7 @@ export function HotspotDetail({
 
           <button
             type="button"
-            onClick={isCheckedIn ? handleCheckOutClick : handleCheckInClick}
+            onClick={isCheckedIn ? onCheckOut : onCheckIn}
             disabled={isLoading}
             className={`w-full py-4 px-6 font-mono font-bold text-lg tracking-wider rounded-lg transition-all duration-300 flex items-center justify-center gap-3 ${
               isLoading
@@ -220,20 +219,40 @@ export function HotspotDetail({
           )}
         </div>
 
-        {/* Rate this spot */}
-        <div className="space-y-2 pt-2 border-t border-cyber-gray/50">
+        {/* Rating section */}
+        <div className="space-y-3 p-4 bg-gradient-to-b from-cyber-purple/10 to-cyber-black/30 rounded-lg border border-cyber-purple/50">
           <div className="flex items-center justify-between">
-            <p className="text-cyber-gray text-sm font-mono">RATE THIS SPOT</p>
-            {userRating && <span className="text-cyber-cyan text-xs font-mono">Your rating: {userRating}/5</span>}
+            <div className="flex items-center gap-2">
+              <Star className="w-5 h-5 text-yellow-400" />
+              <p className="text-cyber-light text-sm font-mono font-bold">RATE THIS SPOT</p>
+            </div>
+            {ratingSuccess && <span className="text-green-400 text-xs font-mono animate-pulse">Saved!</span>}
           </div>
-          <div className="flex items-center gap-3">
-            <StarRating
-              rating={pendingRating ?? userRating ?? 0}
-              size="lg"
-              interactive={!isRating}
-              onRatingChange={handleRating}
-            />
-            {isRating && <span className="text-cyber-cyan text-xs font-mono animate-pulse">Saving...</span>}
+
+          {/* User's current rating display */}
+          {userRating && (
+            <div className="flex items-center gap-2 p-2 bg-cyber-purple/20 border border-cyber-purple/50 rounded">
+              <span className="text-cyber-purple text-xs font-mono">Your rating:</span>
+              <StarRating rating={userRating} size="sm" />
+              <span className="text-cyber-light font-mono text-sm font-bold">{userRating}/5</span>
+            </div>
+          )}
+
+          {/* Interactive rating selector */}
+          <div className="flex flex-col items-center gap-2 py-2">
+            <p className="text-cyber-gray text-xs font-mono">
+              {userRating ? "Tap to change your rating:" : "Tap a star to rate:"}
+            </p>
+            <div className="relative">
+              {isRating ? (
+                <div className="flex items-center justify-center py-4">
+                  <span className="w-6 h-6 border-2 border-cyber-cyan border-t-transparent rounded-full animate-spin" />
+                  <span className="ml-2 text-cyber-cyan font-mono text-sm">Saving...</span>
+                </div>
+              ) : (
+                <StarRating rating={userRating ?? 0} size="lg" interactive={true} onRatingChange={handleRating} />
+              )}
+            </div>
           </div>
         </div>
       </div>

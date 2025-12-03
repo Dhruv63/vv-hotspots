@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Menu, X, Activity, Zap, Clock } from "lucide-react"
+import { Menu, X, Activity } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { Navbar } from "@/components/navbar"
 import { MapView } from "@/components/map-view"
@@ -20,6 +20,7 @@ interface DashboardClientProps {
   activityFeed: ActivityFeedItem[]
   userCurrentCheckin: string | null
   userRatings: Record<string, number>
+  userReviews: Record<string, string>
 }
 
 export function DashboardClient({
@@ -30,10 +31,10 @@ export function DashboardClient({
   activityFeed: initialActivityFeed,
   userCurrentCheckin: initialUserCheckin,
   userRatings: initialUserRatings,
+  userReviews: initialUserReviews,
 }: DashboardClientProps) {
   const router = useRouter()
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null)
-  const [showDetail, setShowDetail] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [feedOpen, setFeedOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -44,6 +45,7 @@ export function DashboardClient({
   const [averageRatings, setAverageRatings] = useState(initialAverageRatings)
   const [userCurrentCheckin, setUserCurrentCheckin] = useState(initialUserCheckin)
   const [userRatings, setUserRatings] = useState(initialUserRatings)
+  const [userReviews, setUserReviews] = useState(initialUserReviews)
 
   useEffect(() => {
     console.log("[v0] Dashboard mounted with user:", user?.id)
@@ -64,7 +66,6 @@ export function DashboardClient({
   const handleHotspotSelect = useCallback((hotspot: Hotspot) => {
     console.log("[v0] Hotspot selected:", hotspot.name, hotspot.id)
     setSelectedHotspot(hotspot)
-    setShowDetail(true)
     if (window.innerWidth < 768) {
       setSidebarOpen(false)
       setFeedOpen(false)
@@ -89,20 +90,18 @@ export function DashboardClient({
       const supabase = createClient()
 
       try {
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+        const { data: sessionData } = await supabase.auth.getSession()
         console.log("[v0] Session:", sessionData?.session?.user?.id)
 
         if (!sessionData?.session) {
           throw new Error("No active session. Please log in again.")
         }
 
-        // Check out from current location if checked in elsewhere
         if (userCurrentCheckin && userCurrentCheckin !== targetHotspot.id) {
           console.log("[v0] Checking out from:", userCurrentCheckin)
           await supabase.from("check_ins").update({ is_active: false }).eq("user_id", user.id).eq("is_active", true)
         }
 
-        // Insert new check-in
         console.log("[v0] Inserting check-in for hotspot:", targetHotspot.id)
         const { data, error: insertError } = await supabase
           .from("check_ins")
@@ -121,7 +120,6 @@ export function DashboardClient({
 
         console.log("[v0] Check-in successful:", data)
 
-        // Update local state
         setUserCurrentCheckin(targetHotspot.id)
         setActiveCheckins((prev) => ({
           ...prev,
@@ -182,9 +180,12 @@ export function DashboardClient({
   }, [user.id, userCurrentCheckin, hotspots, router])
 
   const handleRate = useCallback(
-    async (rating: number) => {
-      if (!selectedHotspot) return
-      console.log("[v0] Rating:", selectedHotspot.name, rating)
+    async (rating: number): Promise<void> => {
+      if (!selectedHotspot) {
+        console.log("[v0] No hotspot selected for rating")
+        return
+      }
+      console.log("[v0] Rating hotspot:", selectedHotspot.name, "with", rating, "stars")
 
       const supabase = createClient()
 
@@ -198,8 +199,12 @@ export function DashboardClient({
           { onConflict: "user_id,hotspot_id" },
         )
 
-        if (rateError) throw rateError
+        if (rateError) {
+          console.log("[v0] Rating error:", rateError)
+          throw rateError
+        }
 
+        console.log("[v0] Rating saved successfully")
         setUserRatings((prev) => ({ ...prev, [selectedHotspot.id]: rating }))
 
         const { data: avgData } = await supabase.from("ratings").select("rating").eq("hotspot_id", selectedHotspot.id)
@@ -211,24 +216,68 @@ export function DashboardClient({
 
         showMessage("success", `Rated ${selectedHotspot.name} ${rating} stars!`)
       } catch (err: any) {
+        console.log("[v0] Rating failed:", err)
         showMessage("error", err.message || "Rating failed")
+        throw err
       }
     },
     [selectedHotspot, user.id],
   )
 
+  const handleRateHotspot = useCallback(
+    async (hotspot: Hotspot, rating: number, review?: string): Promise<void> => {
+      console.log("[v0] Quick rating hotspot:", hotspot.name, "with", rating, "stars", review ? "and review" : "")
+
+      const supabase = createClient()
+
+      try {
+        const { error: rateError } = await supabase.from("ratings").upsert(
+          {
+            user_id: user.id,
+            hotspot_id: hotspot.id,
+            rating,
+            review: review || null,
+          },
+          { onConflict: "user_id,hotspot_id" },
+        )
+
+        if (rateError) {
+          console.log("[v0] Rating error:", rateError)
+          throw rateError
+        }
+
+        console.log("[v0] Rating saved successfully")
+        setUserRatings((prev) => ({ ...prev, [hotspot.id]: rating }))
+        if (review) {
+          setUserReviews((prev) => ({ ...prev, [hotspot.id]: review }))
+        }
+
+        const { data: avgData } = await supabase.from("ratings").select("rating").eq("hotspot_id", hotspot.id)
+
+        if (avgData && avgData.length > 0) {
+          const avg = avgData.reduce((sum, r) => sum + r.rating, 0) / avgData.length
+          setAverageRatings((prev) => ({ ...prev, [hotspot.id]: Math.round(avg * 10) / 10 }))
+        }
+
+        showMessage("success", `Rated ${hotspot.name} ${rating} stars!`)
+      } catch (err: any) {
+        console.log("[v0] Rating failed:", err)
+        showMessage("error", err.message || "Rating failed")
+      }
+    },
+    [user.id],
+  )
+
   const handleCloseDetail = useCallback(() => {
-    setShowDetail(false)
+    setSelectedHotspot(null)
   }, [])
 
-  // Find the hotspot user is currently checked into
   const currentCheckinHotspot = userCurrentCheckin ? hotspots.find((h) => h.id === userCurrentCheckin) : null
 
   return (
-    <div className="h-screen flex flex-col bg-cyber-black">
+    <div className="h-screen flex flex-col bg-cyber-black overflow-hidden">
       <Navbar user={user} />
 
-      {/* Toast Messages */}
       {error && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 bg-cyber-pink/20 border border-cyber-pink text-cyber-pink font-mono text-sm rounded max-w-md text-center">
           {error}
@@ -241,10 +290,10 @@ export function DashboardClient({
       )}
 
       {currentCheckinHotspot && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-3 px-4 py-3 bg-cyber-dark border-2 border-cyber-cyan rounded-lg shadow-[0_0_20px_rgba(0,255,255,0.3)]">
+        <div className="fixed bottom-20 md:bottom-4 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-3 px-4 py-3 bg-cyber-dark border-2 border-cyber-cyan rounded-lg shadow-[0_0_20px_rgba(0,255,255,0.3)]">
           <span className="w-3 h-3 bg-cyber-cyan rounded-full animate-pulse" />
           <span className="text-cyber-light font-mono text-sm">
-            You're at <span className="text-cyber-cyan font-bold">{currentCheckinHotspot.name}</span>
+            At <span className="text-cyber-cyan font-bold">{currentCheckinHotspot.name}</span>
           </span>
           <button
             onClick={handleCheckOut}
@@ -257,48 +306,39 @@ export function DashboardClient({
       )}
 
       <div className="flex-1 flex pt-16 relative overflow-hidden">
-        {/* Mobile controls */}
-        <div className="md:hidden absolute top-2 left-2 z-30 flex gap-2">
+        <div className="md:hidden fixed top-[72px] left-2 z-40 flex gap-2">
           <button
             onClick={() => {
               setSidebarOpen(!sidebarOpen)
-              if (!sidebarOpen) {
-                setFeedOpen(false)
-                setShowDetail(false)
-              }
+              if (!sidebarOpen) setFeedOpen(false)
             }}
-            className={`p-2 border font-mono text-xs rounded ${
+            className={`p-2.5 rounded-lg font-mono text-xs transition-all ${
               sidebarOpen
-                ? "bg-cyber-cyan/20 border-cyber-cyan text-cyber-cyan"
-                : "bg-cyber-dark border-cyber-gray text-cyber-light"
+                ? "bg-cyber-cyan text-cyber-black shadow-[0_0_15px_rgba(0,255,255,0.5)]"
+                : "bg-cyber-dark border border-cyber-gray text-cyber-light"
             }`}
           >
             {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
 
-        {/* Feed toggle */}
         <button
           onClick={() => {
             setFeedOpen(!feedOpen)
-            if (!feedOpen) {
-              setSidebarOpen(false)
-              setShowDetail(false)
-            }
+            if (!feedOpen) setSidebarOpen(false)
           }}
-          className={`md:hidden absolute top-2 right-2 z-30 p-2 border font-mono text-xs flex items-center gap-1 rounded ${
+          className={`md:hidden fixed top-[72px] right-2 z-40 p-2.5 rounded-lg font-mono text-xs flex items-center gap-1 transition-all ${
             feedOpen
-              ? "bg-cyber-pink/20 border-cyber-pink text-cyber-pink"
-              : "bg-cyber-dark border-cyber-gray text-cyber-cyan"
+              ? "bg-cyber-pink text-white shadow-[0_0_15px_rgba(255,0,110,0.5)]"
+              : "bg-cyber-dark border border-cyber-gray text-cyber-cyan"
           }`}
         >
           <Activity className="w-4 h-4" />
-          <span>FEED</span>
+          <span className="text-xs">FEED</span>
         </button>
 
-        {/* Sidebar */}
         <div
-          className={`absolute md:relative z-20 h-full w-80 bg-cyber-dark border-r border-cyber-gray transition-transform duration-300 ${
+          className={`fixed md:relative z-30 h-[calc(100%-4rem)] md:h-full w-full md:w-72 lg:w-80 bg-cyber-dark border-r border-cyber-gray transition-transform duration-300 ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
           }`}
         >
@@ -310,11 +350,13 @@ export function DashboardClient({
             averageRatings={averageRatings}
             userCurrentCheckin={userCurrentCheckin}
             onCheckIn={handleCheckIn}
+            onRate={handleRateHotspot}
+            userRatings={userRatings}
+            userReviews={userReviews}
             isLoading={isLoading}
           />
         </div>
 
-        {/* Map */}
         <div className="flex-1 relative">
           <MapView
             hotspots={hotspots}
@@ -326,12 +368,13 @@ export function DashboardClient({
             isLoading={isLoading}
           />
 
-          {selectedHotspot && showDetail && (
+          {selectedHotspot && (
             <HotspotDetail
               hotspot={selectedHotspot}
               activeCheckins={activeCheckins[selectedHotspot.id] || 0}
               averageRating={averageRatings[selectedHotspot.id] || 0}
               userRating={userRatings[selectedHotspot.id] || null}
+              userReview={userReviews[selectedHotspot.id] || null}
               isCheckedIn={userCurrentCheckin === selectedHotspot.id}
               onClose={handleCloseDetail}
               onCheckIn={() => handleCheckIn(selectedHotspot)}
@@ -340,46 +383,10 @@ export function DashboardClient({
               isLoading={isLoading}
             />
           )}
-
-          {selectedHotspot && !showDetail && (
-            <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-2">
-              <div className="px-3 py-1 bg-cyber-dark/90 border border-cyber-gray rounded text-cyber-light font-mono text-sm">
-                {selectedHotspot.name}
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setShowDetail(true)}
-                  className="px-4 py-2 bg-cyber-dark border border-cyber-cyan text-cyber-cyan font-mono text-sm rounded hover:bg-cyber-cyan/10 transition-colors"
-                >
-                  VIEW DETAILS
-                </button>
-                {userCurrentCheckin !== selectedHotspot.id ? (
-                  <button
-                    onClick={() => handleCheckIn(selectedHotspot)}
-                    disabled={isLoading}
-                    className="px-4 py-2 bg-cyber-cyan text-cyber-black font-mono text-sm font-bold rounded hover:bg-cyber-cyan/80 transition-colors shadow-[0_0_15px_rgba(0,255,255,0.5)] disabled:opacity-50 flex items-center gap-2"
-                  >
-                    <Zap className="w-4 h-4" />
-                    {isLoading ? "..." : "CHECK IN"}
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleCheckOut}
-                    disabled={isLoading}
-                    className="px-4 py-2 bg-cyber-pink text-white font-mono text-sm font-bold rounded hover:bg-cyber-pink/80 transition-colors flex items-center gap-2"
-                  >
-                    <Clock className="w-4 h-4" />
-                    {isLoading ? "..." : "CHECK OUT"}
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Activity Feed */}
         <div
-          className={`absolute md:relative right-0 z-20 h-full w-80 bg-cyber-dark border-l border-cyber-gray transition-transform duration-300 ${
+          className={`fixed md:relative right-0 z-30 h-[calc(100%-4rem)] md:h-full w-full md:w-72 lg:w-80 bg-cyber-dark border-l border-cyber-gray transition-transform duration-300 ${
             feedOpen ? "translate-x-0" : "translate-x-full md:translate-x-0"
           }`}
         >

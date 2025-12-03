@@ -35,6 +35,7 @@ export interface Rating {
   user_id: string
   hotspot_id: string
   rating: number
+  review?: string | null
   created_at: string
 }
 

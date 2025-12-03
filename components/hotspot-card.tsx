@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { MapPin, Users, ChevronRight } from "lucide-react"
+import { MapPin, Users, Star } from "lucide-react"
 import { StarRating } from "@/components/ui/star-rating"
 import type { Hotspot } from "@/lib/types"
 
@@ -14,7 +14,6 @@ interface HotspotCardProps {
 }
 
 const getHotspotImage = (hotspot: Hotspot): string => {
-  // Location-specific images for real Vasai-Virar hotspots
   const locationImages: Record<string, string> = {
     "Vasai Fort": "/vasai-fort.jpg",
     "Arnala Beach": "/arnala-beach.jpg",
@@ -28,12 +27,10 @@ const getHotspotImage = (hotspot: Hotspot): string => {
     "Tipsy Panda": "/tipsy-panda.jpg",
   }
 
-  // Check if we have a specific image for this location
   if (locationImages[hotspot.name]) {
     return locationImages[hotspot.name]
   }
 
-  // Fall back to category-based images
   const categoryImages: Record<string, string> = {
     cafe: "/cozy-cafe-interior-warm-lighting-coffee.jpg",
     park: "/beautiful-park-nature-greenery-trees.jpg",
@@ -74,62 +71,61 @@ export function HotspotCard({
   return (
     <div
       onClick={onClick}
-      className={`relative overflow-hidden rounded-lg cursor-pointer transition-all duration-300 group ${
+      className={`relative overflow-hidden rounded-lg cursor-pointer transition-all duration-300 bg-cyber-dark border ${
         isSelected
-          ? "ring-2 ring-cyber-cyan shadow-[0_0_20px_rgba(0,255,255,0.3)]"
-          : "hover:ring-1 hover:ring-cyber-cyan/50"
+          ? "border-cyber-cyan shadow-[0_0_20px_rgba(0,255,255,0.3)]"
+          : "border-cyber-gray hover:border-cyber-cyan/50"
       }`}
     >
-      {/* Background image */}
-      <div className="relative h-44 w-full">
-        <Image
-          src={imageUrl || "/placeholder.svg"}
-          alt={hotspot.name}
-          fill
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
-        />
-        {/* Dark overlay gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-cyber-black via-cyber-black/60 to-transparent" />
+      {/* Image section */}
+      <div className="relative h-32 w-full">
+        <Image src={imageUrl || "/placeholder.svg"} alt={hotspot.name} fill className="object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-cyber-black to-transparent" />
 
-        {/* Category badge - top left */}
-        <div className="absolute top-3 left-3 z-10">
+        {/* Category badge */}
+        <div className="absolute top-2 left-2">
           <span
-            className={`px-2 py-1 text-xs font-mono font-bold uppercase rounded ${getCategoryColor(hotspot.category)}`}
+            className={`px-2 py-0.5 text-xs font-mono font-bold uppercase rounded ${getCategoryColor(hotspot.category)}`}
           >
             {hotspot.category}
           </span>
         </div>
 
-        {/* Active users badge - top right */}
+        {/* Active users badge */}
         {activeCheckins > 0 && (
-          <div className="absolute top-3 right-3 z-10 flex items-center gap-1 px-2 py-1 bg-cyber-black/70 border border-cyber-cyan text-cyber-cyan text-xs font-mono rounded backdrop-blur-sm">
+          <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 bg-cyber-black/80 border border-cyber-cyan text-cyber-cyan text-xs font-mono rounded">
             <Users className="w-3 h-3" />
-            <span>{activeCheckins} here</span>
+            <span>{activeCheckins}</span>
           </div>
         )}
+      </div>
 
-        {/* Content overlay at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
-          <h3 className="font-mono text-lg font-bold text-cyber-light mb-1 truncate drop-shadow-lg">{hotspot.name}</h3>
+      {/* Content section */}
+      <div className="p-3">
+        <h3 className="font-mono text-base font-bold text-cyber-light mb-1 truncate">{hotspot.name}</h3>
 
-          <div className="flex items-center gap-1 text-cyber-gray/90 text-sm mb-2">
-            <MapPin className="w-3 h-3 flex-shrink-0" />
-            <span className="truncate">{hotspot.address}</span>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <StarRating rating={averageRating} size="sm" />
-              <span className="text-cyber-gray text-xs font-mono">
-                {averageRating > 0 ? averageRating.toFixed(1) : "No ratings"}
-              </span>
-            </div>
-            <div className="flex items-center gap-1 text-cyber-cyan text-xs font-mono opacity-0 group-hover:opacity-100 transition-opacity">
-              <span>TAP TO CHECK IN</span>
-              <ChevronRight className="w-3 h-3" />
-            </div>
-          </div>
+        <div className="flex items-center gap-1 text-cyber-gray text-xs mb-2">
+          <MapPin className="w-3 h-3 flex-shrink-0" />
+          <span className="truncate">{hotspot.address}</span>
         </div>
+
+        {/* Rating display */}
+        <div className="flex items-center gap-2">
+          {averageRating > 0 ? (
+            <>
+              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+              <span className="text-yellow-400 text-sm font-mono font-bold">{averageRating.toFixed(1)}</span>
+              <StarRating rating={averageRating} size="sm" />
+            </>
+          ) : (
+            <span className="text-cyber-gray text-xs font-mono">No ratings yet</span>
+          )}
+        </div>
+      </div>
+
+      {/* Tap indicator for mobile */}
+      <div className="absolute bottom-2 right-2 px-2 py-1 bg-cyber-cyan/20 border border-cyber-cyan/50 rounded text-cyber-cyan text-xs font-mono">
+        Tap for details
       </div>
     </div>
   )
