@@ -21,8 +21,18 @@ export default async function ProfilePage() {
     redirect("/auth/login")
   }
 
-  // Get profile
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+  // Get profile - use maybeSingle to handle case where profile doesn't exist
+  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle()
+
+  // If profile doesn't exist, create one
+  if (!profile) {
+    const username = user.email?.split("@")[0] || `user_${user.id.slice(0, 8)}`
+    await supabase.from("profiles").insert({
+      id: user.id,
+      username: username,
+      avatar_url: null,
+    })
+  }
 
   // Get check-in history
   const { data: checkIns } = await supabase

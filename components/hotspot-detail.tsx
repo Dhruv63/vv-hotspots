@@ -3,7 +3,6 @@
 import { useState } from "react"
 import Image from "next/image"
 import { X, MapPin, Users, Navigation, Clock, Zap } from "lucide-react"
-import { CyberButton } from "@/components/ui/cyber-button"
 import { StarRating } from "@/components/ui/star-rating"
 import type { Hotspot } from "@/lib/types"
 
@@ -95,6 +94,16 @@ export function HotspotDetail({
 
   const imageUrl = getHotspotImage(hotspot)
 
+  const handleCheckInClick = () => {
+    console.log("[v0] Check-in button clicked in HotspotDetail for:", hotspot.name)
+    onCheckIn()
+  }
+
+  const handleCheckOutClick = () => {
+    console.log("[v0] Check-out button clicked in HotspotDetail for:", hotspot.name)
+    onCheckOut()
+  }
+
   return (
     <div className="absolute bottom-0 left-0 right-0 md:bottom-4 md:left-auto md:right-4 md:w-96 z-30 bg-cyber-dark border-t-2 md:border-2 border-cyber-cyan md:rounded-lg max-h-[85vh] overflow-y-auto shadow-[0_0_30px_rgba(0,255,255,0.3)]">
       {/* Glowing header bar */}
@@ -165,44 +174,49 @@ export function HotspotDetail({
           </div>
         </div>
 
-        {/* Check-in section - PROMINENT */}
-        <div className="space-y-3 p-3 bg-cyber-black/30 rounded-lg border border-cyber-gray/30">
+        <div className="space-y-3 p-4 bg-gradient-to-b from-cyber-cyan/10 to-cyber-black/30 rounded-lg border-2 border-cyber-cyan/50 shadow-[0_0_20px_rgba(0,255,255,0.2)]">
           {/* Current status indicator */}
           {isCheckedIn && (
-            <div className="flex items-center gap-2 p-2 bg-cyber-cyan/10 border border-cyber-cyan/30 rounded">
-              <span className="w-2 h-2 bg-cyber-cyan rounded-full animate-pulse" />
-              <span className="text-cyber-cyan text-sm font-mono">You are currently here</span>
+            <div className="flex items-center gap-2 p-2 bg-cyber-cyan/20 border border-cyber-cyan rounded">
+              <span className="w-3 h-3 bg-cyber-cyan rounded-full animate-pulse" />
+              <span className="text-cyber-cyan text-sm font-mono font-bold">YOU ARE HERE</span>
             </div>
           )}
 
-          <CyberButton
-            variant={isCheckedIn ? "pink" : "cyan"}
-            size="lg"
-            className={`w-full text-lg py-5 font-bold tracking-wider ${!isCheckedIn ? "animate-pulse" : ""}`}
-            glowing={!isCheckedIn}
-            onClick={isCheckedIn ? onCheckOut : onCheckIn}
+          <button
+            type="button"
+            onClick={isCheckedIn ? handleCheckOutClick : handleCheckInClick}
             disabled={isLoading}
+            className={`w-full py-4 px-6 font-mono font-bold text-lg tracking-wider rounded-lg transition-all duration-300 flex items-center justify-center gap-3 ${
+              isLoading
+                ? "bg-cyber-gray/50 text-cyber-gray cursor-not-allowed"
+                : isCheckedIn
+                  ? "bg-cyber-pink text-white hover:bg-cyber-pink/80 shadow-[0_0_20px_rgba(255,0,110,0.5)]"
+                  : "bg-cyber-cyan text-cyber-black hover:bg-cyber-cyan/80 shadow-[0_0_30px_rgba(0,255,255,0.6)] animate-pulse"
+            }`}
           >
             {isLoading ? (
-              <span className="flex items-center justify-center gap-2">
+              <>
                 <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                 PROCESSING...
-              </span>
+              </>
             ) : isCheckedIn ? (
-              <span className="flex items-center justify-center gap-2">
-                <Clock className="w-5 h-5" />
+              <>
+                <Clock className="w-6 h-6" />
                 CHECK OUT
-              </span>
+              </>
             ) : (
-              <span className="flex items-center justify-center gap-2">
-                <Zap className="w-5 h-5" />
+              <>
+                <Zap className="w-6 h-6" />
                 CHECK IN HERE
-              </span>
+              </>
             )}
-          </CyberButton>
+          </button>
 
-          {!isCheckedIn && (
-            <p className="text-center text-cyber-gray text-xs font-mono">Let others know you&apos;re at this spot!</p>
+          {!isCheckedIn && !isLoading && (
+            <p className="text-center text-cyber-cyan/70 text-xs font-mono">
+              Tap to let others know you&apos;re at this spot!
+            </p>
           )}
         </div>
 

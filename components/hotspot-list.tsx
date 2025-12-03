@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Filter, List, Grid } from "lucide-react"
+import { Search, Filter, List, Grid, Zap } from "lucide-react"
 import { HotspotCard } from "@/components/hotspot-card"
 import { CyberButton } from "@/components/ui/cyber-button"
 import { Input } from "@/components/ui/input"
@@ -13,6 +13,9 @@ interface HotspotListProps {
   onHotspotSelect: (hotspot: Hotspot) => void
   activeCheckins: Record<string, number>
   averageRatings: Record<string, number>
+  userCurrentCheckin?: string | null
+  onCheckIn?: (hotspot: Hotspot) => void
+  isLoading?: boolean
 }
 
 const categories = [
@@ -30,6 +33,9 @@ export function HotspotList({
   onHotspotSelect,
   activeCheckins,
   averageRatings,
+  userCurrentCheckin,
+  onCheckIn,
+  isLoading,
 }: HotspotListProps) {
   const [search, setSearch] = useState("")
   const [category, setCategory] = useState("all")
@@ -97,16 +103,48 @@ export function HotspotList({
       {/* List */}
       <div className="flex-1 overflow-y-auto p-4">
         <div className={viewMode === "grid" ? "grid grid-cols-2 gap-4" : "space-y-4"}>
-          {filteredHotspots.map((hotspot) => (
-            <HotspotCard
-              key={hotspot.id}
-              hotspot={hotspot}
-              activeCheckins={activeCheckins[hotspot.id] || 0}
-              averageRating={averageRatings[hotspot.id] || 0}
-              onClick={() => onHotspotSelect(hotspot)}
-              isSelected={selectedHotspot?.id === hotspot.id}
-            />
-          ))}
+          {filteredHotspots.map((hotspot) => {
+            const isCheckedInHere = userCurrentCheckin === hotspot.id
+
+            return (
+              <div key={hotspot.id} className="relative">
+                <HotspotCard
+                  hotspot={hotspot}
+                  activeCheckins={activeCheckins[hotspot.id] || 0}
+                  averageRating={averageRatings[hotspot.id] || 0}
+                  onClick={() => onHotspotSelect(hotspot)}
+                  isSelected={selectedHotspot?.id === hotspot.id}
+                />
+                {onCheckIn && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      console.log("[v0] Quick check-in clicked for:", hotspot.name)
+                      onCheckIn(hotspot)
+                    }}
+                    disabled={isLoading}
+                    className={`absolute bottom-2 right-2 z-10 px-3 py-1.5 font-mono text-xs font-bold rounded transition-all flex items-center gap-1 ${
+                      isCheckedInHere
+                        ? "bg-cyber-pink text-white shadow-[0_0_10px_rgba(255,0,110,0.5)]"
+                        : "bg-cyber-cyan text-cyber-black hover:shadow-[0_0_15px_rgba(0,255,255,0.5)]"
+                    } disabled:opacity-50`}
+                  >
+                    {isCheckedInHere ? (
+                      <>
+                        <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                        HERE
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="w-3 h-3" />
+                        CHECK IN
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+            )
+          })}
         </div>
 
         {filteredHotspots.length === 0 && (
