@@ -54,6 +54,7 @@ export default async function DashboardPage() {
   const { data: recentCheckIns } = await supabase
     .from("check_ins")
     .select("id, user_id, hotspot_id, checked_in_at")
+    .eq("is_active", true)
     .order("checked_in_at", { ascending: false })
     .limit(50)
 
@@ -65,8 +66,8 @@ export default async function DashboardPage() {
     checked_in_at: string
     username: string | null
     avatar_url: string | null
-    hotspot_name: string | null
-    hotspot_category: string | null
+    hotspot_name: string
+    hotspot_category: string
   }> = []
 
   if (recentCheckIns && recentCheckIns.length > 0) {
@@ -93,8 +94,8 @@ export default async function DashboardPage() {
       checked_in_at: item.checked_in_at,
       username: profileMap[item.user_id]?.username || null,
       avatar_url: profileMap[item.user_id]?.avatar_url || null,
-      hotspot_name: hotspotMap[item.hotspot_id]?.name || null,
-      hotspot_category: hotspotMap[item.hotspot_id]?.category || null,
+      hotspot_name: hotspotMap[item.hotspot_id]?.name || "Unknown Hotspot",
+      hotspot_category: hotspotMap[item.hotspot_id]?.category || "other",
     }))
   }
 
