@@ -4,8 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { MapPin, Mail, Lock } from "lucide-react"
+import { MapPin, Mail, Lock, AlertTriangle } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { CyberButton } from "@/components/ui/cyber-button"
 import { CyberCard } from "@/components/ui/cyber-card"
@@ -17,7 +16,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -27,34 +25,31 @@ export default function LoginPage() {
     const supabase = createClient()
 
     try {
-      console.log("[v0] Attempting login for:", email)
-
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
-      console.log("[v0] Sign in response:", { data, error: signInError })
-
       if (signInError) {
-        console.log("[v0] Sign in error:", signInError.message)
+        if (signInError.message.includes("Invalid login")) {
+          throw new Error("Invalid email or password. Please try again.")
+        }
+        if (signInError.message.includes("Email not confirmed")) {
+          throw new Error("Please verify your email before logging in.")
+        }
         throw signInError
       }
 
       if (!data.session) {
-        console.log("[v0] No session returned")
         throw new Error("No session returned. Please try again.")
       }
 
-      console.log("[v0] Login successful, session established")
-
-      await new Promise((resolve) => setTimeout(resolve, 100))
+      await new Promise((resolve) => setTimeout(resolve, 200))
 
       // Force a hard navigation to ensure middleware runs
       window.location.href = "/dashboard"
     } catch (err) {
-      console.log("[v0] Login error:", err)
-      setError(err instanceof Error ? err.message : "Login failed")
+      setError(err instanceof Error ? err.message : "Login failed. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -106,7 +101,8 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="pl-10 bg-cyber-black border-cyber-gray text-cyber-light placeholder:text-cyber-gray/50 focus:border-cyber-cyan"
+                  disabled={isLoading}
+                  className="pl-10 bg-cyber-black border-cyber-gray text-cyber-light placeholder:text-cyber-gray/50 focus:border-cyber-cyan disabled:opacity-50"
                 />
               </div>
             </div>
@@ -124,14 +120,16 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="pl-10 bg-cyber-black border-cyber-gray text-cyber-light placeholder:text-cyber-gray/50 focus:border-cyber-cyan"
+                  disabled={isLoading}
+                  className="pl-10 bg-cyber-black border-cyber-gray text-cyber-light placeholder:text-cyber-gray/50 focus:border-cyber-cyan disabled:opacity-50"
                 />
               </div>
             </div>
 
             {error && (
-              <div className="p-3 bg-cyber-pink/10 border border-cyber-pink text-cyber-pink text-sm font-mono">
-                {error}
+              <div className="p-3 bg-cyber-pink/10 border border-cyber-pink text-cyber-pink text-sm font-mono flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <span>{error}</span>
               </div>
             )}
 

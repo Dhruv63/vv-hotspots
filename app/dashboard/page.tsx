@@ -2,6 +2,9 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { DashboardClient } from "./dashboard-client"
 
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 export default async function DashboardPage() {
   const supabase = await createClient()
 
@@ -17,13 +20,12 @@ export default async function DashboardPage() {
   // Fetch hotspots
   const { data: hotspots, error: hotspotsError } = await supabase.from("hotspots").select("*").order("name")
 
-  // Fetch active check-ins (within last 2 hours)
-  const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+  const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
   const { data: activeCheckIns, error: checkinsError } = await supabase
     .from("check_ins")
-    .select("hotspot_id")
+    .select("hotspot_id, user_id")
     .eq("is_active", true)
-    .gte("checked_in_at", twoHoursAgo)
+    .gte("checked_in_at", fourHoursAgo)
 
   // Count active check-ins per hotspot
   const activeCheckinCounts: Record<string, number> = {}
@@ -46,14 +48,14 @@ export default async function DashboardPage() {
 
   const averageRatings: Record<string, number> = {}
   Object.entries(ratingTotals).forEach(([id, data]) => {
-    averageRatings[id] = data.sum / data.count
+    averageRatings[id] = Math.round((data.sum / data.count) * 10) / 10
   })
 
   const { data: recentCheckIns } = await supabase
     .from("check_ins")
     .select("id, user_id, hotspot_id, checked_in_at")
     .order("checked_in_at", { ascending: false })
-    .limit(20)
+    .limit(50)
 
   // Build activity feed by fetching profiles and hotspots data separately
   let activityFeed: Array<{
@@ -101,7 +103,9 @@ export default async function DashboardPage() {
     .select("hotspot_id")
     .eq("user_id", user.id)
     .eq("is_active", true)
-    .gte("checked_in_at", twoHoursAgo)
+    .gte("checked_in_at", fourHoursAgo)
+    .order("checked_in_at", { ascending: false })
+    .limit(1)
     .maybeSingle()
 
   const { data: userRatings } = await supabase
@@ -118,7 +122,8 @@ export default async function DashboardPage() {
     }
   })
 
-  const initError = hotspotsError ? "Failed to load hotspots. Please refresh the page." : null
+  const errors = [hotspotsError, checkinsError, ratingsError].filter(Boolean)
+  const initError = errors.length > 0 ? "Failed to load some data. Please refresh the page." : null
 
   return (
     <DashboardClient

@@ -14,6 +14,15 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
   const [activities, setActivities] = useState<ActivityFeedItem[]>(initialActivities)
   const [isConnected, setIsConnected] = useState(false)
   const [newActivityId, setNewActivityId] = useState<string | null>(null)
+  const [, setTick] = useState(0)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick((t) => t + 1)
+    }, 60000) // Update every minute
+
+    return () => clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     const supabase = createClient()
@@ -29,31 +38,40 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
           filter: "is_active=eq.true",
         },
         async (payload) => {
-          const { data: profileData } = await supabase
-            .from("profiles")
-            .select("username, avatar_url")
-            .eq("id", payload.new.user_id)
-            .maybeSingle()
+          try {
+            const { data: profileData } = await supabase
+              .from("profiles")
+              .select("username, avatar_url")
+              .eq("id", payload.new.user_id)
+              .maybeSingle()
 
-          const { data: hotspotData } = await supabase
-            .from("hotspots")
-            .select("name, category")
-            .eq("id", payload.new.hotspot_id)
-            .maybeSingle()
+            const { data: hotspotData } = await supabase
+              .from("hotspots")
+              .select("name, category")
+              .eq("id", payload.new.hotspot_id)
+              .maybeSingle()
 
-          if (hotspotData) {
-            const newActivity: ActivityFeedItem = {
-              id: payload.new.id,
-              username: profileData?.username || "Anonymous",
-              avatar_url: profileData?.avatar_url || null,
-              hotspot_name: hotspotData.name,
-              hotspot_category: hotspotData.category,
-              checked_in_at: payload.new.checked_in_at,
+            if (hotspotData) {
+              const newActivity: ActivityFeedItem = {
+                id: payload.new.id,
+                username: profileData?.username || "Anonymous",
+                avatar_url: profileData?.avatar_url || null,
+                hotspot_name: hotspotData.name,
+                hotspot_category: hotspotData.category,
+                checked_in_at: payload.new.checked_in_at,
+              }
+
+              setActivities((prev) => {
+                if (prev.some((a) => a.id === newActivity.id)) {
+                  return prev
+                }
+                return [newActivity, ...prev.slice(0, 49)]
+              })
+              setNewActivityId(payload.new.id)
+              setTimeout(() => setNewActivityId(null), 3000)
             }
-
-            setActivities((prev) => [newActivity, ...prev.slice(0, 19)])
-            setNewActivityId(payload.new.id)
-            setTimeout(() => setNewActivityId(null), 3000)
+          } catch (error) {
+            console.error("Error processing real-time check-in:", error)
           }
         },
       )
@@ -80,6 +98,18 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
         return "text-cyber-pink border-cyber-pink bg-cyber-pink/10"
       default:
         return "text-cyber-gray border-cyber-gray bg-cyber-gray/10"
+    }
+  }
+
+  const formatTimestamp = (timestamp: string) => {
+    try {
+      const date = new Date(timestamp)
+      if (isNaN(date.getTime())) {
+        return "recently"
+      }
+      return formatDistanceToNow(date, { addSuffix: true })
+    } catch {
+      return "recently"
     }
   }
 
@@ -116,7 +146,7 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
         </div>
       ) : (
         <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
-          {activities.map((activity, index) => (
+          {activities.map((activity) => (
             <div
               key={activity.id}
               className={`
@@ -136,13 +166,16 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
               )}
 
               <div className="flex items-start gap-3">
-                {/* Avatar - larger for touch */}
+                {/* Avatar */}
                 <div className="relative flex-shrink-0">
                   {activity.avatar_url ? (
                     <img
                       src={activity.avatar_url || "/placeholder.svg"}
                       alt={activity.username || "User"}
                       className="w-11 h-11 md:w-10 md:h-10 border-2 border-cyber-cyan object-cover rounded-full"
+                      onError={(e) => {
+                        ;(e.target as HTMLImageElement).style.display = "none"
+                      }}
                     />
                   ) : (
                     <div className="w-11 h-11 md:w-10 md:h-10 bg-gradient-to-br from-cyber-cyan/20 to-cyber-purple/20 border-2 border-cyber-cyan flex items-center justify-center rounded-full">
@@ -170,11 +203,7 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
                       {activity.hotspot_category}
                     </span>
 
-                    <span className="text-cyber-gray text-xs font-mono">
-                      {formatDistanceToNow(new Date(activity.checked_in_at), {
-                        addSuffix: true,
-                      })}
-                    </span>
+                    <span className="text-cyber-gray text-xs font-mono">{formatTimestamp(activity.checked_in_at)}</span>
                   </div>
                 </div>
               </div>
