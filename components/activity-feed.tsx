@@ -37,7 +37,7 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
           table: "check_ins",
           filter: "is_active=eq.true",
         },
-        async (payload) => {
+        async (payload: any) => {
           try {
             const { data: profileData } = await supabase
               .from("profiles")
@@ -54,6 +54,8 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
             if (hotspotData) {
               const newActivity: ActivityFeedItem = {
                 id: payload.new.id,
+                user_id: payload.new.user_id,
+                hotspot_id: payload.new.hotspot_id,
                 username: profileData?.username || "Anonymous",
                 avatar_url: profileData?.avatar_url || null,
                 hotspot_name: hotspotData.name,
@@ -75,7 +77,19 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
           }
         },
       )
-      .subscribe((status) => {
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "check_ins",
+          filter: "is_active=eq.false",
+        },
+        (payload: any) => {
+          setActivities((prev) => prev.filter((a) => a.id !== payload.new.id))
+        },
+      )
+      .subscribe((status: any) => {
         setIsConnected(status === "SUBSCRIBED")
       })
 
