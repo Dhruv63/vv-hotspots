@@ -11,6 +11,7 @@ import { Navbar } from "@/components/navbar"
 import { CyberCard } from "@/components/ui/cyber-card"
 import { CyberButton } from "@/components/ui/cyber-button"
 import { CategoryBadge } from "@/components/ui/category-badge"
+import { sanitizeUsername, sanitizeAvatarUrl, checkRateLimit, RATE_LIMITS } from "@/lib/security"
 import type { User as SupabaseUser } from "@supabase/supabase-js"
 
 interface ProfileClientProps {
@@ -39,8 +40,28 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
       : null
 
   const handleSaveProfile = async () => {
-    if (!editUsername.trim()) {
-      setError("Username cannot be empty")
+    const sanitizedUsername = sanitizeUsername(editUsername)
+    const sanitizedAvatarUrl = sanitizeAvatarUrl(editAvatarUrl)
+
+    if (!sanitizedUsername) {
+      setError("Username must contain only letters, numbers, underscores, or hyphens")
+      return
+    }
+
+    if (sanitizedUsername.length < 3) {
+      setError("Username must be at least 3 characters")
+      return
+    }
+
+    const rateCheck = checkRateLimit(RATE_LIMITS.profileUpdate)
+    if (!rateCheck.allowed) {
+      const seconds = Math.ceil(rateCheck.resetIn / 1000)
+      setError(`Too many updates. Please wait ${seconds} seconds.`)
+      return
+    }
+
+    if (editAvatarUrl.trim() && !sanitizedAvatarUrl) {
+      setError("Avatar URL must be a valid HTTPS URL")
       return
     }
 
@@ -51,8 +72,8 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
     const { data, error: updateError } = await supabase
       .from("profiles")
       .update({
-        username: editUsername.trim(),
-        avatar_url: editAvatarUrl.trim() || null,
+        username: sanitizedUsername,
+        avatar_url: sanitizedAvatarUrl || null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", user.id)
@@ -60,7 +81,11 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
       .single()
 
     if (updateError) {
-      setError(updateError.message)
+      if (updateError.message.includes("unique")) {
+        setError("This username is already taken")
+      } else {
+        setError(updateError.message)
+      }
       setIsSaving(false)
       return
     }

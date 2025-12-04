@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState, useCallback } from "react"
-import { Locate } from "lucide-react"
+import { Locate, Loader2, X } from "lucide-react"
 import type { Hotspot } from "@/lib/types"
 
 interface MapViewProps {
@@ -45,6 +45,7 @@ export function MapView({
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null)
   const [isLocating, setIsLocating] = useState(false)
   const [openPopupId, setOpenPopupId] = useState<string | null>(null)
+  const [mapError, setMapError] = useState<string | null>(null)
 
   const hotspotsRef = useRef(hotspots)
   const onCheckInRef = useRef(onCheckIn)
@@ -77,18 +78,23 @@ export function MapView({
     return () => document.removeEventListener("click", handlePopupClick, true)
   }, [])
 
-  // Load Leaflet dynamically
   useEffect(() => {
     const loadLeaflet = async () => {
-      const leaflet = await import("leaflet")
+      try {
+        const leaflet = await import("leaflet")
 
-      delete (leaflet.Icon.Default.prototype as any)._getIconUrl
-      leaflet.Icon.Default.mergeOptions({
-        iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-        iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-        shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-      })
-      setL(leaflet)
+        delete (leaflet.Icon.Default.prototype as any)._getIconUrl
+        leaflet.Icon.Default.mergeOptions({
+          iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
+          iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
+          shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+        })
+        setL(leaflet)
+        setMapError(null)
+      } catch (error) {
+        console.error("Failed to load map library:", error)
+        setMapError("Failed to load map. Please refresh the page.")
+      }
     }
     loadLeaflet()
   }, [])
@@ -223,7 +229,6 @@ export function MapView({
     )
   }, [])
 
-  // Initialize map
   useEffect(() => {
     if (!L || !mapContainerRef.current || mapRef.current) return
 
@@ -252,7 +257,6 @@ export function MapView({
     }
   }, [L])
 
-  // Add user location marker
   useEffect(() => {
     if (!isLoaded || !mapRef.current || !L || !userLocation) return
 
@@ -441,7 +445,6 @@ export function MapView({
           background: transparent !important;
           border: none !important;
         }
-        /* Fixed popup styling to prevent clipping */
         .cyber-popup {
           z-index: 1000 !important;
         }
@@ -500,11 +503,19 @@ export function MapView({
         .popup-checkin-btn:active {
           transform: scale(0.98);
         }
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+        .map-skeleton {
+          background: linear-gradient(90deg, #12121a 25%, #1a1a2e 50%, #12121a 75%);
+          background-size: 200% 100%;
+          animation: shimmer 1.5s infinite;
+        }
       `}</style>
 
       <div ref={mapContainerRef} className="w-full h-full" style={{ background: "#0a0a0f" }} />
 
-      {/* Category Legend */}
       <div className="absolute top-4 left-4 z-[50] bg-[#12121a]/95 border-2 border-cyan-500/50 rounded-lg p-3 hidden md:block">
         <div className="text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider font-bold">Categories</div>
         <div className="space-y-1.5">
@@ -520,26 +531,55 @@ export function MapView({
         </div>
       </div>
 
-      {/* Locate Me Button */}
       <button
         onClick={handleGetLocation}
         disabled={isLocating}
-        className="absolute bottom-20 right-4 z-[50] w-12 h-12 bg-[#12121a] border-2 border-cyan-400 rounded-full flex items-center justify-center transition-all hover:bg-cyan-400/20 disabled:opacity-50"
+        className="absolute bottom-20 right-4 z-[50] w-12 h-12 bg-[#12121a] border-2 border-cyan-400 rounded-full flex items-center justify-center transition-all hover:bg-cyan-400/20 disabled:opacity-50 min-w-[48px] min-h-[48px]"
         title="Find my location"
       >
         {isLocating ? (
-          <div className="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+          <Loader2 className="w-5 h-5 text-cyan-400 animate-spin" />
         ) : (
           <Locate className="w-5 h-5 text-cyan-400" />
         )}
       </button>
 
-      {/* Loading Overlay */}
-      {(!isLoaded || isLoading) && (
-        <div className="absolute inset-0 bg-[#0a0a0f]/90 flex items-center justify-center z-[60]">
-          <div className="text-center">
-            <div className="w-12 h-12 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-cyan-400 font-mono text-sm">LOADING MAP...</p>
+      {!isLoaded && !mapError && (
+        <div className="absolute inset-0 z-[60] flex flex-col">
+          <div className="flex-1 map-skeleton" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center bg-[#0a0a0f]/80 p-6 rounded-lg border border-cyber-cyan/30">
+              <Loader2 className="w-10 h-10 text-cyber-cyan animate-spin mx-auto mb-3" />
+              <p className="text-cyber-cyan font-mono text-sm">LOADING MAP...</p>
+              <p className="text-cyber-gray font-mono text-xs mt-1">Preparing hotspots</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {mapError && (
+        <div className="absolute inset-0 z-[60] flex items-center justify-center bg-[#0a0a0f]">
+          <div className="text-center p-6">
+            <div className="w-16 h-16 rounded-full bg-cyber-pink/20 flex items-center justify-center mx-auto mb-4">
+              <X className="w-8 h-8 text-cyber-pink" />
+            </div>
+            <p className="text-cyber-pink font-mono text-lg mb-2">Map Failed to Load</p>
+            <p className="text-cyber-gray font-mono text-sm mb-4">{mapError}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-cyber-cyan text-cyber-black font-mono font-bold rounded-lg hover:bg-cyber-cyan/80 transition-colors"
+            >
+              Refresh Page
+            </button>
+          </div>
+        </div>
+      )}
+
+      {isLoading && isLoaded && (
+        <div className="absolute inset-0 z-[55] bg-[#0a0a0f]/50 flex items-center justify-center pointer-events-none">
+          <div className="bg-[#12121a] border border-cyber-cyan rounded-lg p-4 flex items-center gap-3">
+            <Loader2 className="w-5 h-5 text-cyber-cyan animate-spin" />
+            <span className="text-cyber-cyan font-mono text-sm">Processing...</span>
           </div>
         </div>
       )}

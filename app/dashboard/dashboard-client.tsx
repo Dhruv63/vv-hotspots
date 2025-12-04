@@ -2,13 +2,14 @@
 
 import { useState, useCallback, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Menu, X, Activity } from "lucide-react"
+import { Menu, X, Activity, WifiOff, RefreshCw, AlertTriangle, Clock } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { Navbar } from "@/components/navbar"
 import { MapView } from "@/components/map-view"
 import { HotspotList } from "@/components/hotspot-list"
 import { HotspotDetail } from "@/components/hotspot-detail"
 import { ActivityFeed } from "@/components/activity-feed"
+import { sanitizeInput, checkRateLimit, RATE_LIMITS } from "@/lib/security"
 import type { Hotspot, ActivityFeedItem } from "@/lib/types"
 import type { User } from "@supabase/supabase-js"
 
@@ -21,6 +22,7 @@ interface DashboardClientProps {
   userCurrentCheckin: string | null
   userRatings: Record<string, number>
   userReviews: Record<string, string>
+  initError?: string | null // Added init error prop
 }
 
 export function DashboardClient({
@@ -32,14 +34,18 @@ export function DashboardClient({
   userCurrentCheckin: initialUserCheckin,
   userRatings: initialUserRatings,
   userReviews: initialUserReviews,
+  initError, // Accept init error
 }: DashboardClientProps) {
   const router = useRouter()
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null)
   const [drawerOpen, setDrawerOpen] = useState<"hotspots" | "feed" | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(initError || null) // Initialize with server error
   const [success, setSuccess] = useState<string | null>(null)
   const [mobileCategory, setMobileCategory] = useState("all")
+  const [isOffline, setIsOffline] = useState(false)
+  const [processingAction, setProcessingAction] = useState<string | null>(null)
+  const [rateLimitCooldown, setRateLimitCooldown] = useState<number>(0)
 
   const [activeCheckins, setActiveCheckins] = useState(initialActiveCheckins)
   const [averageRatings, setAverageRatings] = useState(initialAverageRatings)
@@ -50,11 +56,35 @@ export function DashboardClient({
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
+    const handleOnline = () => setIsOffline(false)
+    const handleOffline = () => setIsOffline(true)
+
+    // Check initial state
+    setIsOffline(!navigator.onLine)
+
+    window.addEventListener("online", handleOnline)
+    window.addEventListener("offline", handleOffline)
+    return () => {
+      window.removeEventListener("online", handleOnline)
+      window.removeEventListener("offline", handleOffline)
+    }
+  }, [])
+
+  useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768)
     checkMobile()
     window.addEventListener("resize", checkMobile)
     return () => window.removeEventListener("resize", checkMobile)
   }, [])
+
+  useEffect(() => {
+    if (rateLimitCooldown > 0) {
+      const timer = setInterval(() => {
+        setRateLimitCooldown((prev) => Math.max(0, prev - 1000))
+      }, 1000)
+      return () => clearInterval(timer)
+    }
+  }, [rateLimitCooldown])
 
   const showMessage = (type: "error" | "success", message: string) => {
     if (type === "error") {
@@ -68,7 +98,7 @@ export function DashboardClient({
 
   const handleHotspotSelect = useCallback((hotspot: Hotspot) => {
     setSelectedHotspot(hotspot)
-    setDrawerOpen(null) // Close drawers when selecting
+    setDrawerOpen(null)
   }, [])
 
   const handleCheckIn = useCallback(
@@ -79,14 +109,34 @@ export function DashboardClient({
         return
       }
 
+      if (isOffline) {
+        showMessage("error", "You are offline. Please check your internet connection.")
+        return
+      }
+
+      if (processingAction === `checkin-${targetHotspot.id}`) {
+        return
+      }
+
+      const rateCheck = checkRateLimit(RATE_LIMITS.checkIn)
+      if (!rateCheck.allowed) {
+        const seconds = Math.ceil(rateCheck.resetIn / 1000)
+        setRateLimitCooldown(rateCheck.resetIn)
+        showMessage("error", `Too many check-ins. Please wait ${seconds} seconds.`)
+        return
+      }
+
       setIsLoading(true)
+      setProcessingAction(`checkin-${targetHotspot.id}`)
       setError(null)
       const supabase = createClient()
 
       try {
-        const { data: sessionData } = await supabase.auth.getSession()
-        if (!sessionData?.session) {
-          throw new Error("No active session. Please log in again.")
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+        if (sessionError || !sessionData?.session) {
+          showMessage("error", "Authentication required. Please sign in again.")
+          router.push("/auth/login")
+          return
         }
 
         if (userCurrentCheckin && userCurrentCheckin !== targetHotspot.id) {
@@ -117,18 +167,29 @@ export function DashboardClient({
         showMessage("success", `Checked in to ${targetHotspot.name}!`)
         router.refresh()
       } catch (err: any) {
-        showMessage("error", err.message || "Check-in failed")
+        showMessage("error", err.message || "Check-in failed. Please try again.")
       } finally {
         setIsLoading(false)
+        setProcessingAction(null)
       }
     },
-    [selectedHotspot, user.id, userCurrentCheckin, router],
+    [selectedHotspot, user.id, userCurrentCheckin, router, isOffline, processingAction],
   )
 
   const handleCheckOut = useCallback(async () => {
     if (!userCurrentCheckin) return
 
+    if (isOffline) {
+      showMessage("error", "You are offline. Please check your internet connection.")
+      return
+    }
+
+    if (processingAction === "checkout") {
+      return
+    }
+
     setIsLoading(true)
+    setProcessingAction("checkout")
     const supabase = createClient()
 
     try {
@@ -149,19 +210,32 @@ export function DashboardClient({
       showMessage("success", `Checked out from ${checkedOutHotspot?.name || "location"}`)
       router.refresh()
     } catch (err: any) {
-      showMessage("error", err.message || "Check-out failed")
+      showMessage("error", err.message || "Check-out failed. Please try again.")
     } finally {
       setIsLoading(false)
+      setProcessingAction(null)
     }
-  }, [user.id, userCurrentCheckin, hotspots, router])
+  }, [user.id, userCurrentCheckin, hotspots, router, isOffline, processingAction])
 
   const handleRate = useCallback(
     async (rating: number): Promise<void> => {
       if (!selectedHotspot) return
 
+      if (isOffline) {
+        showMessage("error", "You are offline. Please check your internet connection.")
+        throw new Error("Offline")
+      }
+
       const supabase = createClient()
 
       try {
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+        if (sessionError || !sessionData?.session) {
+          showMessage("error", "Authentication required. Please sign in again.")
+          router.push("/auth/login")
+          throw new Error("Not authenticated")
+        }
+
         const { error: rateError } = await supabase.from("ratings").upsert(
           {
             user_id: user.id,
@@ -184,24 +258,48 @@ export function DashboardClient({
 
         showMessage("success", `Rated ${selectedHotspot.name} ${rating} stars!`)
       } catch (err: any) {
-        showMessage("error", err.message || "Rating failed")
+        if (err.message !== "Offline" && err.message !== "Not authenticated") {
+          showMessage("error", err.message || "Rating failed. Please try again.")
+        }
         throw err
       }
     },
-    [selectedHotspot, user.id],
+    [selectedHotspot, user.id, isOffline, router],
   )
 
   const handleRateHotspot = useCallback(
     async (hotspot: Hotspot, rating: number, review?: string): Promise<void> => {
+      if (isOffline) {
+        showMessage("error", "You are offline. Please check your internet connection.")
+        return
+      }
+
+      const rateCheck = checkRateLimit(RATE_LIMITS.rating)
+      if (!rateCheck.allowed) {
+        const seconds = Math.ceil(rateCheck.resetIn / 1000)
+        setRateLimitCooldown(rateCheck.resetIn)
+        showMessage("error", `Too many ratings. Please wait ${seconds} seconds.`)
+        return
+      }
+
       const supabase = createClient()
 
       try {
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+        if (sessionError || !sessionData?.session) {
+          showMessage("error", "Authentication required. Please sign in again.")
+          router.push("/auth/login")
+          return
+        }
+
+        const sanitizedReview = review ? sanitizeInput(review) : null
+
         const { error: rateError } = await supabase.from("ratings").upsert(
           {
             user_id: user.id,
             hotspot_id: hotspot.id,
             rating,
-            review: review || null,
+            review: sanitizedReview,
           },
           { onConflict: "user_id,hotspot_id" },
         )
@@ -209,8 +307,8 @@ export function DashboardClient({
         if (rateError) throw rateError
 
         setUserRatings((prev) => ({ ...prev, [hotspot.id]: rating }))
-        if (review) {
-          setUserReviews((prev) => ({ ...prev, [hotspot.id]: review }))
+        if (sanitizedReview) {
+          setUserReviews((prev) => ({ ...prev, [hotspot.id]: sanitizedReview }))
         }
 
         const { data: avgData } = await supabase.from("ratings").select("rating").eq("hotspot_id", hotspot.id)
@@ -222,15 +320,19 @@ export function DashboardClient({
 
         showMessage("success", `Rated ${hotspot.name} ${rating} stars!`)
       } catch (err: any) {
-        showMessage("error", err.message || "Rating failed")
+        showMessage("error", err.message || "Rating failed. Please try again.")
       }
     },
-    [user.id],
+    [user.id, isOffline, router],
   )
 
   const handleCloseDetail = useCallback(() => {
     setSelectedHotspot(null)
   }, [])
+
+  const handleRetry = useCallback(() => {
+    router.refresh()
+  }, [router])
 
   const currentCheckinHotspot = userCurrentCheckin ? hotspots.find((h) => h.id === userCurrentCheckin) : null
 
@@ -250,15 +352,43 @@ export function DashboardClient({
     <div className="h-screen flex flex-col bg-cyber-black overflow-hidden">
       <Navbar user={user} />
 
-      {/* Toast messages */}
+      {isOffline && (
+        <div className="fixed top-16 left-0 right-0 z-[300] bg-yellow-500/90 text-cyber-black py-2 px-4 flex items-center justify-center gap-2 font-mono text-sm">
+          <WifiOff className="w-4 h-4" />
+          <span>You are offline. Some features may not work.</span>
+        </div>
+      )}
+
+      {rateLimitCooldown > 0 && (
+        <div className="fixed top-16 left-0 right-0 z-[300] bg-cyber-pink/90 text-white py-2 px-4 flex items-center justify-center gap-2 font-mono text-sm">
+          <Clock className="w-4 h-4" />
+          <span>Rate limited. Please wait {Math.ceil(rateLimitCooldown / 1000)}s</span>
+        </div>
+      )}
+
       {error && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 bg-cyber-pink/20 border border-cyber-pink text-cyber-pink font-mono text-sm rounded max-w-[90vw] text-center">
-          {error}
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 bg-cyber-pink/20 border border-cyber-pink text-cyber-pink font-mono text-sm rounded max-w-[90vw] text-center flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+          <span>{error}</span>
+          {initError && (
+            <button onClick={handleRetry} className="ml-2 p-1 hover:bg-cyber-pink/20 rounded">
+              <RefreshCw className="w-4 h-4" />
+            </button>
+          )}
         </div>
       )}
       {success && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 bg-cyber-cyan/20 border border-cyber-cyan text-cyber-cyan font-mono text-sm rounded max-w-[90vw] text-center">
           {success}
+        </div>
+      )}
+
+      {hotspots.length === 0 && !initError && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-cyber-black/95">
+          <div className="text-center p-8">
+            <div className="w-16 h-16 border-4 border-cyber-cyan border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-cyber-cyan font-mono text-lg">Loading hotspots...</p>
+          </div>
         </div>
       )}
 
@@ -270,10 +400,14 @@ export function DashboardClient({
           </span>
           <button
             onClick={handleCheckOut}
-            disabled={isLoading}
-            className="ml-2 px-3 py-2 bg-cyber-pink text-white font-mono text-xs font-bold rounded hover:bg-cyber-pink/80 transition-colors disabled:opacity-50 min-h-[44px] min-w-[80px]"
+            disabled={isLoading || processingAction === "checkout"}
+            className="ml-2 px-3 py-2 bg-cyber-pink text-white font-mono text-xs font-bold rounded hover:bg-cyber-pink/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] min-w-[80px] flex items-center justify-center"
           >
-            {isLoading ? "..." : "CHECK OUT"}
+            {processingAction === "checkout" ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              "CHECK OUT"
+            )}
           </button>
         </div>
       )}
@@ -392,7 +526,6 @@ export function DashboardClient({
           </div>
         </div>
 
-        {/* Hotspot detail modal */}
         {selectedHotspot && (
           <HotspotDetail
             hotspot={selectedHotspot}
@@ -405,7 +538,7 @@ export function DashboardClient({
             onCheckIn={() => handleCheckIn(selectedHotspot)}
             onCheckOut={handleCheckOut}
             onRate={handleRate}
-            isLoading={isLoading}
+            isLoading={isLoading || processingAction !== null}
           />
         )}
 

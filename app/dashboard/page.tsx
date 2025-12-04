@@ -15,11 +15,11 @@ export default async function DashboardPage() {
   }
 
   // Fetch hotspots
-  const { data: hotspots } = await supabase.from("hotspots").select("*").order("name")
+  const { data: hotspots, error: hotspotsError } = await supabase.from("hotspots").select("*").order("name")
 
   // Fetch active check-ins (within last 2 hours)
   const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
-  const { data: activeCheckIns } = await supabase
+  const { data: activeCheckIns, error: checkinsError } = await supabase
     .from("check_ins")
     .select("hotspot_id")
     .eq("is_active", true)
@@ -32,7 +32,7 @@ export default async function DashboardPage() {
   })
 
   // Fetch average ratings
-  const { data: ratings } = await supabase.from("ratings").select("hotspot_id, rating")
+  const { data: ratings, error: ratingsError } = await supabase.from("ratings").select("hotspot_id, rating")
 
   // Calculate average ratings per hotspot
   const ratingTotals: Record<string, { sum: number; count: number }> = {}
@@ -68,17 +68,12 @@ export default async function DashboardPage() {
   }> = []
 
   if (recentCheckIns && recentCheckIns.length > 0) {
-    // Get unique user IDs and hotspot IDs
     const userIds = [...new Set(recentCheckIns.map((c) => c.user_id))]
     const hotspotIds = [...new Set(recentCheckIns.map((c) => c.hotspot_id))]
 
-    // Fetch profiles for these users
     const { data: profiles } = await supabase.from("profiles").select("id, username, avatar_url").in("id", userIds)
-
-    // Fetch hotspots for these check-ins
     const { data: hotspotData } = await supabase.from("hotspots").select("id, name, category").in("id", hotspotIds)
 
-    // Create lookup maps
     const profileMap: Record<string, { username: string | null; avatar_url: string | null }> = {}
     profiles?.forEach((p) => {
       profileMap[p.id] = { username: p.username, avatar_url: p.avatar_url }
@@ -89,7 +84,6 @@ export default async function DashboardPage() {
       hotspotMap[h.id] = { name: h.name, category: h.category }
     })
 
-    // Merge data
     activityFeed = recentCheckIns.map((item) => ({
       id: item.id,
       user_id: item.user_id,
@@ -102,7 +96,6 @@ export default async function DashboardPage() {
     }))
   }
 
-  // Get user's current check-in
   const { data: userCheckin } = await supabase
     .from("check_ins")
     .select("hotspot_id")
@@ -111,7 +104,6 @@ export default async function DashboardPage() {
     .gte("checked_in_at", twoHoursAgo)
     .maybeSingle()
 
-  // Get user's ratings
   const { data: userRatings } = await supabase
     .from("ratings")
     .select("hotspot_id, rating, review")
@@ -126,6 +118,8 @@ export default async function DashboardPage() {
     }
   })
 
+  const initError = hotspotsError ? "Failed to load hotspots. Please refresh the page." : null
+
   return (
     <DashboardClient
       user={user}
@@ -136,6 +130,7 @@ export default async function DashboardPage() {
       userCurrentCheckin={userCheckin?.hotspot_id || null}
       userRatings={userRatingsMap}
       userReviews={userReviewsMap}
+      initError={initError}
     />
   )
 }

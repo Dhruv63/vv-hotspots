@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { X, MapPin, Users, Navigation, Clock, Zap, Star, MessageSquare } from "lucide-react"
+import { X, MapPin, Users, Navigation, Clock, Zap, Star, MessageSquare, Loader2 } from "lucide-react"
 import { StarRating } from "@/components/ui/star-rating"
 import type { Hotspot } from "@/lib/types"
 
@@ -83,16 +83,14 @@ export function HotspotDetail({
   const [ratingSuccess, setRatingSuccess] = useState(false)
 
   const handleRating = async (rating: number) => {
-    console.log("[v0] Star clicked in HotspotDetail, rating:", rating)
     setIsRating(true)
     setRatingSuccess(false)
     try {
       await onRate(rating)
-      console.log("[v0] Rating completed successfully")
       setRatingSuccess(true)
       setTimeout(() => setRatingSuccess(false), 2000)
     } catch (err) {
-      console.log("[v0] Rating failed in HotspotDetail:", err)
+      // Error handled by parent
     } finally {
       setIsRating(false)
     }
@@ -121,7 +119,8 @@ export function HotspotDetail({
         {/* Close button - larger touch target */}
         <button
           onClick={onClose}
-          className="absolute top-4 md:top-4 right-3 z-10 p-3 bg-cyber-black/80 border border-cyber-gray text-cyber-gray hover:text-cyber-light hover:border-cyber-cyan transition-colors rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center"
+          disabled={isLoading}
+          className="absolute top-4 md:top-4 right-3 z-10 p-3 bg-cyber-black/80 border border-cyber-gray text-cyber-gray hover:text-cyber-light hover:border-cyber-cyan transition-colors rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center disabled:opacity-50"
         >
           <X className="w-5 h-5" />
         </button>
@@ -208,7 +207,7 @@ export function HotspotDetail({
             >
               {isLoading ? (
                 <>
-                  <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  <Loader2 className="w-5 h-5 animate-spin" />
                   PROCESSING...
                 </>
               ) : isCheckedIn ? (
@@ -269,11 +268,16 @@ export function HotspotDetail({
               <div className="relative">
                 {isRating ? (
                   <div className="flex items-center justify-center py-4">
-                    <span className="w-6 h-6 border-2 border-cyber-cyan border-t-transparent rounded-full animate-spin" />
+                    <Loader2 className="w-6 h-6 text-cyber-cyan animate-spin" />
                     <span className="ml-2 text-cyber-cyan font-mono text-sm">Saving...</span>
                   </div>
                 ) : (
-                  <StarRating rating={userRating ?? 0} size="lg" interactive={true} onRatingChange={handleRating} />
+                  <StarRating
+                    rating={userRating ?? 0}
+                    size="lg"
+                    interactive={!isLoading}
+                    onRatingChange={handleRating}
+                  />
                 )}
               </div>
             </div>

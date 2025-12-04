@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Filter, List, Grid, Zap, Star, X, MessageSquare } from "lucide-react"
+import { Search, Filter, List, Grid, Zap, Star, X, MessageSquare, Loader2 } from "lucide-react"
 import { HotspotCard } from "@/components/hotspot-card"
 import { CyberButton } from "@/components/ui/cyber-button"
 import { Input } from "@/components/ui/input"
@@ -49,6 +49,8 @@ export function HotspotList({
   const [ratingHotspot, setRatingHotspot] = useState<Hotspot | null>(null)
   const [pendingRating, setPendingRating] = useState<number>(0)
   const [pendingReview, setPendingReview] = useState<string>("")
+  const [isSubmittingRating, setIsSubmittingRating] = useState(false)
+  const [checkingInHotspotId, setCheckingInHotspotId] = useState<string | null>(null)
 
   const filteredHotspots = hotspots.filter((hotspot) => {
     const matchesSearch =
@@ -59,25 +61,37 @@ export function HotspotList({
   })
 
   const handleStarClick = (rating: number) => {
-    console.log("[v0] Star clicked in modal:", rating)
     setPendingRating(rating)
   }
 
-  const handleSubmitRating = () => {
+  const handleSubmitRating = async () => {
     if (ratingHotspot && pendingRating > 0 && onRate) {
-      console.log("[v0] Submitting rating:", ratingHotspot.name, pendingRating, "stars", "review:", pendingReview)
-      onRate(ratingHotspot, pendingRating, pendingReview || undefined)
-      setRatingHotspot(null)
-      setPendingRating(0)
-      setPendingReview("")
+      setIsSubmittingRating(true)
+      try {
+        await onRate(ratingHotspot, pendingRating, pendingReview || undefined)
+        setRatingHotspot(null)
+        setPendingRating(0)
+        setPendingReview("")
+      } finally {
+        setIsSubmittingRating(false)
+      }
     }
   }
 
   const openRatingModal = (hotspot: Hotspot) => {
-    console.log("[v0] Opening rating modal for:", hotspot.name)
     setRatingHotspot(hotspot)
     setPendingRating(userRatings[hotspot.id] || 0)
     setPendingReview(userReviews[hotspot.id] || "")
+  }
+
+  const handleCheckInClick = async (hotspot: Hotspot) => {
+    if (!onCheckIn || isLoading || checkingInHotspotId) return
+    setCheckingInHotspotId(hotspot.id)
+    try {
+      await onCheckIn(hotspot)
+    } finally {
+      setCheckingInHotspotId(null)
+    }
   }
 
   return (
@@ -85,7 +99,7 @@ export function HotspotList({
       {ratingHotspot && (
         <div
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
-          onClick={() => setRatingHotspot(null)}
+          onClick={() => !isSubmittingRating && setRatingHotspot(null)}
         >
           <div
             className="relative w-full max-w-md bg-[#0a0a0f] border-2 border-cyber-purple rounded-xl p-6 shadow-[0_0_60px_rgba(183,0,255,0.5)] mx-4"
@@ -93,7 +107,8 @@ export function HotspotList({
           >
             <button
               onClick={() => setRatingHotspot(null)}
-              className="absolute top-3 right-3 text-cyber-gray hover:text-cyber-light p-1 z-10"
+              disabled={isSubmittingRating}
+              className="absolute top-3 right-3 text-cyber-gray hover:text-cyber-light p-1 z-10 disabled:opacity-50"
             >
               <X className="w-6 h-6" />
             </button>
@@ -106,7 +121,8 @@ export function HotspotList({
                 <button
                   key={star}
                   onClick={() => handleStarClick(star)}
-                  className="p-1 transition-transform hover:scale-125 active:scale-95"
+                  disabled={isSubmittingRating}
+                  className="p-1 transition-transform hover:scale-125 active:scale-95 disabled:opacity-50"
                 >
                   <Star
                     className={`w-10 h-10 sm:w-12 sm:h-12 transition-all ${
@@ -121,11 +137,11 @@ export function HotspotList({
 
             <p className="text-center text-cyber-light font-mono mb-4 text-lg">
               {pendingRating === 0 && "Tap a star to rate"}
-              {pendingRating === 1 && "😕 Poor"}
-              {pendingRating === 2 && "😐 Fair"}
-              {pendingRating === 3 && "👍 Good"}
-              {pendingRating === 4 && "🔥 Great"}
-              {pendingRating === 5 && "⭐ Amazing!"}
+              {pendingRating === 1 && "Poor"}
+              {pendingRating === 2 && "Fair"}
+              {pendingRating === 3 && "Good"}
+              {pendingRating === 4 && "Great"}
+              {pendingRating === 5 && "Amazing!"}
             </p>
 
             <div className="mb-4">
@@ -139,7 +155,8 @@ export function HotspotList({
                 placeholder="Share your experience..."
                 rows={3}
                 maxLength={500}
-                className="w-full bg-cyber-black border border-cyber-gray rounded-lg p-3 text-cyber-light font-mono text-sm placeholder:text-cyber-gray/50 focus:border-cyber-cyan focus:outline-none focus:ring-1 focus:ring-cyber-cyan resize-none"
+                disabled={isSubmittingRating}
+                className="w-full bg-cyber-black border border-cyber-gray rounded-lg p-3 text-cyber-light font-mono text-sm placeholder:text-cyber-gray/50 focus:border-cyber-cyan focus:outline-none focus:ring-1 focus:ring-cyber-cyan resize-none disabled:opacity-50"
               />
               <p className="text-cyber-gray/50 text-xs font-mono text-right mt-1">{pendingReview.length}/500</p>
             </div>
@@ -147,16 +164,24 @@ export function HotspotList({
             <div className="flex gap-3">
               <button
                 onClick={() => setRatingHotspot(null)}
-                className="flex-1 py-3 px-4 border border-cyber-gray text-cyber-gray font-mono text-sm rounded-lg hover:border-cyber-light hover:text-cyber-light transition-colors active:scale-95"
+                disabled={isSubmittingRating}
+                className="flex-1 py-3 px-4 border border-cyber-gray text-cyber-gray font-mono text-sm rounded-lg hover:border-cyber-light hover:text-cyber-light transition-colors active:scale-95 disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmitRating}
-                disabled={pendingRating === 0}
-                className="flex-1 py-3 px-4 bg-cyber-purple text-white font-mono text-sm font-bold rounded-lg hover:shadow-[0_0_20px_rgba(183,0,255,0.5)] disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
+                disabled={pendingRating === 0 || isSubmittingRating}
+                className="flex-1 py-3 px-4 bg-cyber-purple text-white font-mono text-sm font-bold rounded-lg hover:shadow-[0_0_20px_rgba(183,0,255,0.5)] disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 flex items-center justify-center gap-2"
               >
-                Submit Rating
+                {isSubmittingRating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Submit Rating"
+                )}
               </button>
             </div>
 
@@ -220,6 +245,7 @@ export function HotspotList({
           {filteredHotspots.map((hotspot) => {
             const isCheckedInHere = userCurrentCheckin === hotspot.id
             const userRating = userRatings[hotspot.id]
+            const isCheckingIn = checkingInHotspotId === hotspot.id
 
             return (
               <div key={hotspot.id}>
@@ -236,17 +262,22 @@ export function HotspotList({
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
-                        console.log("[v0] Check-in button clicked:", hotspot.name)
-                        onCheckIn(hotspot)
+                        handleCheckInClick(hotspot)
                       }}
-                      disabled={isLoading}
-                      className={`flex-1 py-3 px-3 font-mono text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${
+                      disabled={
+                        isLoading ||
+                        isCheckingIn ||
+                        (checkingInHotspotId !== null && checkingInHotspotId !== hotspot.id)
+                      }
+                      className={`flex-1 py-3 px-3 font-mono text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 min-h-[44px] ${
                         isCheckedInHere
                           ? "bg-cyber-pink text-white shadow-[0_0_15px_rgba(255,0,110,0.4)]"
                           : "bg-cyber-cyan text-cyber-black hover:shadow-[0_0_20px_rgba(0,255,255,0.5)]"
-                      } disabled:opacity-50 active:scale-95`}
+                      } disabled:opacity-50 disabled:cursor-not-allowed active:scale-95`}
                     >
-                      {isCheckedInHere ? (
+                      {isCheckingIn ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : isCheckedInHere ? (
                         <>
                           <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
                           YOU'RE HERE
@@ -266,11 +297,12 @@ export function HotspotList({
                         e.stopPropagation()
                         openRatingModal(hotspot)
                       }}
-                      className={`py-3 px-4 font-mono text-xs font-bold rounded-lg transition-all flex items-center gap-2 ${
+                      disabled={isLoading}
+                      className={`py-3 px-4 font-mono text-xs font-bold rounded-lg transition-all flex items-center gap-2 min-h-[44px] ${
                         userRating
                           ? "bg-yellow-400 text-cyber-black shadow-[0_0_15px_rgba(250,204,21,0.4)]"
                           : "bg-cyber-purple text-white hover:shadow-[0_0_15px_rgba(183,0,255,0.5)]"
-                      } active:scale-95`}
+                      } active:scale-95 disabled:opacity-50`}
                     >
                       <Star className={`w-4 h-4 ${userRating ? "fill-cyber-black" : ""}`} />
                       {userRating ? `${userRating}★` : "RATE"}
