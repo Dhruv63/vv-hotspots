@@ -192,7 +192,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                     className={`p-3 border rounded-lg transition-all ${
                       checkin.is_active
                         ? "border-cyber-cyan bg-cyber-cyan/10 shadow-[0_0_10px_rgba(0,255,255,0.2)]"
-                        : "border-cyber-gray/50 bg-cyber-black/50 hover:border-cyber-gray"
+                        : "border-cyber-gray/50 bg-cyber-black/50 hover:border-cyber-cyan hover:shadow-[0_0_10px_rgba(0,255,255,0.2)]"
                     }`}
                   >
                     <div className="flex items-start justify-between">
@@ -241,7 +241,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                 {ratings.map((rating: any) => (
                   <div
                     key={rating.id}
-                    className="p-3 border border-cyber-gray/50 bg-cyber-black/50 rounded-lg hover:border-cyber-purple/50 transition-all"
+                    className="p-3 border border-cyber-gray/50 bg-cyber-black/50 rounded-lg hover:border-cyber-purple hover:shadow-[0_0_10px_rgba(183,0,255,0.3)] transition-all"
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div>

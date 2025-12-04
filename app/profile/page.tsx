@@ -43,7 +43,6 @@ export default async function ProfilePage() {
     `)
     .eq("user_id", user.id)
     .order("checked_in_at", { ascending: false })
-    .limit(50)
 
   // Get user's ratings with reviews
   const { data: ratings } = await supabase
