@@ -4,6 +4,7 @@ import { useState } from "react"
 import Image from "next/image"
 import { X, MapPin, Users, Navigation, Clock, Zap, Star, MessageSquare, Loader2 } from "lucide-react"
 import { StarRating } from "@/components/ui/star-rating"
+import { ActiveUsersList } from "@/components/active-users-list"
 import type { Hotspot } from "@/lib/types"
 
 interface HotspotDetailProps {
@@ -183,6 +184,8 @@ export function HotspotDetail({
               </span>
             </div>
           </div>
+
+          <ActiveUsersList hotspotId={hotspot.id} />
 
           {/* Check-in button - larger for mobile */}
           <div className="space-y-3 p-4 bg-gradient-to-b from-cyber-cyan/10 to-cyber-black/30 rounded-lg border-2 border-cyber-cyan/50 shadow-[0_0_20px_rgba(0,255,255,0.2)]">

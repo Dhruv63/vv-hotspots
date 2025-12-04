@@ -107,6 +107,54 @@ export function DashboardClient({
     }
   }, [rateLimitCooldown])
 
+  // Real-time subscription for active check-in counts
+  useEffect(() => {
+    const supabase = createClient()
+
+    const handleCheckInChange = async (payload: any) => {
+      const hotspotIds = new Set<string>()
+
+      if (payload.new && payload.new.hotspot_id) {
+        hotspotIds.add(payload.new.hotspot_id)
+      }
+      if (payload.old && payload.old.hotspot_id) {
+        hotspotIds.add(payload.old.hotspot_id)
+      }
+
+      for (const id of hotspotIds) {
+        const { count, error } = await supabase
+          .from("check_ins")
+          .select("*", { count: "exact", head: true })
+          .eq("hotspot_id", id)
+          .eq("is_active", true)
+
+        if (!error && count !== null) {
+          setActiveCheckins((prev) => ({
+            ...prev,
+            [id]: count,
+          }))
+        }
+      }
+    }
+
+    const channel = supabase
+      .channel("global-checkins")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "check_ins",
+        },
+        handleCheckInChange,
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [])
+
   const showMessage = (type: "error" | "success", message: string) => {
     if (type === "error") {
       setError(message)
