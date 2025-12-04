@@ -107,6 +107,48 @@ export function DashboardClient({
     }
   }, [rateLimitCooldown])
 
+  // Real-time active check-in updates for map
+  useEffect(() => {
+    const supabase = createClient()
+    const channel = supabase
+      .channel("global-checkins-map")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "check_ins",
+        },
+        async (payload: any) => {
+          // Ignore own actions as they are handled optimistically
+          if (payload.new?.user_id === user.id) return
+
+          const hotspotId = payload.new?.hotspot_id
+          if (!hotspotId) return
+
+          // For accuracy, we refetch the count instead of incrementing/decrementing
+          // This handles race conditions and state drift better
+          const { count, error } = await supabase
+            .from("check_ins")
+            .select("*", { count: "exact", head: true })
+            .eq("hotspot_id", hotspotId)
+            .eq("is_active", true)
+
+          if (!error && count !== null) {
+            setActiveCheckins((prev) => ({
+              ...prev,
+              [hotspotId]: count,
+            }))
+          }
+        },
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [user.id])
+
   const showMessage = (type: "error" | "success", message: string) => {
     if (type === "error") {
       setError(message)

@@ -1,10 +1,20 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
-import { X, MapPin, Users, Navigation, Clock, Zap, Star, MessageSquare, Loader2 } from "lucide-react"
+import { formatDistanceToNow } from "date-fns"
+import { X, MapPin, Users, Navigation, Clock, Zap, Star, MessageSquare, Loader2, User } from "lucide-react"
+import { createClient } from "@/lib/supabase/client"
 import { StarRating } from "@/components/ui/star-rating"
 import type { Hotspot } from "@/lib/types"
+
+interface ActiveUser {
+  id: string
+  user_id: string
+  username: string | null
+  avatar_url: string | null
+  checked_in_at: string
+}
 
 interface HotspotDetailProps {
   hotspot: Hotspot
@@ -81,6 +91,73 @@ export function HotspotDetail({
 }: HotspotDetailProps) {
   const [isRating, setIsRating] = useState(false)
   const [ratingSuccess, setRatingSuccess] = useState(false)
+  const [activeUsers, setActiveUsers] = useState<ActiveUser[]>([])
+  const [isLoadingUsers, setIsLoadingUsers] = useState(true)
+
+  useEffect(() => {
+    const supabase = createClient()
+    let channel: ReturnType<typeof supabase.channel>
+
+    const fetchActiveUsers = async () => {
+      try {
+        setIsLoadingUsers(true)
+        const { data, error } = await supabase
+          .from("check_ins")
+          .select(`
+            id,
+            user_id,
+            checked_in_at,
+            profiles:user_id (
+              username,
+              avatar_url
+            )
+          `)
+          .eq("hotspot_id", hotspot.id)
+          .eq("is_active", true)
+          .order("checked_in_at", { ascending: false })
+
+        if (error) throw error
+
+        if (data) {
+          const formattedUsers = data.map((item: any) => ({
+            id: item.id,
+            user_id: item.user_id,
+            username: item.profiles?.username || "Anonymous",
+            avatar_url: item.profiles?.avatar_url,
+            checked_in_at: item.checked_in_at,
+          }))
+          setActiveUsers(formattedUsers)
+        }
+      } catch (error) {
+        console.error("Error fetching active users:", error)
+      } finally {
+        setIsLoadingUsers(false)
+      }
+    }
+
+    fetchActiveUsers()
+
+    // Real-time subscription
+    channel = supabase
+      .channel(`active-users-${hotspot.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "check_ins",
+          filter: `hotspot_id=eq.${hotspot.id}`,
+        },
+        () => {
+          fetchActiveUsers()
+        },
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [hotspot.id])
 
   const handleRating = async (rating: number) => {
     setIsRating(true)
@@ -172,10 +249,14 @@ export function HotspotDetail({
                 <Users className="w-5 h-5 text-cyber-cyan" />
               </div>
               <div>
-                <span className="font-mono text-cyber-light text-xl">{activeCheckins}</span>
+                <span className="font-mono text-cyber-light text-xl">
+                  {isLoadingUsers ? activeCheckins : activeUsers.length}
+                </span>
                 <span className="text-cyber-gray text-sm ml-1">here now</span>
               </div>
             </div>
+
+
             <div className="flex items-center gap-2">
               <StarRating rating={averageRating} size="sm" />
               <span className="font-mono text-cyber-light text-lg">
@@ -183,6 +264,41 @@ export function HotspotDetail({
               </span>
             </div>
           </div>
+
+          {/* Active Users List - Detailed */}
+          {!isLoadingUsers && activeUsers.length > 0 && (
+            <div className="space-y-3 py-2">
+              <h3 className="text-xs font-mono font-bold text-cyber-gray uppercase tracking-wider">
+                Who's here ({activeUsers.length})
+              </h3>
+              <div className="flex flex-wrap gap-3">
+                {activeUsers.map((user) => (
+                  <div key={user.id} className="relative group cursor-default">
+                    <div className="w-10 h-10 rounded-full border border-cyber-cyan/50 p-0.5 bg-cyber-black overflow-hidden relative">
+                      {user.avatar_url ? (
+                        <Image
+                          src={user.avatar_url}
+                          alt={user.username || "User"}
+                          width={40}
+                          height={40}
+                          className="w-full h-full object-cover rounded-full"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-cyber-dark flex items-center justify-center rounded-full">
+                          <User className="w-5 h-5 text-cyber-cyan/70" />
+                        </div>
+                      )}
+                    </div>
+                    {/* Tooltip */}
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-cyber-dark border border-cyber-cyan px-2 py-1 rounded text-[10px] font-mono whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 shadow-[0_0_10px_rgba(0,255,255,0.2)]">
+                      <p className="text-cyber-cyan font-bold">{user.username}</p>
+                      <p className="text-cyber-gray text-[9px]">{formatDistanceToNow(new Date(user.checked_in_at))} ago</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Check-in button - larger for mobile */}
           <div className="space-y-3 p-4 bg-gradient-to-b from-cyber-cyan/10 to-cyber-black/30 rounded-lg border-2 border-cyber-cyan/50 shadow-[0_0_20px_rgba(0,255,255,0.2)]">
