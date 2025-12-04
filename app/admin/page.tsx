@@ -9,7 +9,9 @@ export default async function AdminPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
+ feat/admin-panel-megahack
   if (!user || user.email !== "megahack785@gmail.com") {
+  > main
     redirect("/dashboard")
   }
 
