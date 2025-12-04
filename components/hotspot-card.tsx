@@ -78,7 +78,7 @@ export function HotspotCard({
       }`}
     >
       {/* Image section */}
-      <div className="relative h-28 md:h-32 w-full">
+      <div className="relative h-32 md:h-40 w-full">
         <Image src={imageUrl || "/placeholder.svg"} alt={hotspot.name} fill className="object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-cyber-black to-transparent" />
 
@@ -101,7 +101,7 @@ export function HotspotCard({
       </div>
 
       {/* Content section */}
-      <div className="p-3">
+      <div className="p-3 pb-10">
         <h3 className="font-mono text-base font-bold text-cyber-light mb-1 truncate">{hotspot.name}</h3>
 
         <div className="flex items-center gap-1 text-cyber-gray text-xs mb-2">

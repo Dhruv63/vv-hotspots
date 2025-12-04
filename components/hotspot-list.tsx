@@ -194,7 +194,7 @@ export function HotspotList({
         </div>
       )}
 
-      <div className="p-3 border-b border-cyber-gray space-y-3">
+      <div className="p-4 border-b border-cyber-gray space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="font-mono text-base text-cyber-light">
             <span className="text-cyber-cyan">{">"}</span> HOTSPOTS
@@ -240,8 +240,8 @@ export function HotspotList({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3">
-        <div className={viewMode === "grid" ? "grid grid-cols-2 gap-3" : "space-y-3"}>
+      <div className="flex-1 overflow-y-auto p-4">
+        <div className={viewMode === "grid" ? "grid grid-cols-2 gap-4" : "space-y-4"}>
           {filteredHotspots.map((hotspot) => {
             const isCheckedInHere = userCurrentCheckin === hotspot.id
             const userRating = userRatings[hotspot.id]

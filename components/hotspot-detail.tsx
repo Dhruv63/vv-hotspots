@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { X, MapPin, Users, Navigation, Clock, Zap, Star, MessageSquare, Loader2 } from "lucide-react"
 import { StarRating } from "@/components/ui/star-rating"
@@ -83,6 +83,14 @@ export function HotspotDetail({
   const [isRating, setIsRating] = useState(false)
   const [ratingSuccess, setRatingSuccess] = useState(false)
 
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose()
+    }
+    window.addEventListener("keydown", handleEsc)
+    return () => window.removeEventListener("keydown", handleEsc)
+  }, [onClose])
+
   const handleRating = async (rating: number) => {
     setIsRating(true)
     setRatingSuccess(false)
@@ -106,9 +114,12 @@ export function HotspotDetail({
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] md:hidden" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999]" onClick={onClose} />
 
-      <div className="fixed inset-x-0 bottom-0 md:absolute md:inset-auto md:bottom-4 md:right-4 md:w-96 z-[1000] bg-cyber-dark border-t-2 md:border-2 border-cyber-cyan md:rounded-lg max-h-[85vh] md:max-h-[80vh] overflow-y-auto shadow-[0_0_30px_rgba(0,255,255,0.3)] rounded-t-2xl md:rounded-lg">
+      <div
+        className="fixed inset-x-0 bottom-0 md:absolute md:inset-auto md:bottom-4 md:right-4 md:w-96 z-[1000] bg-cyber-dark border-t-2 md:border-2 border-cyber-cyan md:rounded-lg max-h-[85vh] md:max-h-[80vh] overflow-y-auto shadow-[0_0_30px_rgba(0,255,255,0.3)] rounded-t-2xl md:rounded-lg"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Drag handle for mobile */}
         <div className="md:hidden flex items-center justify-center py-2 sticky top-0 bg-cyber-dark z-10">
           <div className="w-12 h-1 bg-cyber-gray rounded-full" />
@@ -121,7 +132,7 @@ export function HotspotDetail({
         <button
           onClick={onClose}
           disabled={isLoading}
-          className="absolute top-4 md:top-4 right-3 z-10 p-3 bg-cyber-black/80 border border-cyber-gray text-cyber-gray hover:text-cyber-light hover:border-cyber-cyan transition-colors rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center disabled:opacity-50"
+          className="absolute top-4 md:top-4 right-3 z-50 p-3 bg-cyber-black/80 border border-cyber-gray text-cyber-gray hover:text-cyber-cyan hover:border-cyber-cyan hover:shadow-[0_0_15px_rgba(0,255,255,0.5)] transition-all rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center disabled:opacity-50"
         >
           <X className="w-5 h-5" />
         </button>
