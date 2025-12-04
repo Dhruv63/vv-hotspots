@@ -53,9 +53,9 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
       return
     }
 
-    const rateCheck = checkRateLimit(RATE_LIMITS.profileUpdate)
+    const rateCheck = checkRateLimit("profile", user.id)
     if (!rateCheck.allowed) {
-      const seconds = Math.ceil(rateCheck.resetIn / 1000)
+      const seconds = rateCheck.waitTime || 60
       setError(`Too many updates. Please wait ${seconds} seconds.`)
       return
     }
