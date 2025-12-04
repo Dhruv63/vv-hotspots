@@ -12,8 +12,8 @@ export default function SignUpSuccessPage() {
           className="absolute inset-0"
           style={{
             backgroundImage: `
-              linear-gradient(rgba(0, 255, 255, 0.3) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(0, 255, 255, 0.3) 1px, transparent 1px)
+              linear-gradient(rgba(255, 255, 0, 0.3) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255, 255, 0, 0.3) 1px, transparent 1px)
             `,
             backgroundSize: "50px 50px",
           }}

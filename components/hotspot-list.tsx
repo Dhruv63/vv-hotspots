@@ -102,7 +102,7 @@ export function HotspotList({
           onClick={() => !isSubmittingRating && setRatingHotspot(null)}
         >
           <div
-            className="relative w-full max-w-md bg-[#0a0a0f] border-2 border-cyber-purple rounded-xl p-6 shadow-[0_0_60px_rgba(183,0,255,0.5)] mx-4"
+            className="relative w-full max-w-md bg-[#0a0a0f] border-2 border-cyber-purple rounded-xl p-6 shadow-[0_0_60px_rgba(255,215,0,0.5)] mx-4"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -172,7 +172,7 @@ export function HotspotList({
               <button
                 onClick={handleSubmitRating}
                 disabled={pendingRating === 0 || isSubmittingRating}
-                className="flex-1 py-3 px-4 bg-cyber-purple text-white font-mono text-sm font-bold rounded-lg hover:shadow-[0_0_20px_rgba(183,0,255,0.5)] disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 flex items-center justify-center gap-2"
+                className="flex-1 py-3 px-4 bg-cyber-purple text-white font-mono text-sm font-bold rounded-lg hover:shadow-[0_0_20px_rgba(255,215,0,0.5)] disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 flex items-center justify-center gap-2"
               >
                 {isSubmittingRating ? (
                   <>
@@ -271,8 +271,8 @@ export function HotspotList({
                       }
                       className={`flex-1 py-3 px-3 font-mono text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 min-h-[44px] ${
                         isCheckedInHere
-                          ? "bg-cyber-pink text-white shadow-[0_0_15px_rgba(255,0,110,0.4)]"
-                          : "bg-cyber-cyan text-cyber-black hover:shadow-[0_0_20px_rgba(0,255,255,0.5)]"
+                          ? "bg-cyber-pink text-white shadow-[0_0_15px_rgba(204,255,0,0.4)]"
+                          : "bg-cyber-cyan text-cyber-black hover:shadow-[0_0_20px_rgba(255,255,0,0.5)]"
                       } disabled:opacity-50 disabled:cursor-not-allowed active:scale-95`}
                     >
                       {isCheckingIn ? (
@@ -301,7 +301,7 @@ export function HotspotList({
                       className={`py-3 px-4 font-mono text-xs font-bold rounded-lg transition-all flex items-center gap-2 min-h-[44px] ${
                         userRating
                           ? "bg-yellow-400 text-cyber-black shadow-[0_0_15px_rgba(250,204,21,0.4)]"
-                          : "bg-cyber-purple text-white hover:shadow-[0_0_15px_rgba(183,0,255,0.5)]"
+                          : "bg-cyber-purple text-white hover:shadow-[0_0_15px_rgba(255,215,0,0.5)]"
                       } active:scale-95 disabled:opacity-50`}
                     >
                       <Star className={`w-4 h-4 ${userRating ? "fill-cyber-black" : ""}`} />

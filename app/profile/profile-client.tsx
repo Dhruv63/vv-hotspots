@@ -112,7 +112,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
             {/* Avatar */}
             <div className="relative group">
-              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden border-4 border-cyber-cyan shadow-[0_0_20px_rgba(0,255,255,0.5)] bg-cyber-dark">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden border-4 border-cyber-cyan shadow-[0_0_20px_rgba(255,255,0,0.5)] bg-cyber-dark">
                 {profile?.avatar_url ? (
                   <Image
                     src={profile.avatar_url || "/placeholder.svg"}
@@ -129,7 +129,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
               </div>
               <button
                 onClick={() => setIsEditing(true)}
-                className="absolute bottom-0 right-0 w-8 h-8 bg-cyber-purple rounded-full flex items-center justify-center border-2 border-cyber-black hover:scale-110 transition-transform shadow-[0_0_10px_rgba(183,0,255,0.5)]"
+                className="absolute bottom-0 right-0 w-8 h-8 bg-cyber-purple rounded-full flex items-center justify-center border-2 border-cyber-black hover:scale-110 transition-transform shadow-[0_0_10px_rgba(255,215,0,0.5)]"
               >
                 <Camera className="w-4 h-4 text-white" />
               </button>
@@ -191,8 +191,8 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                     key={checkin.id}
                     className={`p-3 border rounded-lg transition-all ${
                       checkin.is_active
-                        ? "border-cyber-cyan bg-cyber-cyan/10 shadow-[0_0_10px_rgba(0,255,255,0.2)]"
-                        : "border-cyber-gray/50 bg-cyber-black/50 hover:border-cyber-cyan hover:shadow-[0_0_10px_rgba(0,255,255,0.2)]"
+                        ? "border-cyber-cyan bg-cyber-cyan/10 shadow-[0_0_10px_rgba(255,255,0,0.2)]"
+                        : "border-cyber-gray/50 bg-cyber-black/50 hover:border-cyber-cyan hover:shadow-[0_0_10px_rgba(255,255,0,0.2)]"
                     }`}
                   >
                     <div className="flex items-start justify-between">
@@ -241,7 +241,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                 {ratings.map((rating: any) => (
                   <div
                     key={rating.id}
-                    className="p-3 border border-cyber-gray/50 bg-cyber-black/50 rounded-lg hover:border-cyber-purple hover:shadow-[0_0_10px_rgba(183,0,255,0.3)] transition-all"
+                    className="p-3 border border-cyber-gray/50 bg-cyber-black/50 rounded-lg hover:border-cyber-purple hover:shadow-[0_0_10px_rgba(255,215,0,0.3)] transition-all"
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div>
@@ -286,7 +286,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
       {/* Edit Profile Modal */}
       {isEditing && (
         <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-cyber-dark border-2 border-cyber-purple rounded-lg shadow-[0_0_30px_rgba(183,0,255,0.3)] p-6">
+          <div className="w-full max-w-md bg-cyber-dark border-2 border-cyber-purple rounded-lg shadow-[0_0_30px_rgba(255,215,0,0.3)] p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-mono text-xl text-cyber-light">Edit Profile</h2>
               <button
@@ -336,7 +336,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                   type="text"
                   value={editUsername}
                   onChange={(e) => setEditUsername(e.target.value)}
-                  className="w-full px-4 py-3 bg-cyber-black border-2 border-cyber-gray rounded text-cyber-light font-mono focus:border-cyber-purple focus:outline-none focus:shadow-[0_0_10px_rgba(183,0,255,0.3)] transition-all"
+                  className="w-full px-4 py-3 bg-cyber-black border-2 border-cyber-gray rounded text-cyber-light font-mono focus:border-cyber-purple focus:outline-none focus:shadow-[0_0_10px_rgba(255,215,0,0.3)] transition-all"
                   placeholder="Enter username"
                   maxLength={30}
                 />
@@ -349,7 +349,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                   type="url"
                   value={editAvatarUrl}
                   onChange={(e) => setEditAvatarUrl(e.target.value)}
-                  className="w-full px-4 py-3 bg-cyber-black border-2 border-cyber-gray rounded text-cyber-light font-mono focus:border-cyber-purple focus:outline-none focus:shadow-[0_0_10px_rgba(183,0,255,0.3)] transition-all"
+                  className="w-full px-4 py-3 bg-cyber-black border-2 border-cyber-gray rounded text-cyber-light font-mono focus:border-cyber-purple focus:outline-none focus:shadow-[0_0_10px_rgba(255,215,0,0.3)] transition-all"
                   placeholder="https://example.com/avatar.jpg"
                 />
                 <p className="text-cyber-gray text-xs mt-1">Paste a URL to an image (JPG, PNG, GIF)</p>
@@ -371,7 +371,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
               <button
                 onClick={handleSaveProfile}
                 disabled={isSaving}
-                className="flex-1 px-4 py-3 bg-cyber-purple border-2 border-cyber-purple text-white rounded font-mono hover:shadow-[0_0_15px_rgba(183,0,255,0.5)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-3 bg-cyber-purple border-2 border-cyber-purple text-white rounded font-mono hover:shadow-[0_0_15px_rgba(255,215,0,0.5)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSaving ? "Saving..." : "Save Changes"}
               </button>

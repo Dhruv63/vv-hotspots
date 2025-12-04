@@ -466,7 +466,7 @@ export function DashboardClient({
       )}
 
       {currentCheckinHotspot && (
-        <div className="fixed bottom-24 md:bottom-4 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-3 px-4 py-3 bg-cyber-dark border-2 border-cyber-cyan rounded-lg shadow-[0_0_20px_rgba(0,255,255,0.3)] max-w-[90vw]">
+        <div className="fixed bottom-24 md:bottom-4 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-3 px-4 py-3 bg-cyber-dark border-2 border-cyber-cyan rounded-lg shadow-[0_0_20px_rgba(255,255,0,0.3)] max-w-[90vw]">
           <span className="w-3 h-3 bg-cyber-cyan rounded-full animate-pulse flex-shrink-0" />
           <span className="text-cyber-light font-mono text-sm truncate">
             At <span className="text-cyber-cyan font-bold">{currentCheckinHotspot.name}</span>
@@ -491,7 +491,7 @@ export function DashboardClient({
             onClick={() => setDrawerOpen(drawerOpen === "hotspots" ? null : "hotspots")}
             className={`flex items-center gap-2 px-3 py-2 rounded-lg font-mono text-xs transition-all min-h-[44px] ${
               drawerOpen === "hotspots"
-                ? "bg-cyber-cyan text-cyber-black shadow-[0_0_15px_rgba(0,255,255,0.5)]"
+                ? "bg-cyber-cyan text-cyber-black shadow-[0_0_15px_rgba(255,255,0,0.5)]"
                 : "bg-cyber-dark border border-cyber-gray text-cyber-light"
             }`}
           >
@@ -519,7 +519,7 @@ export function DashboardClient({
             onClick={() => setDrawerOpen(drawerOpen === "feed" ? null : "feed")}
             className={`flex items-center gap-2 px-3 py-2 rounded-lg font-mono text-xs transition-all min-h-[44px] ${
               drawerOpen === "feed"
-                ? "bg-cyber-pink text-white shadow-[0_0_15px_rgba(255,0,110,0.5)]"
+                ? "bg-cyber-pink text-white shadow-[0_0_15px_rgba(204,255,0,0.5)]"
                 : "bg-cyber-dark border border-cyber-gray text-cyber-cyan"
             }`}
           >

@@ -146,11 +146,11 @@ export default function AdminClient({ initialHotspots, userEmail }: AdminClientP
     <div className="min-h-screen bg-cyber-black p-4 md:p-8 font-sans text-cyber-white">
       <div className="max-w-6xl mx-auto space-y-8">
         <header className="flex justify-between items-center border-b border-cyber-gray pb-4">
-            <h1 className="text-3xl font-bold text-cyber-cyan drop-shadow-[0_0_10px_rgba(0,255,255,0.5)]">
+            <h1 className="text-3xl font-bold text-cyber-primary drop-shadow-[0_0_10px_rgba(255,255,0,0.5)]">
               Admin Panel
             </h1>
             <div className="text-sm text-cyber-gray">
-                Logged in as: <span className="text-cyber-pink">{userEmail}</span>
+                Logged in as: <span className="text-cyber-secondary">{userEmail}</span>
             </div>
         </header>
 
@@ -158,7 +158,7 @@ export default function AdminClient({ initialHotspots, userEmail }: AdminClientP
             {/* Form Section */}
             <section className="lg:col-span-1">
                 <CyberCard className="p-6 sticky top-8" variant="highlighted">
-                    <h2 className="text-xl font-bold mb-4 text-cyber-purple">
+                    <h2 className="text-xl font-bold mb-4 text-cyber-accent">
                         {isEditing ? "Edit Hotspot" : "Add New Hotspot"}
                     </h2>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -167,7 +167,7 @@ export default function AdminClient({ initialHotspots, userEmail }: AdminClientP
                             <label className="text-sm font-medium text-cyber-light">Name</label>
                             <input
                                 {...form.register("name")}
-                                className="w-full bg-cyber-black/50 border border-cyber-gray rounded p-2 focus:border-cyber-cyan focus:outline-none focus:shadow-[0_0_10px_rgba(0,255,255,0.3)] text-white placeholder-cyber-gray"
+                                className="w-full bg-cyber-black/50 border border-cyber-gray rounded p-2 focus:border-cyber-primary focus:outline-none focus:shadow-[0_0_10px_rgba(255,255,0,0.3)] text-white placeholder-cyber-gray"
                                 placeholder="Hotspot Name"
                             />
                             {form.formState.errors.name && (
@@ -179,7 +179,7 @@ export default function AdminClient({ initialHotspots, userEmail }: AdminClientP
                             <label className="text-sm font-medium text-cyber-light">Category</label>
                             <select
                                 {...form.register("category")}
-                                className="w-full bg-cyber-black/50 border border-cyber-gray rounded p-2 focus:border-cyber-cyan focus:outline-none text-white"
+                                className="w-full bg-cyber-black/50 border border-cyber-gray rounded p-2 focus:border-cyber-primary focus:outline-none text-white"
                             >
                                 <option value="cafe">Cafe</option>
                                 <option value="park">Park</option>
@@ -193,7 +193,7 @@ export default function AdminClient({ initialHotspots, userEmail }: AdminClientP
                             <label className="text-sm font-medium text-cyber-light">Address</label>
                             <input
                                 {...form.register("address")}
-                                className="w-full bg-cyber-black/50 border border-cyber-gray rounded p-2 focus:border-cyber-cyan focus:outline-none text-white placeholder-cyber-gray"
+                                className="w-full bg-cyber-black/50 border border-cyber-gray rounded p-2 focus:border-cyber-primary focus:outline-none text-white placeholder-cyber-gray"
                                 placeholder="123 Cyber St"
                             />
                             {form.formState.errors.address && (
@@ -208,7 +208,7 @@ export default function AdminClient({ initialHotspots, userEmail }: AdminClientP
                                     type="number"
                                     step="any"
                                     {...form.register("latitude")}
-                                    className="w-full bg-cyber-black/50 border border-cyber-gray rounded p-2 focus:border-cyber-cyan focus:outline-none text-white"
+                                    className="w-full bg-cyber-black/50 border border-cyber-gray rounded p-2 focus:border-cyber-primary focus:outline-none text-white"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -217,7 +217,7 @@ export default function AdminClient({ initialHotspots, userEmail }: AdminClientP
                                     type="number"
                                     step="any"
                                     {...form.register("longitude")}
-                                    className="w-full bg-cyber-black/50 border border-cyber-gray rounded p-2 focus:border-cyber-cyan focus:outline-none text-white"
+                                    className="w-full bg-cyber-black/50 border border-cyber-gray rounded p-2 focus:border-cyber-primary focus:outline-none text-white"
                                 />
                             </div>
                         </div>
@@ -226,7 +226,7 @@ export default function AdminClient({ initialHotspots, userEmail }: AdminClientP
                             <label className="text-sm font-medium text-cyber-light">Description</label>
                             <textarea
                                 {...form.register("description")}
-                                className="w-full bg-cyber-black/50 border border-cyber-gray rounded p-2 focus:border-cyber-cyan focus:outline-none text-white h-24 placeholder-cyber-gray"
+                                className="w-full bg-cyber-black/50 border border-cyber-gray rounded p-2 focus:border-cyber-primary focus:outline-none text-white h-24 placeholder-cyber-gray"
                                 placeholder="Description..."
                             />
                         </div>
@@ -235,7 +235,7 @@ export default function AdminClient({ initialHotspots, userEmail }: AdminClientP
                             <label className="text-sm font-medium text-cyber-light">Image URL</label>
                             <input
                                 {...form.register("image_url")}
-                                className="w-full bg-cyber-black/50 border border-cyber-gray rounded p-2 focus:border-cyber-cyan focus:outline-none text-white placeholder-cyber-gray"
+                                className="w-full bg-cyber-black/50 border border-cyber-gray rounded p-2 focus:border-cyber-primary focus:outline-none text-white placeholder-cyber-gray"
                                 placeholder="https://..."
                             />
                         </div>
@@ -260,18 +260,18 @@ export default function AdminClient({ initialHotspots, userEmail }: AdminClientP
                 <h2 className="text-2xl font-bold text-cyber-white mb-4">Existing Hotspots</h2>
                 <div className="grid grid-cols-1 gap-4">
                     {hotspots.map((hotspot) => (
-                        <CyberCard key={hotspot.id} className="p-4 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between group hover:border-cyber-cyan transition-colors">
+                        <CyberCard key={hotspot.id} className="p-4 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between group hover:border-cyber-primary transition-colors">
                             <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
-                                    <h3 className="text-lg font-bold text-cyber-cyan">{hotspot.name}</h3>
+                                    <h3 className="text-lg font-bold text-cyber-primary">{hotspot.name}</h3>
                                     <span className={cn(
                                         "text-xs px-2 py-0.5 rounded border uppercase",
-                                        hotspot.category === 'cafe' && "border-cyan-500 text-cyan-500",
-                                        hotspot.category === 'park' && "border-green-500 text-green-500",
-                                        hotspot.category === 'gaming' && "border-purple-500 text-purple-500",
-                                        hotspot.category === 'food' && "border-pink-500 text-pink-500",
-                                        hotspot.category === 'hangout' && "border-yellow-500 text-yellow-500",
-                                        hotspot.category === 'other' && "border-gray-500 text-gray-500",
+                                        hotspot.category === 'cafe' && "border-cyber-primary text-cyber-primary",
+                                        hotspot.category === 'park' && "border-cyber-secondary text-cyber-secondary",
+                                        hotspot.category === 'gaming' && "border-cyber-accent text-cyber-accent",
+                                        hotspot.category === 'food' && "border-yellow-200 text-yellow-200",
+                                        hotspot.category === 'hangout' && "border-white text-white",
+                                        hotspot.category === 'other' && "border-cyber-gray text-cyber-gray",
                                     )}>
                                         {hotspot.category}
                                     </span>

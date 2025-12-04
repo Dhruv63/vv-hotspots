@@ -165,7 +165,7 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
                 relative p-3 border transition-all duration-500 rounded-lg min-h-[72px]
                 ${
                   activity.id === newActivityId
-                    ? "border-cyber-cyan bg-cyber-cyan/10 shadow-[0_0_20px_rgba(0,255,255,0.3)] animate-pulse"
+                    ? "border-cyber-cyan bg-cyber-cyan/10 shadow-[0_0_20px_rgba(255,255,0,0.3)] animate-pulse"
                     : "border-cyber-gray/30 bg-cyber-black/50 hover:border-cyber-cyan/50 hover:bg-cyber-cyan/5"
                 }
               `}
