@@ -18,7 +18,6 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
   useEffect(() => {
     const supabase = createClient()
 
-    // Set up real-time subscription to check_ins table
     const channel = supabase
       .channel("realtime-checkins")
       .on(
@@ -30,9 +29,6 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
           filter: "is_active=eq.true",
         },
         async (payload) => {
-          console.log("[v0] New check-in received:", payload)
-
-          // Fetch the related user profile and hotspot data
           const { data: profileData } = await supabase
             .from("profiles")
             .select("username, avatar_url")
@@ -57,14 +53,11 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
 
             setActivities((prev) => [newActivity, ...prev.slice(0, 19)])
             setNewActivityId(payload.new.id)
-
-            // Clear the highlight after animation
             setTimeout(() => setNewActivityId(null), 3000)
           }
         },
       )
       .subscribe((status) => {
-        console.log("[v0] Realtime subscription status:", status)
         setIsConnected(status === "SUBSCRIBED")
       })
 
@@ -73,7 +66,6 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
     }
   }, [])
 
-  // Helper to get category color
   const getCategoryColor = (category: string) => {
     switch (category?.toLowerCase()) {
       case "cafe":
@@ -102,21 +94,20 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-pulse" />
             )}
           </div>
-          <h3 className="font-mono text-lg text-cyber-light tracking-wider">LIVE FEED</h3>
+          <h3 className="font-mono text-base md:text-lg text-cyber-light tracking-wider">LIVE FEED</h3>
         </div>
 
-        {/* Real-time connection status */}
         <div
           className={`flex items-center gap-1 text-xs font-mono ${isConnected ? "text-green-400" : "text-cyber-gray"}`}
         >
           <Radio className={`w-3 h-3 ${isConnected ? "animate-pulse" : ""}`} />
-          <span>{isConnected ? "LIVE" : "CONNECTING..."}</span>
+          <span>{isConnected ? "LIVE" : "..."}</span>
         </div>
       </div>
 
       {/* Activity list */}
       {activities.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-cyber-gray">
+        <div className="flex-1 flex flex-col items-center justify-center text-cyber-gray py-8">
           <div className="w-16 h-16 border border-cyber-gray/30 rounded-full flex items-center justify-center mb-4">
             <MapPin className="w-8 h-8 opacity-50" />
           </div>
@@ -129,40 +120,35 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
             <div
               key={activity.id}
               className={`
-                relative p-3 border transition-all duration-500
+                relative p-3 border transition-all duration-500 rounded-lg min-h-[72px]
                 ${
                   activity.id === newActivityId
                     ? "border-cyber-cyan bg-cyber-cyan/10 shadow-[0_0_20px_rgba(0,255,255,0.3)] animate-pulse"
                     : "border-cyber-gray/30 bg-cyber-black/50 hover:border-cyber-cyan/50 hover:bg-cyber-cyan/5"
                 }
               `}
-              style={{
-                animationDelay: `${index * 50}ms`,
-              }}
             >
-              {/* New activity indicator */}
               {activity.id === newActivityId && (
-                <div className="absolute -top-1 -right-1 flex items-center gap-1 px-2 py-0.5 bg-cyber-cyan text-cyber-black text-[10px] font-mono font-bold">
+                <div className="absolute -top-1 -right-1 flex items-center gap-1 px-2 py-0.5 bg-cyber-cyan text-cyber-black text-[10px] font-mono font-bold rounded">
                   <Zap className="w-3 h-3" />
                   NEW
                 </div>
               )}
 
               <div className="flex items-start gap-3">
-                {/* Avatar */}
+                {/* Avatar - larger for touch */}
                 <div className="relative flex-shrink-0">
                   {activity.avatar_url ? (
                     <img
                       src={activity.avatar_url || "/placeholder.svg"}
                       alt={activity.username || "User"}
-                      className="w-10 h-10 border-2 border-cyber-cyan object-cover"
+                      className="w-11 h-11 md:w-10 md:h-10 border-2 border-cyber-cyan object-cover rounded-full"
                     />
                   ) : (
-                    <div className="w-10 h-10 bg-gradient-to-br from-cyber-cyan/20 to-cyber-purple/20 border-2 border-cyber-cyan flex items-center justify-center">
+                    <div className="w-11 h-11 md:w-10 md:h-10 bg-gradient-to-br from-cyber-cyan/20 to-cyber-purple/20 border-2 border-cyber-cyan flex items-center justify-center rounded-full">
                       <User className="w-5 h-5 text-cyber-cyan" />
                     </div>
                   )}
-                  {/* Online pulse indicator */}
                   <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-cyber-black rounded-full" />
                 </div>
 
@@ -174,18 +160,16 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
                     <span className="text-cyber-light font-medium">{activity.hotspot_name}</span>
                   </p>
 
-                  <div className="flex items-center gap-2 mt-2">
-                    {/* Category badge */}
+                  <div className="flex items-center gap-2 mt-2 flex-wrap">
                     <span
                       className={`
-                      text-[10px] font-mono px-2 py-0.5 border uppercase tracking-wider
+                      text-[10px] font-mono px-2 py-0.5 border uppercase tracking-wider rounded
                       ${getCategoryColor(activity.hotspot_category)}
                     `}
                     >
                       {activity.hotspot_category}
                     </span>
 
-                    {/* Time ago */}
                     <span className="text-cyber-gray text-xs font-mono">
                       {formatDistanceToNow(new Date(activity.checked_in_at), {
                         addSuffix: true,

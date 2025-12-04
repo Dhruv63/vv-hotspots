@@ -26,13 +26,18 @@ export function StarRating({
   const sizes = {
     sm: "w-4 h-4",
     md: "w-5 h-5",
-    lg: "w-8 h-8", // Made lg size bigger for easier tapping
+    lg: "w-10 h-10",
+  }
+
+  const touchTargets = {
+    sm: "min-w-[32px] min-h-[32px]",
+    md: "min-w-[40px] min-h-[40px]",
+    lg: "min-w-[48px] min-h-[48px]",
   }
 
   const displayRating = hoverRating ?? rating
 
   const handleStarClick = (starValue: number) => {
-    console.log("[v0] Star clicked:", starValue, "interactive:", interactive)
     if (interactive && onRatingChange) {
       onRatingChange(starValue)
     }
@@ -40,7 +45,7 @@ export function StarRating({
 
   return (
     <div className="flex items-center gap-2">
-      <div className="flex gap-1" onMouseLeave={() => interactive && setHoverRating(null)}>
+      <div className="flex gap-0.5" onMouseLeave={() => interactive && setHoverRating(null)}>
         {Array.from({ length: maxRating }, (_, i) => {
           const starValue = i + 1
           const filled = starValue <= Math.floor(displayRating)
@@ -58,8 +63,9 @@ export function StarRating({
               }}
               onMouseEnter={() => interactive && setHoverRating(starValue)}
               className={cn(
-                "transition-all duration-150 relative p-1", // Added padding for bigger touch target
-                interactive && "hover:scale-125 cursor-pointer active:scale-95 hover:bg-yellow-400/10 rounded",
+                "transition-all duration-150 relative flex items-center justify-center",
+                touchTargets[size],
+                interactive && "hover:scale-110 cursor-pointer active:scale-95 hover:bg-yellow-400/10 rounded-lg",
                 !interactive && "cursor-default",
               )}
             >

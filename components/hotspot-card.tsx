@@ -71,21 +71,21 @@ export function HotspotCard({
   return (
     <div
       onClick={onClick}
-      className={`relative overflow-hidden rounded-lg cursor-pointer transition-all duration-300 bg-cyber-dark border ${
+      className={`relative overflow-hidden rounded-lg cursor-pointer transition-all duration-300 bg-cyber-dark border min-h-[120px] active:scale-[0.98] ${
         isSelected
           ? "border-cyber-cyan shadow-[0_0_20px_rgba(0,255,255,0.3)]"
           : "border-cyber-gray hover:border-cyber-cyan/50"
       }`}
     >
       {/* Image section */}
-      <div className="relative h-32 w-full">
+      <div className="relative h-28 md:h-32 w-full">
         <Image src={imageUrl || "/placeholder.svg"} alt={hotspot.name} fill className="object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-cyber-black to-transparent" />
 
         {/* Category badge */}
         <div className="absolute top-2 left-2">
           <span
-            className={`px-2 py-0.5 text-xs font-mono font-bold uppercase rounded ${getCategoryColor(hotspot.category)}`}
+            className={`px-2.5 py-1 text-xs font-mono font-bold uppercase rounded ${getCategoryColor(hotspot.category)}`}
           >
             {hotspot.category}
           </span>
@@ -93,7 +93,7 @@ export function HotspotCard({
 
         {/* Active users badge */}
         {activeCheckins > 0 && (
-          <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 bg-cyber-black/80 border border-cyber-cyan text-cyber-cyan text-xs font-mono rounded">
+          <div className="absolute top-2 right-2 flex items-center gap-1 px-2.5 py-1 bg-cyber-black/80 border border-cyber-cyan text-cyber-cyan text-xs font-mono rounded">
             <Users className="w-3 h-3" />
             <span>{activeCheckins}</span>
           </div>
