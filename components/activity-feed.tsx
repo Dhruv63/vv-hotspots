@@ -17,6 +17,10 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
   const [, setTick] = useState(0)
 
   useEffect(() => {
+    setActivities(initialActivities)
+  }, [initialActivities])
+
+  useEffect(() => {
     const interval = setInterval(() => {
       setTick((t) => t + 1)
     }, 60000) // Update every minute
@@ -32,61 +36,55 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*",
           schema: "public",
           table: "check_ins",
-          filter: "is_active=eq.true",
         },
         async (payload: any) => {
-          try {
-            const { data: profileData } = await supabase
-              .from("profiles")
-              .select("username, avatar_url")
-              .eq("id", payload.new.user_id)
-              .maybeSingle()
+          if (payload.eventType === "INSERT" && payload.new.is_active) {
+            try {
+              const { data: profileData } = await supabase
+                .from("profiles")
+                .select("username, avatar_url")
+                .eq("id", payload.new.user_id)
+                .maybeSingle()
 
-            const { data: hotspotData } = await supabase
-              .from("hotspots")
-              .select("name, category")
-              .eq("id", payload.new.hotspot_id)
-              .maybeSingle()
+              const { data: hotspotData } = await supabase
+                .from("hotspots")
+                .select("name, category")
+                .eq("id", payload.new.hotspot_id)
+                .maybeSingle()
 
-            if (hotspotData) {
-              const newActivity: ActivityFeedItem = {
-                id: payload.new.id,
-                user_id: payload.new.user_id,
-                hotspot_id: payload.new.hotspot_id,
-                username: profileData?.username || "Anonymous",
-                avatar_url: profileData?.avatar_url || null,
-                hotspot_name: hotspotData.name,
-                hotspot_category: hotspotData.category,
-                checked_in_at: payload.new.checked_in_at,
-              }
-
-              setActivities((prev) => {
-                if (prev.some((a) => a.id === newActivity.id)) {
-                  return prev
+              if (hotspotData) {
+                const newActivity: ActivityFeedItem = {
+                  id: payload.new.id,
+                  user_id: payload.new.user_id,
+                  hotspot_id: payload.new.hotspot_id,
+                  username: profileData?.username || "Anonymous",
+                  avatar_url: profileData?.avatar_url || null,
+                  hotspot_name: hotspotData.name,
+                  hotspot_category: hotspotData.category,
+                  checked_in_at: payload.new.checked_in_at,
                 }
-                return [newActivity, ...prev.slice(0, 49)]
-              })
-              setNewActivityId(payload.new.id)
-              setTimeout(() => setNewActivityId(null), 3000)
+
+                setActivities((prev) => {
+                  if (prev.some((a) => a.id === newActivity.id)) {
+                    return prev
+                  }
+                  return [newActivity, ...prev.slice(0, 49)]
+                })
+                setNewActivityId(payload.new.id)
+                setTimeout(() => setNewActivityId(null), 3000)
+              }
+            } catch (error) {
+              console.error("Error processing real-time check-in:", error)
             }
-          } catch (error) {
-            console.error("Error processing real-time check-in:", error)
+          } else if (payload.eventType === "UPDATE") {
+            if (!payload.new.is_active) {
+              // Check-out or deactivated
+              setActivities((prev) => prev.filter((a) => a.id !== payload.new.id))
+            }
           }
-        },
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "check_ins",
-          filter: "is_active=eq.false",
-        },
-        (payload: any) => {
-          setActivities((prev) => prev.filter((a) => a.id !== payload.new.id))
         },
       )
       .subscribe((status: any) => {

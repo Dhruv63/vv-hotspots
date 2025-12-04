@@ -53,6 +53,27 @@ export function DashboardClient({
   const [userRatings, setUserRatings] = useState(initialUserRatings)
   const [userReviews, setUserReviews] = useState(initialUserReviews)
 
+  // Sync state with props
+  useEffect(() => {
+    setActiveCheckins(initialActiveCheckins)
+  }, [initialActiveCheckins])
+
+  useEffect(() => {
+    setAverageRatings(initialAverageRatings)
+  }, [initialAverageRatings])
+
+  useEffect(() => {
+    setUserCurrentCheckin(initialUserCheckin)
+  }, [initialUserCheckin])
+
+  useEffect(() => {
+    setUserRatings(initialUserRatings)
+  }, [initialUserRatings])
+
+  useEffect(() => {
+    setUserReviews(initialUserReviews)
+  }, [initialUserReviews])
+
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
@@ -118,11 +139,10 @@ export function DashboardClient({
         return
       }
 
-      const rateCheck = checkRateLimit(RATE_LIMITS.checkIn)
-      if (!rateCheck.allowed) {
-        const seconds = Math.ceil(rateCheck.resetIn / 1000)
-        setRateLimitCooldown(rateCheck.resetIn)
-        showMessage("error", `Too many check-ins. Please wait ${seconds} seconds.`)
+      const rateCheck = checkRateLimit("checkIn", user.id)
+      if (!rateCheck.allowed && rateCheck.waitTime) {
+        setRateLimitCooldown(rateCheck.waitTime * 1000)
+        showMessage("error", `Too many check-ins. Please wait ${rateCheck.waitTime} seconds.`)
         return
       }
 
@@ -139,9 +159,14 @@ export function DashboardClient({
           return
         }
 
-        if (userCurrentCheckin && userCurrentCheckin !== targetHotspot.id) {
-          await supabase.from("check_ins").update({ is_active: false }).eq("user_id", user.id).eq("is_active", true)
-        }
+        // Deactivate all existing check-ins to ensure single active location
+        const { error: updateError } = await supabase
+          .from("check_ins")
+          .update({ is_active: false })
+          .eq("user_id", user.id)
+          .eq("is_active", true)
+
+        if (updateError) throw updateError
 
         const { data, error: insertError } = await supabase
           .from("check_ins")
@@ -149,6 +174,7 @@ export function DashboardClient({
             user_id: user.id,
             hotspot_id: targetHotspot.id,
             is_active: true,
+            checked_in_at: new Date().toISOString(),
           })
           .select()
           .single()
@@ -252,7 +278,7 @@ export function DashboardClient({
         const { data: avgData } = await supabase.from("ratings").select("rating").eq("hotspot_id", selectedHotspot.id)
 
         if (avgData && avgData.length > 0) {
-          const avg = avgData.reduce((sum, r) => sum + r.rating, 0) / avgData.length
+          const avg = avgData.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / avgData.length
           setAverageRatings((prev) => ({ ...prev, [selectedHotspot.id]: Math.round(avg * 10) / 10 }))
         }
 
@@ -274,11 +300,10 @@ export function DashboardClient({
         return
       }
 
-      const rateCheck = checkRateLimit(RATE_LIMITS.rating)
-      if (!rateCheck.allowed) {
-        const seconds = Math.ceil(rateCheck.resetIn / 1000)
-        setRateLimitCooldown(rateCheck.resetIn)
-        showMessage("error", `Too many ratings. Please wait ${seconds} seconds.`)
+      const rateCheck = checkRateLimit("rating", user.id)
+      if (!rateCheck.allowed && rateCheck.waitTime) {
+        setRateLimitCooldown(rateCheck.waitTime * 1000)
+        showMessage("error", `Too many ratings. Please wait ${rateCheck.waitTime} seconds.`)
         return
       }
 
@@ -314,7 +339,7 @@ export function DashboardClient({
         const { data: avgData } = await supabase.from("ratings").select("rating").eq("hotspot_id", hotspot.id)
 
         if (avgData && avgData.length > 0) {
-          const avg = avgData.reduce((sum, r) => sum + r.rating, 0) / avgData.length
+          const avg = avgData.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / avgData.length
           setAverageRatings((prev) => ({ ...prev, [hotspot.id]: Math.round(avg * 10) / 10 }))
         }
 
