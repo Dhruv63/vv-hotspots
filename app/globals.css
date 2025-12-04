@@ -5,90 +5,98 @@
 
 /* Cyberpunk theme colors */
 :root {
-  --background: oklch(0.13 0.02 285);
-  --foreground: oklch(0.88 0 0);
-  --card: oklch(0.17 0.02 285);
-  --card-foreground: oklch(0.88 0 0);
-  --popover: oklch(0.17 0.02 285);
-  --popover-foreground: oklch(0.88 0 0);
-  --primary: oklch(0.85 0.2 195);
-  --primary-foreground: oklch(0.13 0.02 285);
-  --secondary: oklch(0.65 0.25 350);
-  --secondary-foreground: oklch(1 0 0);
-  --muted: oklch(0.25 0.02 285);
+  --background: oklch(0.1 0 0);
+  --foreground: oklch(0.98 0 0);
+  --card: oklch(0.12 0 0);
+  --card-foreground: oklch(0.98 0 0);
+  --popover: oklch(0.12 0 0);
+  --popover-foreground: oklch(0.98 0 0);
+  --primary: oklch(0.94 0.21 109);
+  --primary-foreground: oklch(0.1 0 0);
+  --secondary: oklch(0.9 0.25 125);
+  --secondary-foreground: oklch(0.1 0 0);
+  --muted: oklch(0.2 0 0);
   --muted-foreground: oklch(0.6 0 0);
-  --accent: oklch(0.55 0.25 300);
-  --accent-foreground: oklch(1 0 0);
+  --accent: oklch(0.85 0.18 85);
+  --accent-foreground: oklch(0.1 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.3 0.02 285);
-  --input: oklch(0.3 0.02 285);
-  --ring: oklch(0.85 0.2 195);
+  --border: oklch(0.2 0 0);
+  --input: oklch(0.2 0 0);
+  --ring: oklch(0.94 0.21 109);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
   --radius: 0.25rem;
-  --sidebar: oklch(0.15 0.02 285);
-  --sidebar-foreground: oklch(0.88 0 0);
-  --sidebar-primary: oklch(0.85 0.2 195);
-  --sidebar-primary-foreground: oklch(0.13 0.02 285);
-  --sidebar-accent: oklch(0.25 0.02 285);
-  --sidebar-accent-foreground: oklch(0.88 0 0);
-  --sidebar-border: oklch(0.3 0.02 285);
-  --sidebar-ring: oklch(0.85 0.2 195);
+  --sidebar: oklch(0.1 0 0);
+  --sidebar-foreground: oklch(0.98 0 0);
+  --sidebar-primary: oklch(0.94 0.21 109);
+  --sidebar-primary-foreground: oklch(0.1 0 0);
+  --sidebar-accent: oklch(0.2 0 0);
+  --sidebar-accent-foreground: oklch(0.98 0 0);
+  --sidebar-border: oklch(0.2 0 0);
+  --sidebar-ring: oklch(0.94 0.21 109);
 }
 
 .dark {
-  --background: oklch(0.13 0.02 285);
-  --foreground: oklch(0.88 0 0);
-  --card: oklch(0.17 0.02 285);
-  --card-foreground: oklch(0.88 0 0);
-  --popover: oklch(0.17 0.02 285);
-  --popover-foreground: oklch(0.88 0 0);
-  --primary: oklch(0.85 0.2 195);
-  --primary-foreground: oklch(0.13 0.02 285);
-  --secondary: oklch(0.65 0.25 350);
-  --secondary-foreground: oklch(1 0 0);
-  --muted: oklch(0.25 0.02 285);
+  --background: oklch(0.1 0 0);
+  --foreground: oklch(0.98 0 0);
+  --card: oklch(0.12 0 0);
+  --card-foreground: oklch(0.98 0 0);
+  --popover: oklch(0.12 0 0);
+  --popover-foreground: oklch(0.98 0 0);
+  --primary: oklch(0.94 0.21 109);
+  --primary-foreground: oklch(0.1 0 0);
+  --secondary: oklch(0.9 0.25 125);
+  --secondary-foreground: oklch(0.1 0 0);
+  --muted: oklch(0.2 0 0);
   --muted-foreground: oklch(0.6 0 0);
-  --accent: oklch(0.55 0.25 300);
-  --accent-foreground: oklch(1 0 0);
+  --accent: oklch(0.85 0.18 85);
+  --accent-foreground: oklch(0.1 0 0);
   --destructive: oklch(0.5 0.2 27);
   --destructive-foreground: oklch(0.9 0.2 27);
-  --border: oklch(0.3 0.02 285);
-  --input: oklch(0.3 0.02 285);
-  --ring: oklch(0.85 0.2 195);
+  --border: oklch(0.2 0 0);
+  --input: oklch(0.2 0 0);
+  --ring: oklch(0.94 0.21 109);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.15 0.02 285);
-  --sidebar-foreground: oklch(0.88 0 0);
-  --sidebar-primary: oklch(0.85 0.2 195);
-  --sidebar-primary-foreground: oklch(0.13 0.02 285);
-  --sidebar-accent: oklch(0.25 0.02 285);
-  --sidebar-accent-foreground: oklch(0.88 0 0);
-  --sidebar-border: oklch(0.3 0.02 285);
-  --sidebar-ring: oklch(0.85 0.2 195);
+  --sidebar: oklch(0.1 0 0);
+  --sidebar-foreground: oklch(0.98 0 0);
+  --sidebar-primary: oklch(0.94 0.21 109);
+  --sidebar-primary-foreground: oklch(0.1 0 0);
+  --sidebar-accent: oklch(0.2 0 0);
+  --sidebar-accent-foreground: oklch(0.98 0 0);
+  --sidebar-border: oklch(0.2 0 0);
+  --sidebar-ring: oklch(0.94 0.21 109);
 }
 
 @theme inline {
   --font-sans: "Inter", "Inter Fallback", system-ui, sans-serif;
   --font-mono: "Fira Code", "JetBrains Mono", "Geist Mono", monospace;
 
-  /* Cyberpunk color palette */
-  --color-cyber-black: #0a0a0f;
-  --color-cyber-dark: #12121a;
-  --color-cyber-navy: #1a1a2e;
-  --color-cyber-cyan: #00ffff;
-  --color-cyber-pink: #ff006e;
-  --color-cyber-purple: #b700ff;
-  --color-cyber-yellow: #f0f000;
-  --color-cyber-gray: #2a2a3e;
+  /* Cyberpunk color palette - Yellow/Black Theme */
+  --color-cyber-black: #000000;
+  --color-cyber-dark: #0a0a0a;
+  --color-cyber-navy: #111111;
+
+  /* Mapped to new colors */
+  --color-cyber-cyan: #FFFF00; /* Primary: Neon Yellow */
+  --color-cyber-pink: #CCFF00; /* Secondary: Bright Lime */
+  --color-cyber-purple: #FFD700; /* Accent: Electric Yellow */
+
+  --color-cyber-yellow: #F7FF00;
+  --color-cyber-gray: #333333;
   --color-cyber-light: #e0e0e0;
+
+  /* Semantic aliases */
+  --color-cyber-primary: #FFFF00;
+  --color-cyber-secondary: #CCFF00;
+  --color-cyber-accent: #FFD700;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -149,8 +157,8 @@
   inset: 0;
   background: repeating-linear-gradient(
     0deg,
-    rgba(0, 0, 0, 0.15),
-    rgba(0, 0, 0, 0.15) 1px,
+    rgba(255, 255, 0, 0.05),
+    rgba(255, 255, 0, 0.05) 1px,
     transparent 1px,
     transparent 2px
   );
@@ -175,12 +183,12 @@
 }
 
 .neon-border-cyan {
-  box-shadow: 0 0 5px var(--color-cyber-cyan), 0 0 10px var(--color-cyber-cyan), inset 0 0 5px rgba(0, 255, 255, 0.1);
+  box-shadow: 0 0 5px var(--color-cyber-cyan), 0 0 10px var(--color-cyber-cyan), inset 0 0 5px rgba(255, 255, 0, 0.1);
   border-color: var(--color-cyber-cyan);
 }
 
 .neon-border-pink {
-  box-shadow: 0 0 5px var(--color-cyber-pink), 0 0 10px var(--color-cyber-pink), inset 0 0 5px rgba(255, 0, 110, 0.1);
+  box-shadow: 0 0 5px var(--color-cyber-pink), 0 0 10px var(--color-cyber-pink), inset 0 0 5px rgba(204, 255, 0, 0.1);
   border-color: var(--color-cyber-pink);
 }
 
@@ -285,7 +293,7 @@
 }
 
 .leaflet-tile-pane {
-  filter: invert(1) hue-rotate(180deg) brightness(0.8) contrast(1.2);
+  filter: grayscale(1) invert(1) brightness(0.7) contrast(2);
 }
 
 .leaflet-control-zoom a {

@@ -64,7 +64,7 @@ export function PageClient({ data }: Props) {
 
 // Correct - cyberpunk styling
 <button className="bg-cyan-500/20 border border-cyan-500 text-cyan-400 
-                   shadow-[0_0_15px_rgba(0,255,255,0.3)]" />
+                   shadow-[0_0_15px_rgba(255,255,0,0.3)]" />
 \`\`\`
 
 ### File Naming

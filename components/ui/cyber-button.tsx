@@ -26,10 +26,10 @@ const CyberButton = forwardRef<HTMLButtonElement, CyberButtonProps>(
 
     const glowStyles = glowing
       ? {
-          cyan: "shadow-[0_0_20px_rgba(0,255,255,0.5),0_0_40px_rgba(0,255,255,0.3),inset_0_0_20px_rgba(0,255,255,0.1)] animate-pulse",
-          pink: "shadow-[0_0_20px_rgba(255,0,110,0.5),0_0_40px_rgba(255,0,110,0.3),inset_0_0_20px_rgba(255,0,110,0.1)] animate-pulse",
+          cyan: "shadow-[0_0_20px_rgba(255,255,0,0.5),0_0_40px_rgba(255,255,0,0.3),inset_0_0_20px_rgba(255,255,0,0.1)] animate-pulse",
+          pink: "shadow-[0_0_20px_rgba(204,255,0,0.5),0_0_40px_rgba(204,255,0,0.3),inset_0_0_20px_rgba(204,255,0,0.1)] animate-pulse",
           purple:
-            "shadow-[0_0_20px_rgba(183,0,255,0.5),0_0_40px_rgba(183,0,255,0.3),inset_0_0_20px_rgba(183,0,255,0.1)] animate-pulse",
+            "shadow-[0_0_20px_rgba(255,215,0,0.5),0_0_40px_rgba(255,215,0,0.3),inset_0_0_20px_rgba(255,215,0,0.1)] animate-pulse",
           ghost: "",
         }[variant]
       : ""

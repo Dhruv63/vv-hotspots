@@ -117,7 +117,7 @@ export function HotspotDetail({
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999]" onClick={onClose} />
 
       <div
-        className="fixed inset-x-0 bottom-0 md:absolute md:inset-auto md:bottom-4 md:right-4 md:w-96 z-[1000] bg-cyber-dark border-t-2 md:border-2 border-cyber-cyan md:rounded-lg max-h-[85vh] md:max-h-[80vh] overflow-y-auto shadow-[0_0_30px_rgba(0,255,255,0.3)] rounded-t-2xl md:rounded-lg"
+        className="fixed inset-x-0 bottom-0 md:absolute md:inset-auto md:bottom-4 md:right-4 md:w-96 z-[1000] bg-cyber-dark border-t-2 md:border-2 border-cyber-cyan md:rounded-lg max-h-[85vh] md:max-h-[80vh] overflow-y-auto shadow-[0_0_30px_rgba(255,255,0,0.3)] rounded-t-2xl md:rounded-lg"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Drag handle for mobile */}
@@ -132,7 +132,7 @@ export function HotspotDetail({
         <button
           onClick={onClose}
           disabled={isLoading}
-          className="absolute top-4 md:top-4 right-3 z-50 p-3 bg-cyber-black/80 border border-cyber-gray text-cyber-gray hover:text-cyber-cyan hover:border-cyber-cyan hover:shadow-[0_0_15px_rgba(0,255,255,0.5)] transition-all rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center disabled:opacity-50"
+          className="absolute top-4 md:top-4 right-3 z-50 p-3 bg-cyber-black/80 border border-cyber-gray text-cyber-gray hover:text-cyber-cyan hover:border-cyber-cyan hover:shadow-[0_0_15px_rgba(255,255,0,0.5)] transition-all rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center disabled:opacity-50"
         >
           <X className="w-5 h-5" />
         </button>
@@ -199,7 +199,7 @@ export function HotspotDetail({
           <ActiveUsersList hotspotId={hotspot.id} />
 
           {/* Check-in button - larger for mobile */}
-          <div className="space-y-3 p-4 bg-gradient-to-b from-cyber-cyan/10 to-cyber-black/30 rounded-lg border-2 border-cyber-cyan/50 shadow-[0_0_20px_rgba(0,255,255,0.2)]">
+          <div className="space-y-3 p-4 bg-gradient-to-b from-cyber-cyan/10 to-cyber-black/30 rounded-lg border-2 border-cyber-cyan/50 shadow-[0_0_20px_rgba(255,255,0,0.2)]">
             {isCheckedIn && (
               <div className="flex items-center gap-2 p-3 bg-cyber-cyan/20 border border-cyber-cyan rounded">
                 <span className="w-3 h-3 bg-cyber-cyan rounded-full animate-pulse" />
@@ -215,8 +215,8 @@ export function HotspotDetail({
                 isLoading
                   ? "bg-cyber-gray/50 text-cyber-gray cursor-not-allowed"
                   : isCheckedIn
-                    ? "bg-cyber-pink text-white hover:bg-cyber-pink/80 shadow-[0_0_20px_rgba(255,0,110,0.5)] active:scale-95"
-                    : "bg-cyber-cyan text-cyber-black hover:bg-cyber-cyan/80 shadow-[0_0_30px_rgba(0,255,255,0.6)] active:scale-95"
+                    ? "bg-cyber-pink text-white hover:bg-cyber-pink/80 shadow-[0_0_20px_rgba(204,255,0,0.5)] active:scale-95"
+                    : "bg-cyber-cyan text-cyber-black hover:bg-cyber-cyan/80 shadow-[0_0_30px_rgba(255,255,0,0.6)] active:scale-95"
               }`}
             >
               {isLoading ? (

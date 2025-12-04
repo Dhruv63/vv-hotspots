@@ -4,7 +4,7 @@ This document provides AI agents and developers with a comprehensive understandi
 
 ## Codebase Structure
 
-\`\`\`
+```
 vv-hotspots/
 ├── app/                          # Next.js 15 App Router
 │   ├── auth/                     # Authentication flow
@@ -60,7 +60,7 @@ vv-hotspots/
 └── hooks/                        # Custom React hooks
     ├── use-mobile.ts             # Mobile detection
     └── use-toast.ts              # Toast notifications
-\`\`\`
+```
 
 ## Key Components
 
@@ -84,17 +84,17 @@ The main application view with three-column layout on desktop:
 
 Leaflet-based map with custom neon markers:
 
-\`\`\`typescript
+```typescript
 // Category color mapping
 const categoryColors = {
-  cafe: '#00FFFF',    // Cyan
-  park: '#00FF00',    // Green
-  gaming: '#A855F7',  // Purple
-  food: '#FF1493',    // Pink
-  hangout: '#FFFF00', // Yellow
-  other: '#888888'    // Gray
+  cafe: '#FFFF00',    // Yellow
+  park: '#CCFF00',    // Lime
+  gaming: '#FFD700',  // Gold
+  food: '#FFFFE0',    // Light Yellow
+  hangout: '#F7FF00', // Neon Yellow
+  other: '#E0E0E0'    // Gray
 }
-\`\`\`
+```
 
 Features:
 - Custom SVG markers with glow effects
@@ -106,7 +106,7 @@ Features:
 
 Uses Supabase Realtime to subscribe to check-ins:
 
-\`\`\`typescript
+```typescript
 const channel = supabase
   .channel('check_ins_realtime')
   .on('postgres_changes', {
@@ -116,7 +116,7 @@ const channel = supabase
     filter: 'is_active=eq.true'
   }, handleNewCheckIn)
   .subscribe()
-\`\`\`
+```
 
 ## Database Schema
 
@@ -167,18 +167,18 @@ const channel = supabase
 
 All tables have RLS enabled with these policies:
 
-\`\`\`sql
+```sql
 -- Profiles: Anyone can read, users update own
 -- Hotspots: Anyone can read
 -- Check-ins: Anyone can read, users manage own
 -- Ratings: Anyone can read, users manage own
-\`\`\`
+```
 
 ## API Patterns
 
 ### Server Components (Data Fetching)
 
-\`\`\`typescript
+```typescript
 // app/dashboard/page.tsx
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -189,11 +189,11 @@ export default async function DashboardPage() {
   
   return <DashboardClient hotspots={hotspots} />
 }
-\`\`\`
+```
 
 ### Client Components (Mutations)
 
-\`\`\`typescript
+```typescript
 // Using browser client for mutations
 const supabase = createBrowserClient()
 
@@ -202,63 +202,62 @@ const handleCheckIn = async (hotspotId: string) => {
     .from('check_ins')
     .insert({ hotspot_id: hotspotId, user_id: userId })
 }
-\`\`\`
+```
 
 ## Styling Conventions
 
 ### Cyberpunk Theme
 
 **Color Palette:**
-- Primary: `#00FFFF` (Cyan neon)
-- Secondary: `#A855F7` (Purple)
-- Accent: `#FF1493` (Pink)
-- Background: `#0a0a0f` (Near black)
-- Surface: `#1a1a2e` (Dark purple-gray)
+- Primary: `#FFFF00` (Neon Yellow)
+- Secondary: `#CCFF00` (Bright Lime)
+- Accent: `#FFD700` (Electric Yellow)
+- Background: `#000000` (Pure Black)
+- Surface: `#0a0a0f` (Dark Gray)
 
 **Common Patterns:**
-\`\`\`tsx
+```tsx
 // Neon glow effect
-className="shadow-[0_0_20px_rgba(0,255,255,0.3)]"
+className="shadow-[0_0_20px_rgba(255,255,0,0.3)]"
 
 // Gradient border
-className="bg-gradient-to-r from-cyan-500 to-purple-500"
+className="bg-gradient-to-r from-yellow-400 to-lime-400"
 
 // Text glow
-className="text-cyan-400 drop-shadow-[0_0_10px_rgba(0,255,255,0.5)]"
-\`\`\`
+className="text-cyber-primary drop-shadow-[0_0_10px_rgba(255,255,0,0.5)]"
+```
 
 ### Mobile Responsiveness
 
 - `< 768px`: Bottom drawer navigation, full-width map
 - `>= 768px`: Three-column layout with sidebars
 
-\`\`\`tsx
+```tsx
 // Mobile detection
 const isMobile = useIsMobile() // from hooks/use-mobile.ts
 
 // Responsive classes
 className="fixed inset-x-0 bottom-0 md:relative md:w-80"
-\`\`\`
+```
 
 ## Security
 
 ### Input Sanitization (`lib/security.tsx`)
 
-\`\`\`typescript
+```typescript
 sanitizeInput(input)      // XSS prevention
 sanitizeUsername(name)    // Alphanumeric only
 sanitizeAvatarUrl(url)    // HTTPS validation
-\`\`\`
+```
 
 ### Rate Limiting
 
-\`\`\`typescript
+```typescript
 const rateLimits = {
   checkIn: { max: 10, windowMs: 60000 },   // 10/min
   rating: { max: 20, windowMs: 60000 },    // 20/min
   profileUpdate: { max: 5, windowMs: 60000 } // 5/min
-}
-\`\`\`
+```
 
 ## Common Tasks
 
@@ -279,8 +278,8 @@ const rateLimits = {
 ### Debugging Tips
 
 Use `[v0]` prefixed console logs:
-\`\`\`typescript
+```typescript
 console.log('[v0] Check-in data:', checkInData)
-\`\`\`
+```
 
 These are automatically filtered in production builds.

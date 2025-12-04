@@ -19,12 +19,12 @@ const VASAI_VIRAR_CENTER: [number, number] = [19.42, 72.82]
 const DEFAULT_ZOOM = 13
 
 const categoryColors: Record<string, { main: string; glow: string; name: string }> = {
-  cafe: { main: "#00ffff", glow: "rgba(0, 255, 255, 0.6)", name: "Cafe" },
-  park: { main: "#22ff22", glow: "rgba(34, 255, 34, 0.6)", name: "Park" },
-  gaming: { main: "#b700ff", glow: "rgba(183, 0, 255, 0.6)", name: "Gaming" },
-  food: { main: "#ff006e", glow: "rgba(255, 0, 110, 0.6)", name: "Food" },
-  hangout: { main: "#ffff00", glow: "rgba(255, 255, 0, 0.6)", name: "Hangout" },
-  other: { main: "#888888", glow: "rgba(136, 136, 136, 0.6)", name: "Other" },
+  cafe: { main: "#FFFF00", glow: "rgba(255, 255, 0, 0.6)", name: "Cafe" },
+  park: { main: "#CCFF00", glow: "rgba(204, 255, 0, 0.6)", name: "Park" },
+  gaming: { main: "#FFD700", glow: "rgba(255, 215, 0, 0.6)", name: "Gaming" },
+  food: { main: "#FFFFE0", glow: "rgba(255, 255, 224, 0.6)", name: "Food" },
+  hangout: { main: "#F7FF00", glow: "rgba(247, 255, 0, 0.6)", name: "Hangout" },
+  other: { main: "#E0E0E0", glow: "rgba(224, 224, 224, 0.6)", name: "Other" },
 }
 
 export function MapView({
@@ -121,20 +121,20 @@ export function MapView({
         <div style="
           width: 100%;
           height: 100%;
-          background: ${isCheckedInHere ? "#00ffff" : colorInfo.main}25;
-          border: 3px solid ${isCheckedInHere ? "#00ffff" : colorInfo.main};
+          background: ${isCheckedInHere ? "#FFFF00" : colorInfo.main}25;
+          border: 3px solid ${isCheckedInHere ? "#FFFF00" : colorInfo.main};
           border-radius: 50% 50% 50% 0;
           transform: rotate(-45deg);
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 0 ${glowIntensity}px ${isCheckedInHere ? "#00ffff" : colorInfo.main};
+          box-shadow: 0 0 ${glowIntensity}px ${isCheckedInHere ? "#FFFF00" : colorInfo.main};
           ${hasActiveUsers || isCheckedInHere ? `animation: markerPulse 2s infinite;` : ""}
         ">
           <div style="
             width: 10px;
             height: 10px;
-            background: ${isCheckedInHere ? "#00ffff" : colorInfo.main};
+            background: ${isCheckedInHere ? "#FFFF00" : colorInfo.main};
             border-radius: 50%;
             transform: rotate(45deg);
           "></div>
@@ -149,14 +149,14 @@ export function MapView({
             min-width: 18px;
             height: 18px;
             background: ${colorInfo.main};
-            border: 2px solid #0a0a0f;
+            border: 2px solid #000000;
             border-radius: 9px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 10px;
             font-weight: bold;
-            color: #0a0a0f;
+            color: #000000;
             padding: 0 4px;
             font-family: monospace;
             box-shadow: 0 0 8px ${colorInfo.main};
@@ -185,10 +185,10 @@ export function MapView({
       <div style="
         width: 20px;
         height: 20px;
-        background: #4285f4;
+        background: #CCFF00;
         border: 3px solid white;
         border-radius: 50%;
-        box-shadow: 0 0 15px #4285f4;
+        box-shadow: 0 0 15px #CCFF00;
         animation: userPulse 2s infinite;
       "></div>
     `
@@ -306,9 +306,9 @@ export function MapView({
         ${
           isCheckedInHere
             ? `<div style="
-            background: #00ffff20;
-            border: 2px solid #00ffff;
-            color: #00ffff;
+            background: #FFFF0020;
+            border: 2px solid #FFFF00;
+            color: #FFFF00;
             padding: 10px;
             text-align: center;
             font-weight: bold;
@@ -322,7 +322,7 @@ export function MapView({
             style="
               width: 100%;
               background: ${colorInfo.main};
-              color: #0a0a0f;
+              color: #000000;
               border: none;
               padding: 10px;
               font-family: monospace;
@@ -450,9 +450,9 @@ export function MapView({
         }
         .cyber-popup .leaflet-popup-content-wrapper {
           background: #12121a;
-          border: 2px solid #00ffff;
+          border: 2px solid #FFFF00;
           border-radius: 8px;
-          box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+          box-shadow: 0 0 20px rgba(255, 255, 0, 0.4);
           padding: 0;
           overflow: visible;
         }
@@ -465,12 +465,12 @@ export function MapView({
         }
         .cyber-popup .leaflet-popup-tip {
           background: #12121a;
-          border: 2px solid #00ffff;
+          border: 2px solid #FFFF00;
           border-top: none;
           border-left: none;
         }
         .cyber-popup .leaflet-popup-close-button {
-          color: #00ffff !important;
+          color: #FFFF00 !important;
           font-size: 20px;
           width: 24px;
           height: 24px;
@@ -481,21 +481,21 @@ export function MapView({
           color: #fff !important;
         }
         .leaflet-control-zoom {
-          border: 2px solid #00ffff !important;
+          border: 2px solid #FFFF00 !important;
           border-radius: 6px !important;
           overflow: hidden;
         }
         .leaflet-control-zoom a {
           background: #12121a !important;
-          color: #00ffff !important;
-          border-color: #00ffff !important;
+          color: #FFFF00 !important;
+          border-color: #FFFF00 !important;
           width: 32px !important;
           height: 32px !important;
           line-height: 32px !important;
           font-size: 16px !important;
         }
         .leaflet-control-zoom a:hover {
-          background: #00ffff20 !important;
+          background: #FFFF0020 !important;
         }
         .popup-checkin-btn:hover {
           opacity: 0.9;
@@ -516,8 +516,8 @@ export function MapView({
 
       <div ref={mapContainerRef} className="w-full h-full" style={{ background: "#0a0a0f" }} />
 
-      <div className="absolute top-4 left-4 z-[50] bg-[#12121a]/95 border-2 border-cyan-500/50 rounded-lg p-3 hidden md:block">
-        <div className="text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider font-bold">Categories</div>
+      <div className="absolute top-4 left-4 z-[50] bg-[#12121a]/95 border-2 border-cyber-primary/50 rounded-lg p-3 hidden md:block">
+        <div className="text-xs font-mono text-cyber-primary mb-2 uppercase tracking-wider font-bold">Categories</div>
         <div className="space-y-1.5">
           {Object.entries(categoryColors).map(([key, value]) => (
             <div key={key} className="flex items-center gap-2">
@@ -534,13 +534,13 @@ export function MapView({
       <button
         onClick={handleGetLocation}
         disabled={isLocating}
-        className="absolute bottom-20 right-4 z-[50] w-12 h-12 bg-[#12121a] border-2 border-cyan-400 rounded-full flex items-center justify-center transition-all hover:bg-cyan-400/20 disabled:opacity-50 min-w-[48px] min-h-[48px]"
+        className="absolute bottom-20 right-4 z-[50] w-12 h-12 bg-[#12121a] border-2 border-cyber-primary rounded-full flex items-center justify-center transition-all hover:bg-cyber-primary/20 disabled:opacity-50 min-w-[48px] min-h-[48px]"
         title="Find my location"
       >
         {isLocating ? (
-          <Loader2 className="w-5 h-5 text-cyan-400 animate-spin" />
+          <Loader2 className="w-5 h-5 text-cyber-primary animate-spin" />
         ) : (
-          <Locate className="w-5 h-5 text-cyan-400" />
+          <Locate className="w-5 h-5 text-cyber-primary" />
         )}
       </button>
 

@@ -73,7 +73,7 @@ export function HotspotCard({
       onClick={onClick}
       className={`relative overflow-hidden rounded-lg cursor-pointer transition-all duration-300 bg-cyber-dark border min-h-[120px] active:scale-[0.98] ${
         isSelected
-          ? "border-cyber-cyan shadow-[0_0_20px_rgba(0,255,255,0.3)]"
+          ? "border-cyber-cyan shadow-[0_0_20px_rgba(255,255,0,0.3)]"
           : "border-cyber-gray hover:border-cyber-cyan/50"
       }`}
     >

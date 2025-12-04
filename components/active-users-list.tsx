@@ -110,7 +110,7 @@ export function ActiveUsersList({ hotspotId }: ActiveUsersListProps) {
   }
 
   return (
-    <div className="p-4 bg-cyber-black/30 border border-cyber-cyan/30 rounded-lg backdrop-blur-sm shadow-[0_0_15px_rgba(0,255,255,0.1)]">
+    <div className="p-4 bg-cyber-black/30 border border-cyber-cyan/30 rounded-lg backdrop-blur-sm shadow-[0_0_15px_rgba(255,255,0,0.1)]">
       <h3 className="text-cyber-cyan font-mono text-sm font-bold mb-4 flex items-center gap-2">
         <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,255,34,0.8)]"/>
         CURRENTLY HERE ({users.length})
@@ -131,7 +131,7 @@ export function ActiveUsersList({ hotspotId }: ActiveUsersListProps) {
                   <User className="w-6 h-6 text-cyber-cyan/70" />
                 </div>
               )}
-              <div className="absolute inset-0 rounded-full shadow-[0_0_10px_rgba(0,255,255,0.2)] group-hover:shadow-[0_0_15px_rgba(0,255,255,0.5)] transition-all pointer-events-none" />
+              <div className="absolute inset-0 rounded-full shadow-[0_0_10px_rgba(255,255,0,0.2)] group-hover:shadow-[0_0_15px_rgba(255,255,0,0.5)] transition-all pointer-events-none" />
             </div>
 
             <span className="text-[10px] font-mono text-cyber-gray group-hover:text-cyber-cyan truncate w-full text-center transition-colors">
@@ -139,7 +139,7 @@ export function ActiveUsersList({ hotspotId }: ActiveUsersListProps) {
             </span>
 
             {/* Tooltip */}
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-cyber-black border border-cyber-cyan text-cyber-light text-xs font-mono rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-[0_0_10px_rgba(0,255,255,0.2)]">
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-cyber-black border border-cyber-cyan text-cyber-light text-xs font-mono rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-[0_0_10px_rgba(255,255,0,0.2)]">
               <div className="font-bold text-cyber-cyan mb-0.5">{user.username}</div>
               <div className="text-cyber-gray text-[10px]">
                 {user.checked_in_at ? formatDistanceToNow(new Date(user.checked_in_at), { addSuffix: true }) : 'Just now'}
