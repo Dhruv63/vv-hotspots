@@ -1,8 +1,8 @@
 "use client"
 
+import { ReactNode } from "react"
 import Image from "next/image"
 import { MapPin, Users, Star } from "lucide-react"
-import { StarRating } from "@/components/ui/star-rating"
 import type { Hotspot } from "@/lib/types"
 
 interface HotspotCardProps {
@@ -11,6 +11,7 @@ interface HotspotCardProps {
   averageRating?: number
   onClick?: () => void
   isSelected?: boolean
+  children?: ReactNode
 }
 
 const getHotspotImage = (hotspot: Hotspot): string => {
@@ -66,6 +67,7 @@ export function HotspotCard({
   averageRating = 0,
   onClick,
   isSelected = false,
+  children,
 }: HotspotCardProps) {
   const imageUrl = getHotspotImage(hotspot)
 
@@ -77,16 +79,17 @@ export function HotspotCard({
           ? "border-cyber-cyan shadow-[0_0_20px_rgba(255,255,0,0.3)]"
           : "border-cyber-gray hover:border-cyber-cyan/50"
       }`}
+      style={{ width: "100%" }}
     >
       {/* Image section */}
-      <div className="relative h-[150px] w-full shrink-0">
+      <div className="relative h-[120px] w-full shrink-0">
         <Image src={imageUrl || "/placeholder.svg"} alt={hotspot.name} fill className="object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-cyber-black to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-cyber-black/80 to-transparent" />
 
         {/* Category badge */}
-        <div className="absolute top-2 left-2">
+        <div className="absolute top-2 left-2 z-10">
           <span
-            className={`px-2.5 py-1 text-xs font-mono font-bold uppercase rounded ${getCategoryColor(hotspot.category)}`}
+            className={`px-2 py-0.5 text-[10px] font-mono font-bold uppercase rounded ${getCategoryColor(hotspot.category)}`}
           >
             {hotspot.category}
           </span>
@@ -94,7 +97,7 @@ export function HotspotCard({
 
         {/* Active users badge */}
         {activeCheckins > 0 && (
-          <div className="absolute top-2 right-2 flex items-center gap-1 px-2.5 py-1 bg-cyber-black/80 border border-cyber-cyan text-cyber-cyan text-xs font-mono rounded">
+          <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 bg-cyber-black/80 border border-cyber-cyan text-cyber-cyan text-[10px] font-mono rounded z-10">
             <Users className="w-3 h-3" />
             <span>{activeCheckins}</span>
           </div>
@@ -102,31 +105,30 @@ export function HotspotCard({
       </div>
 
       {/* Content section */}
-      <div className="p-3 pb-4 flex flex-col flex-1">
-        <h3 className="font-mono text-base font-bold text-cyber-light mb-1 leading-tight">{hotspot.name}</h3>
+      <div className="p-3 flex flex-col flex-1 overflow-hidden">
+        <h3 className="font-mono text-[16px] font-bold text-cyber-light mb-1 leading-tight line-clamp-2 text-ellipsis">
+          {hotspot.name}
+        </h3>
 
-        <div className="flex items-start gap-1 text-cyber-gray text-xs mb-2">
-          <MapPin className="w-3 h-3 flex-shrink-0 mt-0.5" />
-          <span className="leading-tight">{hotspot.address}</span>
+        <div className="flex items-center gap-1 text-cyber-gray text-[12px] mb-2">
+          <MapPin className="w-3 h-3 flex-shrink-0" />
+          <span className="leading-tight line-clamp-1 text-ellipsis overflow-hidden">{hotspot.address}</span>
         </div>
 
         {/* Rating display */}
-        <div className="flex items-center gap-2 mt-auto">
+        <div className="flex items-center gap-1 mt-auto text-[14px]">
           {averageRating > 0 ? (
             <>
-              <Star className="w-4 h-4 fill-[#FFFF00] text-[#FFFF00]" />
-              <span className="text-[#FFFF00] text-sm font-mono font-bold">{averageRating.toFixed(1)}</span>
-              <StarRating rating={averageRating} size="sm" />
+              <span className="text-[#FFFF00] font-mono font-bold">{averageRating.toFixed(1)}</span>
+              <Star className="w-3.5 h-3.5 fill-[#FFFF00] text-[#FFFF00]" />
             </>
           ) : (
             <span className="text-cyber-gray text-xs font-mono">No ratings yet</span>
           )}
         </div>
-      </div>
 
-      {/* Tap indicator for mobile */}
-      <div className="absolute bottom-2 right-2 px-2 py-1 bg-cyber-cyan/20 border border-cyber-cyan/50 rounded text-cyber-cyan text-xs font-mono md:hidden">
-        Tap for details
+        {/* Buttons (Children) */}
+        {children && <div className="mt-2 pt-1 w-full">{children}</div>}
       </div>
     </div>
   )

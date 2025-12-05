@@ -256,9 +256,13 @@ export function HotspotList({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className={viewMode === "grid" ? "flex-1 overflow-y-auto" : "flex-1 overflow-y-auto p-4"}>
         <div
-          className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 gap-4 auto-rows-fr" : "space-y-4"}
+          className={
+            viewMode === "grid"
+              ? "grid grid-cols-1 min-[400px]:grid-cols-2 gap-[12px] p-[12px] auto-rows-fr"
+              : "space-y-4"
+          }
         >
           {filteredHotspots.map((hotspot) => {
             const isCheckedInHere = userCurrentCheckin === hotspot.id
@@ -266,67 +270,67 @@ export function HotspotList({
             const isCheckingIn = checkingInHotspotId === hotspot.id
 
             return (
-              <div key={hotspot.id} className="flex flex-col h-full">
+              <div key={hotspot.id} className="h-full">
                 <HotspotCard
                   hotspot={hotspot}
                   activeCheckins={activeCheckins[hotspot.id] || 0}
                   averageRating={averageRatings[hotspot.id] || 0}
                   onClick={() => onHotspotSelect(hotspot)}
                   isSelected={selectedHotspot?.id === hotspot.id}
-                />
+                >
+                  <div className="flex justify-between w-full">
+                    {onCheckIn && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleCheckInClick(hotspot)
+                        }}
+                        disabled={
+                          isLoading ||
+                          isCheckingIn ||
+                          (checkingInHotspotId !== null && checkingInHotspotId !== hotspot.id)
+                        }
+                        className={`w-[48%] py-3 px-1 font-mono text-[10px] sm:text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1 min-h-[40px] ${
+                          isCheckedInHere
+                            ? "bg-cyber-pink text-white shadow-[0_0_15px_rgba(204,255,0,0.4)]"
+                            : "bg-cyber-cyan text-cyber-black hover:shadow-[0_0_20px_rgba(255,255,0,0.5)]"
+                        } disabled:opacity-50 disabled:cursor-not-allowed active:scale-95`}
+                      >
+                        {isCheckingIn ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : isCheckedInHere ? (
+                          <>
+                            <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                            HERE
+                          </>
+                        ) : (
+                          <>
+                            <Zap className="w-3 h-3" />
+                            CHECK IN
+                          </>
+                        )}
+                      </button>
+                    )}
 
-                <div className="flex gap-2 mt-2 mt-auto">
-                  {onCheckIn && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleCheckInClick(hotspot)
-                      }}
-                      disabled={
-                        isLoading ||
-                        isCheckingIn ||
-                        (checkingInHotspotId !== null && checkingInHotspotId !== hotspot.id)
-                      }
-                      className={`flex-1 py-3 px-3 font-mono text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 min-h-[44px] ${
-                        isCheckedInHere
-                          ? "bg-cyber-pink text-white shadow-[0_0_15px_rgba(204,255,0,0.4)]"
-                          : "bg-cyber-cyan text-cyber-black hover:shadow-[0_0_20px_rgba(255,255,0,0.5)]"
-                      } disabled:opacity-50 disabled:cursor-not-allowed active:scale-95`}
-                    >
-                      {isCheckingIn ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : isCheckedInHere ? (
-                        <>
-                          <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                          YOU'RE HERE
-                        </>
-                      ) : (
-                        <>
-                          <Zap className="w-4 h-4" />
-                          CHECK IN
-                        </>
-                      )}
-                    </button>
-                  )}
-
-                  {onRate && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        openRatingModal(hotspot)
-                      }}
-                      disabled={isLoading}
-                      className={`py-3 px-4 font-mono text-xs font-bold rounded-lg transition-all flex items-center gap-2 min-h-[44px] ${
-                        userRating
-                          ? "bg-yellow-400 text-cyber-black shadow-[0_0_15px_rgba(250,204,21,0.4)]"
-                          : "bg-cyber-purple text-white hover:shadow-[0_0_15px_rgba(255,215,0,0.5)]"
-                      } active:scale-95 disabled:opacity-50`}
-                    >
-                      <Star className={`w-4 h-4 ${userRating ? "fill-cyber-black" : ""}`} />
-                      {userRating ? `${userRating}★` : "RATE"}
-                    </button>
-                  )}
-                </div>
+                    {onRate && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          openRatingModal(hotspot)
+                        }}
+                        disabled={isLoading}
+                        className={`w-[48%] py-3 px-1 font-mono text-[10px] sm:text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1 min-h-[40px] ${
+                          userRating
+                            ? "bg-yellow-400 text-cyber-black shadow-[0_0_15px_rgba(250,204,21,0.4)]"
+                            : "bg-cyber-purple text-white hover:shadow-[0_0_15px_rgba(255,215,0,0.5)]"
+                        } active:scale-95 disabled:opacity-50`}
+                      >
+                        <Star className={`w-3 h-3 ${userRating ? "fill-cyber-black" : ""}`} />
+                        {userRating ? `${userRating}★` : "RATE"}
+                      </button>
+                    )}
+                  </div>
+                </HotspotCard>
               </div>
             )
           })}
