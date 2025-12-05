@@ -52,7 +52,7 @@ export function Navbar({ user }: NavbarProps) {
                   Profile
                 </CyberButton>
               </Link>
-              <CyberButton variant="pink" size="sm" onClick={handleSignOut}>
+              <CyberButton variant="outline" size="sm" onClick={handleSignOut}>
                 <LogOut className="w-4 h-4 mr-2" />
                 Sign Out
               </CyberButton>
@@ -105,7 +105,7 @@ export function Navbar({ user }: NavbarProps) {
                 </Link>
                 <button
                   onClick={handleSignOut}
-                  className="flex items-center gap-3 w-full p-3 text-cyber-pink hover:bg-cyber-pink/10 rounded-lg transition-colors font-mono min-h-[44px]"
+                  className="flex items-center gap-3 w-full p-3 text-[#FFFF00] border border-[#FFFF00] hover:bg-[#FFFF00]/10 rounded-lg transition-colors font-mono min-h-[44px]"
                 >
                   <LogOut className="w-5 h-5" />
                   Sign Out

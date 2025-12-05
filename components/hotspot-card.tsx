@@ -45,15 +45,11 @@ const getHotspotImage = (hotspot: Hotspot): string => {
 const getCategoryColor = (category: string) => {
   switch (category) {
     case "cafe":
-      return "bg-cyber-cyan text-cyber-black"
     case "park":
-      return "bg-green-500 text-cyber-black"
     case "gaming":
-      return "bg-cyber-purple text-cyber-light"
     case "food":
-      return "bg-orange-500 text-cyber-black"
     case "hangout":
-      return "bg-cyber-pink text-cyber-light"
+      return "bg-[#FFFF00] text-black border-[#FFFF00] shadow-[0_0_10px_rgba(255,255,0,0.5)]"
     default:
       return "bg-cyber-gray text-cyber-black"
   }
@@ -113,8 +109,8 @@ export function HotspotCard({
         <div className="flex items-center gap-2">
           {averageRating > 0 ? (
             <>
-              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-              <span className="text-yellow-400 text-sm font-mono font-bold">{averageRating.toFixed(1)}</span>
+              <Star className="w-4 h-4 fill-[#FFFF00] text-[#FFFF00]" />
+              <span className="text-[#FFFF00] text-sm font-mono font-bold">{averageRating.toFixed(1)}</span>
               <StarRating rating={averageRating} size="sm" />
             </>
           ) : (

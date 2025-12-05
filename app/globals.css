@@ -308,7 +308,7 @@
 
 .leaflet-control-attribution {
   background: var(--color-cyber-dark) !important;
-  color: var(--color-cyber-gray) !important;
+  color: #CCCCCC !important;
 }
 
 .leaflet-control-attribution a {

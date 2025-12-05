@@ -4,7 +4,7 @@ import { type ButtonHTMLAttributes, forwardRef } from "react"
 import { cn } from "@/lib/utils"
 
 interface CyberButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "cyan" | "pink" | "purple" | "ghost"
+  variant?: "cyan" | "pink" | "purple" | "ghost" | "outline"
   size?: "sm" | "md" | "lg"
   glowing?: boolean
 }
@@ -12,10 +12,11 @@ interface CyberButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const CyberButton = forwardRef<HTMLButtonElement, CyberButtonProps>(
   ({ className, variant = "cyan", size = "md", glowing = false, children, ...props }, ref) => {
     const variants = {
-      cyan: "bg-cyber-cyan/10 border-cyber-cyan text-cyber-cyan hover:bg-cyber-cyan hover:text-cyber-black",
-      pink: "bg-cyber-pink/10 border-cyber-pink text-cyber-pink hover:bg-cyber-pink hover:text-white",
-      purple: "bg-cyber-purple/10 border-cyber-purple text-cyber-purple hover:bg-cyber-purple hover:text-white",
-      ghost: "bg-transparent border-cyber-gray text-cyber-light hover:border-cyber-cyan hover:text-cyber-cyan",
+      cyan: "bg-[#FFFF00] border-[#FFFF00] text-black hover:bg-[#E6E600] hover:text-black shadow-[0_0_15px_rgba(255,255,0,0.3)] hover:shadow-[0_0_25px_rgba(255,255,0,0.6)]",
+      outline: "bg-transparent border-[#FFFF00] text-[#FFFF00] hover:bg-[#FFFF00]/10 hover:shadow-[0_0_15px_rgba(255,255,0,0.5)]",
+      pink: "bg-cyber-pink/10 border-cyber-pink text-cyber-pink hover:bg-cyber-pink hover:text-white hover:shadow-[0_0_15px_rgba(255,255,0,0.5)]",
+      purple: "bg-cyber-purple/10 border-cyber-purple text-cyber-purple hover:bg-cyber-purple hover:text-white hover:shadow-[0_0_15px_rgba(255,255,0,0.5)]",
+      ghost: "bg-transparent border-cyber-gray text-cyber-light hover:border-[#FFFF00] hover:text-[#FFFF00] hover:shadow-[0_0_15px_rgba(255,255,0,0.5)]",
     }
 
     const sizes = {
