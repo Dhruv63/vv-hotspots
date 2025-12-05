@@ -103,7 +103,7 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
       case "gaming":
       case "food":
       case "hangout":
-        return "bg-[#FFFF00] text-black border-[#FFFF00] font-bold shadow-[0_0_5px_rgba(255,255,0,0.5)]"
+        return "bg-cyber-primary text-cyber-black border-cyber-primary font-bold shadow-[0_0_5px_var(--color-cyber-primary)]"
       default:
         return "text-cyber-gray border-cyber-gray bg-cyber-gray/10"
     }
@@ -127,7 +127,7 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
       <div className="flex items-center justify-between mb-4 pb-3 border-b border-cyber-gray/30">
         <div className="flex items-center gap-2">
           <div className="relative">
-            <Activity className="w-5 h-5 text-cyber-cyan" />
+            <Activity className="w-5 h-5 text-cyber-primary" />
             {isConnected && (
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-pulse" />
             )}
@@ -161,13 +161,13 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
                 relative p-3 border transition-all duration-500 rounded-lg min-h-[72px]
                 ${
                   activity.id === newActivityId
-                    ? "border-cyber-cyan bg-cyber-cyan/10 shadow-[0_0_20px_rgba(255,255,0,0.3)] animate-pulse"
-                    : "border-cyber-gray/30 bg-cyber-black/50 hover:border-cyber-cyan/50 hover:bg-cyber-cyan/5"
+                    ? "border-cyber-primary bg-cyber-primary/10 shadow-[0_0_20px_var(--color-cyber-primary)] animate-pulse"
+                    : "border-cyber-gray/30 bg-cyber-black/50 hover:border-cyber-primary/50 hover:bg-cyber-primary/5"
                 }
               `}
             >
               {activity.id === newActivityId && (
-                <div className="absolute -top-1 -right-1 flex items-center gap-1 px-2 py-0.5 bg-cyber-cyan text-cyber-black text-[10px] font-mono font-bold rounded">
+                <div className="absolute -top-1 -right-1 flex items-center gap-1 px-2 py-0.5 bg-cyber-primary text-cyber-black text-[10px] font-mono font-bold rounded">
                   <Zap className="w-3 h-3" />
                   NEW
                 </div>
@@ -180,14 +180,14 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
                     <img
                       src={activity.avatar_url || "/placeholder.svg"}
                       alt={activity.username || "User"}
-                      className="w-11 h-11 md:w-10 md:h-10 border-2 border-[#FFFF00] object-cover rounded-full shadow-[0_0_10px_rgba(255,255,0,0.5)]"
+                      className="w-11 h-11 md:w-10 md:h-10 border-2 border-cyber-primary object-cover rounded-full shadow-[0_0_10px_var(--color-cyber-primary)]"
                       onError={(e) => {
                         ;(e.target as HTMLImageElement).style.display = "none"
                       }}
                     />
                   ) : (
-                    <div className="w-11 h-11 md:w-10 md:h-10 bg-gradient-to-br from-cyber-cyan/20 to-cyber-purple/20 border-2 border-[#FFFF00] flex items-center justify-center rounded-full shadow-[0_0_10px_rgba(255,255,0,0.5)]">
-                      <User className="w-5 h-5 text-cyber-cyan" />
+                    <div className="w-11 h-11 md:w-10 md:h-10 bg-gradient-to-br from-cyber-primary/20 to-cyber-purple/20 border-2 border-cyber-primary flex items-center justify-center rounded-full shadow-[0_0_10px_var(--color-cyber-primary)]">
+                      <User className="w-5 h-5 text-cyber-primary" />
                     </div>
                   )}
                   <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-cyber-black rounded-full" />
@@ -196,7 +196,7 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm leading-tight">
-                    <span className="font-mono text-cyber-cyan font-semibold">{activity.username || "Anonymous"}</span>
+                    <span className="font-mono text-cyber-primary font-semibold">{activity.username || "Anonymous"}</span>
                     <span className="text-cyber-gray mx-1">checked in at</span>
                     <span className="text-cyber-light font-medium">{activity.hotspot_name}</span>
                   </p>
@@ -225,7 +225,7 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
         <div className="flex items-center justify-between text-xs font-mono text-cyber-gray">
           <span>{activities.length} recent check-ins</span>
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 bg-cyber-cyan rounded-full animate-pulse" />
+            <span className="w-2 h-2 bg-cyber-primary rounded-full animate-pulse" />
             Real-time updates
           </span>
         </div>
