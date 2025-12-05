@@ -65,7 +65,7 @@ export function StarRating({
               className={cn(
                 "transition-all duration-150 relative flex items-center justify-center",
                 touchTargets[size],
-                interactive && "hover:scale-110 cursor-pointer active:scale-95 hover:bg-yellow-400/10 rounded-lg",
+                interactive && "hover:scale-110 cursor-pointer active:scale-95 hover:bg-[#FFFF00]/10 rounded-lg",
                 !interactive && "cursor-default",
               )}
             >
@@ -74,10 +74,10 @@ export function StarRating({
                   sizes[size],
                   "transition-colors duration-150",
                   filled || partial
-                    ? "fill-yellow-400 text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.9)]"
+                    ? "fill-[#FFFF00] text-[#FFFF00] drop-shadow-[0_0_8px_rgba(255,255,0,0.9)]"
                     : interactive && hoverRating && starValue <= hoverRating
-                      ? "fill-yellow-400/70 text-yellow-400"
-                      : "fill-transparent text-cyber-gray/60 hover:text-yellow-400/50",
+                      ? "fill-[#FFFF00]/70 text-[#FFFF00]"
+                      : "fill-transparent text-cyber-gray/60 hover:text-[#FFFF00]/50",
                 )}
               />
             </button>

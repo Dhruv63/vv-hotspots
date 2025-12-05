@@ -53,15 +53,11 @@ const getHotspotImage = (hotspot: Hotspot): string => {
 const getCategoryColor = (category: string) => {
   switch (category) {
     case "cafe":
-      return "bg-cyber-cyan text-cyber-black"
     case "park":
-      return "bg-green-500 text-cyber-black"
     case "gaming":
-      return "bg-cyber-purple text-cyber-light"
     case "food":
-      return "bg-orange-500 text-cyber-black"
     case "hangout":
-      return "bg-cyber-pink text-cyber-light"
+      return "bg-[#FFFF00] text-black border-[#FFFF00] shadow-[0_0_10px_rgba(255,255,0,0.5)]"
     default:
       return "bg-cyber-gray text-cyber-black"
   }
@@ -162,7 +158,7 @@ export function HotspotDetail({
             </div>
             <button
               onClick={openInMaps}
-              className="flex items-center gap-2 text-cyber-cyan text-sm font-mono flex-shrink-0 px-4 py-2 border border-cyber-cyan/50 rounded-lg hover:bg-cyber-cyan/10 transition-colors min-h-[44px]"
+              className="flex items-center gap-2 text-[#FFFF00] text-sm font-mono flex-shrink-0 px-4 py-2 border border-[#FFFF00] rounded-lg hover:bg-[#FFFF00]/10 hover:shadow-[0_0_10px_rgba(255,255,0,0.5)] transition-colors min-h-[44px]"
             >
               <Navigation className="w-4 h-4" />
               Navigate
@@ -216,7 +212,7 @@ export function HotspotDetail({
                   ? "bg-cyber-gray/50 text-cyber-gray cursor-not-allowed"
                   : isCheckedIn
                     ? "bg-cyber-pink text-white hover:bg-cyber-pink/80 shadow-[0_0_20px_rgba(204,255,0,0.5)] active:scale-95"
-                    : "bg-cyber-cyan text-cyber-black hover:bg-cyber-cyan/80 shadow-[0_0_30px_rgba(255,255,0,0.6)] active:scale-95"
+                    : "bg-[#FFFF00] text-black hover:bg-[#E6E600] shadow-[0_0_30px_rgba(255,255,0,0.6)] active:scale-95"
               }`}
             >
               {isLoading ? (

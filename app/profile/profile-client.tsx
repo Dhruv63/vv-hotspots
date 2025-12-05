@@ -142,32 +142,32 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                 </h1>
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="inline-flex items-center gap-1 text-cyber-cyan hover:text-cyber-light transition-colors text-sm"
+                  className="inline-flex items-center gap-1 text-[#FFFF00] hover:text-cyber-light transition-colors text-sm"
                 >
                   <Edit2 className="w-4 h-4" />
                   Edit Profile
                 </button>
               </div>
-              <p className="text-cyber-gray text-sm mb-4">{user.email}</p>
+              <p className="text-[#CCCCCC] text-sm mb-4">{user.email}</p>
 
               {/* Stats */}
               <div className="flex justify-center sm:justify-start gap-6 sm:gap-8">
                 <div className="text-center">
-                  <p className="font-mono text-2xl sm:text-3xl text-cyber-cyan">{totalCheckIns}</p>
-                  <p className="text-cyber-gray text-xs sm:text-sm">Check-ins</p>
+                  <p className="font-mono text-2xl sm:text-3xl text-[#FFFF00]">{totalCheckIns}</p>
+                  <p className="text-[#CCCCCC] text-xs sm:text-sm">Check-ins</p>
                 </div>
                 <div className="text-center">
-                  <p className="font-mono text-2xl sm:text-3xl text-cyber-pink">{uniqueSpots}</p>
-                  <p className="text-cyber-gray text-xs sm:text-sm">Spots Visited</p>
+                  <p className="font-mono text-2xl sm:text-3xl text-[#FFFF00]">{uniqueSpots}</p>
+                  <p className="text-[#CCCCCC] text-xs sm:text-sm">Spots Visited</p>
                 </div>
                 <div className="text-center">
-                  <p className="font-mono text-2xl sm:text-3xl text-cyber-purple">{totalRatings}</p>
-                  <p className="text-cyber-gray text-xs sm:text-sm">Ratings</p>
+                  <p className="font-mono text-2xl sm:text-3xl text-[#FFFF00]">{totalRatings}</p>
+                  <p className="text-[#CCCCCC] text-xs sm:text-sm">Ratings</p>
                 </div>
                 {avgRating && (
                   <div className="text-center">
-                    <p className="font-mono text-2xl sm:text-3xl text-cyber-yellow">{avgRating}</p>
-                    <p className="text-cyber-gray text-xs sm:text-sm">Avg Rating</p>
+                    <p className="font-mono text-2xl sm:text-3xl text-[#FFFF00]">{avgRating}</p>
+                    <p className="text-[#CCCCCC] text-xs sm:text-sm">Avg Rating</p>
                   </div>
                 )}
               </div>
@@ -181,7 +181,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
             <h2 className="font-mono text-lg text-cyber-light mb-4 flex items-center gap-2">
               <MapPin className="w-5 h-5 text-cyber-cyan" />
               CHECK-IN HISTORY
-              <span className="text-cyber-gray text-sm ml-auto">{totalCheckIns} total</span>
+              <span className="text-[#CCCCCC] text-sm ml-auto">{totalCheckIns} total</span>
             </h2>
 
             {checkIns && checkIns.length > 0 ? (
@@ -206,7 +206,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                         </span>
                       )}
                     </div>
-                    <p className="text-cyber-gray text-xs mt-2 flex items-center gap-1">
+                    <p className="text-[#CCCCCC] text-xs mt-2 flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
                       {formatDistanceToNow(new Date(checkin.checked_in_at), {
                         addSuffix: true,
@@ -216,7 +216,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-cyber-gray">
+              <div className="text-center py-8 text-[#CCCCCC]">
                 <MapPin className="w-8 h-8 mx-auto mb-2 opacity-50" />
                 <p className="font-mono text-sm">No check-ins yet</p>
                 <Link href="/dashboard">
@@ -233,7 +233,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
             <h2 className="font-mono text-lg text-cyber-light mb-4 flex items-center gap-2">
               <Star className="w-5 h-5 text-cyber-yellow" />
               YOUR RATINGS & REVIEWS
-              <span className="text-cyber-gray text-sm ml-auto">{totalRatings} total</span>
+              <span className="text-[#CCCCCC] text-sm ml-auto">{totalRatings} total</span>
             </h2>
 
             {ratings && ratings.length > 0 ? (
@@ -264,7 +264,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                       </div>
                     )}
 
-                    <p className="text-cyber-gray text-xs mt-2">
+                    <p className="text-[#CCCCCC] text-xs mt-2">
                       {formatDistanceToNow(new Date(rating.created_at), {
                         addSuffix: true,
                       })}
@@ -273,7 +273,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-cyber-gray">
+              <div className="text-center py-8 text-[#CCCCCC]">
                 <Star className="w-8 h-8 mx-auto mb-2 opacity-50" />
                 <p className="font-mono text-sm">No ratings yet</p>
                 <p className="text-xs">Rate hotspots to help others!</p>
@@ -296,7 +296,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                   setEditAvatarUrl(profile?.avatar_url || "")
                   setError(null)
                 }}
-                className="text-cyber-gray hover:text-cyber-light transition-colors"
+                className="text-[#CCCCCC] hover:text-cyber-light transition-colors"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -331,7 +331,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
             <div className="space-y-4">
               {/* Username */}
               <div>
-                <label className="block text-cyber-gray text-sm mb-2 font-mono">Username</label>
+                <label className="block text-[#CCCCCC] text-sm mb-2 font-mono">Username</label>
                 <input
                   type="text"
                   value={editUsername}
@@ -344,7 +344,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
 
               {/* Avatar URL */}
               <div>
-                <label className="block text-cyber-gray text-sm mb-2 font-mono">Avatar URL</label>
+                <label className="block text-[#CCCCCC] text-sm mb-2 font-mono">Avatar URL</label>
                 <input
                   type="url"
                   value={editAvatarUrl}
@@ -352,7 +352,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                   className="w-full px-4 py-3 bg-cyber-black border-2 border-cyber-gray rounded text-cyber-light font-mono focus:border-cyber-purple focus:outline-none focus:shadow-[0_0_10px_rgba(255,215,0,0.3)] transition-all"
                   placeholder="https://example.com/avatar.jpg"
                 />
-                <p className="text-cyber-gray text-xs mt-1">Paste a URL to an image (JPG, PNG, GIF)</p>
+                <p className="text-[#CCCCCC] text-xs mt-1">Paste a URL to an image (JPG, PNG, GIF)</p>
               </div>
             </div>
 
@@ -364,7 +364,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                   setEditAvatarUrl(profile?.avatar_url || "")
                   setError(null)
                 }}
-                className="flex-1 px-4 py-3 border-2 border-cyber-gray text-cyber-gray hover:text-cyber-light hover:border-cyber-light rounded font-mono transition-all"
+                className="flex-1 px-4 py-3 border-2 border-cyber-gray text-[#CCCCCC] hover:text-cyber-light hover:border-cyber-light rounded font-mono transition-all"
               >
                 Cancel
               </button>

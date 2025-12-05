@@ -2,11 +2,11 @@ import { cn } from "@/lib/utils"
 import { Coffee, TreePine, Gamepad2, Utensils, Users, MapPin } from "lucide-react"
 
 const categoryConfig = {
-  cafe: { icon: Coffee, color: "bg-cyber-primary text-cyber-black border-cyber-primary shadow-[0_0_10px_rgba(255,255,0,0.4)]" },
-  park: { icon: TreePine, color: "bg-cyber-secondary text-cyber-black border-cyber-secondary shadow-[0_0_10px_rgba(204,255,0,0.4)]" },
-  gaming: { icon: Gamepad2, color: "bg-cyber-accent text-cyber-black border-cyber-accent shadow-[0_0_10px_rgba(255,215,0,0.4)]" },
-  food: { icon: Utensils, color: "bg-yellow-100 text-black border-yellow-100 shadow-[0_0_10px_rgba(255,255,200,0.4)]" },
-  hangout: { icon: Users, color: "bg-white text-black border-white shadow-[0_0_10px_rgba(255,255,255,0.4)]" },
+  cafe: { icon: Coffee, color: "bg-[#FFFF00] text-black border-[#FFFF00] shadow-[0_0_10px_rgba(255,255,0,0.5)]" },
+  park: { icon: TreePine, color: "bg-[#FFFF00] text-black border-[#FFFF00] shadow-[0_0_10px_rgba(255,255,0,0.5)]" },
+  gaming: { icon: Gamepad2, color: "bg-[#FFFF00] text-black border-[#FFFF00] shadow-[0_0_10px_rgba(255,255,0,0.5)]" },
+  food: { icon: Utensils, color: "bg-[#FFFF00] text-black border-[#FFFF00] shadow-[0_0_10px_rgba(255,255,0,0.5)]" },
+  hangout: { icon: Users, color: "bg-[#FFFF00] text-black border-[#FFFF00] shadow-[0_0_10px_rgba(255,255,0,0.5)]" },
   other: { icon: MapPin, color: "bg-cyber-gray text-white border-cyber-gray" },
 }
 

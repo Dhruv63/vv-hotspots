@@ -19,11 +19,11 @@ const VASAI_VIRAR_CENTER: [number, number] = [19.42, 72.82]
 const DEFAULT_ZOOM = 13
 
 const categoryColors: Record<string, { main: string; glow: string; name: string }> = {
-  cafe: { main: "#FFFF00", glow: "rgba(255, 255, 0, 0.6)", name: "Cafe" },
-  park: { main: "#CCFF00", glow: "rgba(204, 255, 0, 0.6)", name: "Park" },
-  gaming: { main: "#FFD700", glow: "rgba(255, 215, 0, 0.6)", name: "Gaming" },
-  food: { main: "#FFFFE0", glow: "rgba(255, 255, 224, 0.6)", name: "Food" },
-  hangout: { main: "#F7FF00", glow: "rgba(247, 255, 0, 0.6)", name: "Hangout" },
+  cafe: { main: "#FFFF00", glow: "rgba(255, 255, 0, 0.8)", name: "Cafe" },
+  park: { main: "#FFFF00", glow: "rgba(255, 255, 0, 0.8)", name: "Park" },
+  gaming: { main: "#FFFF00", glow: "rgba(255, 215, 0, 0.8)", name: "Gaming" },
+  food: { main: "#FFFF00", glow: "rgba(255, 255, 0, 0.8)", name: "Food" },
+  hangout: { main: "#FFFF00", glow: "rgba(247, 255, 0, 0.8)", name: "Hangout" },
   other: { main: "#E0E0E0", glow: "rgba(224, 224, 224, 0.6)", name: "Other" },
 }
 

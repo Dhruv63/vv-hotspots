@@ -99,15 +99,11 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
   const getCategoryColor = (category: string) => {
     switch (category?.toLowerCase()) {
       case "cafe":
-        return "text-cyber-cyan border-cyber-cyan bg-cyber-cyan/10"
       case "park":
-        return "text-green-400 border-green-400 bg-green-400/10"
       case "gaming":
-        return "text-cyber-purple border-cyber-purple bg-cyber-purple/10"
       case "food":
-        return "text-yellow-400 border-yellow-400 bg-yellow-400/10"
       case "hangout":
-        return "text-cyber-pink border-cyber-pink bg-cyber-pink/10"
+        return "bg-[#FFFF00] text-black border-[#FFFF00] font-bold shadow-[0_0_5px_rgba(255,255,0,0.5)]"
       default:
         return "text-cyber-gray border-cyber-gray bg-cyber-gray/10"
     }
@@ -184,13 +180,13 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
                     <img
                       src={activity.avatar_url || "/placeholder.svg"}
                       alt={activity.username || "User"}
-                      className="w-11 h-11 md:w-10 md:h-10 border-2 border-cyber-cyan object-cover rounded-full"
+                      className="w-11 h-11 md:w-10 md:h-10 border-2 border-[#FFFF00] object-cover rounded-full shadow-[0_0_10px_rgba(255,255,0,0.5)]"
                       onError={(e) => {
                         ;(e.target as HTMLImageElement).style.display = "none"
                       }}
                     />
                   ) : (
-                    <div className="w-11 h-11 md:w-10 md:h-10 bg-gradient-to-br from-cyber-cyan/20 to-cyber-purple/20 border-2 border-cyber-cyan flex items-center justify-center rounded-full">
+                    <div className="w-11 h-11 md:w-10 md:h-10 bg-gradient-to-br from-cyber-cyan/20 to-cyber-purple/20 border-2 border-[#FFFF00] flex items-center justify-center rounded-full shadow-[0_0_10px_rgba(255,255,0,0.5)]">
                       <User className="w-5 h-5 text-cyber-cyan" />
                     </div>
                   )}
