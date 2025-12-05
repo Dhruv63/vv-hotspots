@@ -98,6 +98,14 @@
   --color-cyber-secondary: #CCFF00;
   --color-cyber-accent: #FFD700;
 
+  /* Category Colors */
+  --color-cat-cafe: #00FFFF;
+  --color-cat-park: #39FF14;
+  --color-cat-gaming: #BF00FF;
+  --color-cat-food: #FF6600;
+  --color-cat-hangout: #FF1493;
+  --color-cat-other: #FFFF00;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

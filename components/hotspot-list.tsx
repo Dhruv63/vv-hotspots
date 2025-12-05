@@ -6,6 +6,7 @@ import { HotspotCard } from "@/components/hotspot-card"
 import { CyberButton } from "@/components/ui/cyber-button"
 import { Input } from "@/components/ui/input"
 import type { Hotspot } from "@/lib/types"
+import { cn } from "@/lib/utils"
 
 interface HotspotListProps {
   hotspots: Hotspot[]
@@ -29,6 +30,16 @@ const categories = [
   { value: "food", label: "Food" },
   { value: "hangout", label: "Hangout" },
 ]
+
+const categoryButtonColors: Record<string, string> = {
+  cafe: "bg-[#00FFFF] border-[#00FFFF] text-black hover:bg-[#00FFFF]/80 hover:text-black shadow-[0_0_15px_rgba(0,255,255,0.3)]",
+  park: "bg-[#39FF14] border-[#39FF14] text-black hover:bg-[#39FF14]/80 hover:text-black shadow-[0_0_15px_rgba(57,255,20,0.3)]",
+  gaming: "bg-[#BF00FF] border-[#BF00FF] text-black hover:bg-[#BF00FF]/80 hover:text-black shadow-[0_0_15px_rgba(191,0,255,0.3)]",
+  food: "bg-[#FF6600] border-[#FF6600] text-black hover:bg-[#FF6600]/80 hover:text-black shadow-[0_0_15px_rgba(255,102,0,0.3)]",
+  hangout: "bg-[#FF1493] border-[#FF1493] text-black hover:bg-[#FF1493]/80 hover:text-black shadow-[0_0_15px_rgba(255,20,147,0.3)]",
+  other: "bg-[#FFFF00] border-[#FFFF00] text-black hover:bg-[#FFFF00]/80 hover:text-black shadow-[0_0_15px_rgba(255,255,0,0.3)]",
+  all: "", // uses default cyan
+}
 
 export function HotspotList({
   hotspots,
@@ -203,12 +214,14 @@ export function HotspotList({
             <button
               onClick={() => setViewMode("list")}
               className={`p-1.5 ${viewMode === "list" ? "text-cyber-cyan" : "text-cyber-gray"}`}
+              aria-label="List view"
             >
               <List className="w-4 h-4" />
             </button>
             <button
               onClick={() => setViewMode("grid")}
               className={`p-1.5 ${viewMode === "grid" ? "text-cyber-cyan" : "text-cyber-gray"}`}
+              aria-label="Grid view"
             >
               <Grid className="w-4 h-4" />
             </button>
@@ -232,7 +245,10 @@ export function HotspotList({
               variant={category === cat.value ? "cyan" : "ghost"}
               size="sm"
               onClick={() => setCategory(cat.value)}
-              className="flex-shrink-0 text-xs px-2 py-1"
+              className={cn(
+                "flex-shrink-0 text-xs px-2 py-1",
+                category === cat.value && categoryButtonColors[cat.value],
+              )}
             >
               {cat.label}
             </CyberButton>
@@ -241,14 +257,16 @@ export function HotspotList({
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
-        <div className={viewMode === "grid" ? "grid grid-cols-2 gap-4" : "space-y-4"}>
+        <div
+          className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 gap-4 auto-rows-fr" : "space-y-4"}
+        >
           {filteredHotspots.map((hotspot) => {
             const isCheckedInHere = userCurrentCheckin === hotspot.id
             const userRating = userRatings[hotspot.id]
             const isCheckingIn = checkingInHotspotId === hotspot.id
 
             return (
-              <div key={hotspot.id}>
+              <div key={hotspot.id} className="flex flex-col h-full">
                 <HotspotCard
                   hotspot={hotspot}
                   activeCheckins={activeCheckins[hotspot.id] || 0}
@@ -257,7 +275,7 @@ export function HotspotList({
                   isSelected={selectedHotspot?.id === hotspot.id}
                 />
 
-                <div className="flex gap-2 mt-2">
+                <div className="flex gap-2 mt-2 mt-auto">
                   {onCheckIn && (
                     <button
                       onClick={(e) => {

@@ -33,12 +33,12 @@ const TILE_LAYERS = {
 }
 
 const categoryColors: Record<string, { main: string; glow: string; name: string }> = {
-  cafe: { main: "#FFFF00", glow: "rgba(255, 255, 0, 0.8)", name: "Cafe" },
-  park: { main: "#CCFF00", glow: "rgba(204, 255, 0, 0.8)", name: "Park" },
-  gaming: { main: "#FFD700", glow: "rgba(255, 215, 0, 0.8)", name: "Gaming" },
-  food: { main: "#E0E0E0", glow: "rgba(224, 224, 224, 0.6)", name: "Food" },
-  hangout: { main: "#CCFF00", glow: "rgba(204, 255, 0, 0.8)", name: "Hangout" },
-  other: { main: "#E0E0E0", glow: "rgba(224, 224, 224, 0.6)", name: "Other" },
+  cafe: { main: "#00FFFF", glow: "rgba(0, 255, 255, 0.8)", name: "Cafe" },
+  park: { main: "#39FF14", glow: "rgba(57, 255, 20, 0.8)", name: "Park" },
+  gaming: { main: "#BF00FF", glow: "rgba(191, 0, 255, 0.8)", name: "Gaming" },
+  food: { main: "#FF6600", glow: "rgba(255, 102, 0, 0.8)", name: "Food" },
+  hangout: { main: "#FF1493", glow: "rgba(255, 20, 147, 0.8)", name: "Hangout" },
+  other: { main: "#FFFF00", glow: "rgba(255, 255, 0, 0.8)", name: "Other" },
 }
 
 export function MapView({
