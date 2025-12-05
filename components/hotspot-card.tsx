@@ -45,13 +45,18 @@ const getHotspotImage = (hotspot: Hotspot): string => {
 const getCategoryColor = (category: string) => {
   switch (category) {
     case "cafe":
+      return "bg-[#00FFFF] text-black border-[#00FFFF] shadow-[0_0_10px_rgba(0,255,255,0.5)]"
     case "park":
+      return "bg-[#39FF14] text-black border-[#39FF14] shadow-[0_0_10px_rgba(57,255,20,0.5)]"
     case "gaming":
+      return "bg-[#BF00FF] text-black border-[#BF00FF] shadow-[0_0_10px_rgba(191,0,255,0.5)]"
     case "food":
+      return "bg-[#FF6600] text-black border-[#FF6600] shadow-[0_0_10px_rgba(255,102,0,0.5)]"
     case "hangout":
-      return "bg-[#FFFF00] text-black border-[#FFFF00] shadow-[0_0_10px_rgba(255,255,0,0.5)]"
+      return "bg-[#FF1493] text-black border-[#FF1493] shadow-[0_0_10px_rgba(255,20,147,0.5)]"
+    case "other":
     default:
-      return "bg-cyber-gray text-cyber-black"
+      return "bg-[#FFFF00] text-black border-[#FFFF00] shadow-[0_0_10px_rgba(255,255,0,0.5)]"
   }
 }
 
@@ -67,14 +72,14 @@ export function HotspotCard({
   return (
     <div
       onClick={onClick}
-      className={`relative overflow-hidden rounded-lg cursor-pointer transition-all duration-300 bg-cyber-dark border min-h-[120px] active:scale-[0.98] ${
+      className={`relative overflow-hidden rounded-lg cursor-pointer transition-all duration-300 bg-cyber-dark border flex flex-col h-full active:scale-[0.98] ${
         isSelected
           ? "border-cyber-cyan shadow-[0_0_20px_rgba(255,255,0,0.3)]"
           : "border-cyber-gray hover:border-cyber-cyan/50"
       }`}
     >
       {/* Image section */}
-      <div className="relative h-32 md:h-40 w-full">
+      <div className="relative h-[150px] w-full shrink-0">
         <Image src={imageUrl || "/placeholder.svg"} alt={hotspot.name} fill className="object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-cyber-black to-transparent" />
 
@@ -97,16 +102,16 @@ export function HotspotCard({
       </div>
 
       {/* Content section */}
-      <div className="p-3 pb-10">
-        <h3 className="font-mono text-base font-bold text-cyber-light mb-1 truncate">{hotspot.name}</h3>
+      <div className="p-3 pb-4 flex flex-col flex-1">
+        <h3 className="font-mono text-base font-bold text-cyber-light mb-1 leading-tight">{hotspot.name}</h3>
 
-        <div className="flex items-center gap-1 text-cyber-gray text-xs mb-2">
-          <MapPin className="w-3 h-3 flex-shrink-0" />
-          <span className="truncate">{hotspot.address}</span>
+        <div className="flex items-start gap-1 text-cyber-gray text-xs mb-2">
+          <MapPin className="w-3 h-3 flex-shrink-0 mt-0.5" />
+          <span className="leading-tight">{hotspot.address}</span>
         </div>
 
         {/* Rating display */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 mt-auto">
           {averageRating > 0 ? (
             <>
               <Star className="w-4 h-4 fill-[#FFFF00] text-[#FFFF00]" />
@@ -120,7 +125,7 @@ export function HotspotCard({
       </div>
 
       {/* Tap indicator for mobile */}
-      <div className="absolute bottom-2 right-2 px-2 py-1 bg-cyber-cyan/20 border border-cyber-cyan/50 rounded text-cyber-cyan text-xs font-mono">
+      <div className="absolute bottom-2 right-2 px-2 py-1 bg-cyber-cyan/20 border border-cyber-cyan/50 rounded text-cyber-cyan text-xs font-mono md:hidden">
         Tap for details
       </div>
     </div>
