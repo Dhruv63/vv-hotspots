@@ -5,7 +5,6 @@ import Image from "next/image"
 import { X, MapPin, Users, Navigation, Clock, Zap, Star, MessageSquare, Loader2, Camera } from "lucide-react"
 import { StarRating } from "@/components/ui/star-rating"
 import { ActiveUsersList } from "@/components/active-users-list"
-import { PhotoUpload } from "@/components/photo-upload"
 import { PhotoGallery } from "@/components/photo-gallery"
 import type { Hotspot } from "@/lib/types"
 
@@ -306,15 +305,6 @@ export function HotspotDetail({
             </div>
 
             <PhotoGallery hotspotId={hotspot.id} refreshTrigger={galleryRefreshTrigger} />
-
-            {isCheckedIn && (
-              <div className="mt-4">
-                <PhotoUpload
-                  hotspotId={hotspot.id}
-                  onUploadSuccess={() => setGalleryRefreshTrigger((prev) => prev + 1)}
-                />
-              </div>
-            )}
           </div>
 
           <div className="h-6 md:h-0" />
