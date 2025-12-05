@@ -19,9 +19,10 @@ interface ProfileClientProps {
   profile: any
   checkIns: any[]
   ratings: any[]
+  userPhotos: any[]
 }
 
-export function ProfileClient({ user, profile: initialProfile, checkIns, ratings }: ProfileClientProps) {
+export function ProfileClient({ user, profile: initialProfile, checkIns, ratings, userPhotos }: ProfileClientProps) {
   const router = useRouter()
   const [profile, setProfile] = useState(initialProfile)
   const [isEditing, setIsEditing] = useState(false)
@@ -33,6 +34,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
   // Stats
   const totalCheckIns = checkIns?.length || 0
   const totalRatings = ratings?.length || 0
+  const totalPhotos = userPhotos?.length || 0
   const uniqueSpots = new Set(checkIns?.map((c: any) => c.hotspots?.id)).size
   const avgRating =
     ratings?.length > 0
@@ -164,6 +166,10 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                   <p className="font-mono text-2xl sm:text-3xl text-[#FFFF00]">{totalRatings}</p>
                   <p className="text-[#CCCCCC] text-xs sm:text-sm">Ratings</p>
                 </div>
+                <div className="text-center">
+                  <p className="font-mono text-2xl sm:text-3xl text-[#FFFF00]">{totalPhotos}</p>
+                  <p className="text-[#CCCCCC] text-xs sm:text-sm">Photos</p>
+                </div>
                 {avgRating && (
                   <div className="text-center">
                     <p className="font-mono text-2xl sm:text-3xl text-[#FFFF00]">{avgRating}</p>
@@ -224,6 +230,39 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                     Explore Hotspots
                   </CyberButton>
                 </Link>
+              </div>
+            )}
+          </CyberCard>
+
+          {/* My Photos */}
+          <CyberCard className="p-4">
+            <h2 className="font-mono text-lg text-cyber-light mb-4 flex items-center gap-2">
+              <Camera className="w-5 h-5 text-cyber-pink" />
+              MY PHOTOS
+              <span className="text-[#CCCCCC] text-sm ml-auto">{totalPhotos} total</span>
+            </h2>
+
+            {userPhotos && userPhotos.length > 0 ? (
+              <div className="grid grid-cols-3 gap-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
+                {userPhotos.map((photo: any) => (
+                  <div key={photo.id} className="relative aspect-square rounded overflow-hidden group border border-cyber-gray/50 hover:border-cyber-pink transition-colors">
+                    <Image
+                      src={photo.thumbnail_url || photo.image_url}
+                      alt="My upload"
+                      fill
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2">
+                        <p className="text-[10px] text-white font-mono truncate">{photo.hotspots?.name}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-[#CCCCCC]">
+                <Camera className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                <p className="font-mono text-sm">No photos yet</p>
+                <p className="text-xs">Check in to add photos!</p>
               </div>
             )}
           </CyberCard>

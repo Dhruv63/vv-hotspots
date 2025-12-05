@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { X, MapPin, Users, Navigation, Clock, Zap, Star, MessageSquare, Loader2 } from "lucide-react"
+import { X, MapPin, Users, Navigation, Clock, Zap, Star, MessageSquare, Loader2, Camera } from "lucide-react"
 import { StarRating } from "@/components/ui/star-rating"
 import { ActiveUsersList } from "@/components/active-users-list"
+import { PhotoUpload } from "@/components/photo-upload"
+import { PhotoGallery } from "@/components/photo-gallery"
 import type { Hotspot } from "@/lib/types"
 
 interface HotspotDetailProps {
@@ -78,6 +80,7 @@ export function HotspotDetail({
 }: HotspotDetailProps) {
   const [isRating, setIsRating] = useState(false)
   const [ratingSuccess, setRatingSuccess] = useState(false)
+  const [galleryRefreshTrigger, setGalleryRefreshTrigger] = useState(0)
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -291,6 +294,27 @@ export function HotspotDetail({
                 )}
               </div>
             </div>
+          </div>
+
+          {/* Photos Section */}
+          <div className="space-y-3 p-4 bg-gradient-to-b from-cyber-black/30 to-cyber-purple/5 rounded-lg border border-cyber-gray/30">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Camera className="w-5 h-5 text-cyber-pink" />
+                <p className="text-cyber-light text-sm font-mono font-bold">PHOTOS</p>
+              </div>
+            </div>
+
+            <PhotoGallery hotspotId={hotspot.id} refreshTrigger={galleryRefreshTrigger} />
+
+            {isCheckedIn && (
+              <div className="mt-4">
+                <PhotoUpload
+                  hotspotId={hotspot.id}
+                  onUploadSuccess={() => setGalleryRefreshTrigger((prev) => prev + 1)}
+                />
+              </div>
+            )}
           </div>
 
           <div className="h-6 md:h-0" />
