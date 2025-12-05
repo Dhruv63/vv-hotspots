@@ -292,8 +292,9 @@
   background: var(--color-cyber-black) !important;
 }
 
+/* Removed invert filter as we are now using native dark tiles */
 .leaflet-tile-pane {
-  filter: grayscale(1) invert(1) brightness(0.7) contrast(2);
+  filter: none;
 }
 
 .leaflet-control-zoom a {
