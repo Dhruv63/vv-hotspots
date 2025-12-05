@@ -34,10 +34,10 @@ const TILE_LAYERS = {
 
 const categoryColors: Record<string, { main: string; glow: string; name: string }> = {
   cafe: { main: "#FFFF00", glow: "rgba(255, 255, 0, 0.8)", name: "Cafe" },
-  park: { main: "#FFFF00", glow: "rgba(255, 255, 0, 0.8)", name: "Park" },
-  gaming: { main: "#FFFF00", glow: "rgba(255, 215, 0, 0.8)", name: "Gaming" },
-  food: { main: "#FFFF00", glow: "rgba(255, 255, 0, 0.8)", name: "Food" },
-  hangout: { main: "#FFFF00", glow: "rgba(247, 255, 0, 0.8)", name: "Hangout" },
+  park: { main: "#CCFF00", glow: "rgba(204, 255, 0, 0.8)", name: "Park" },
+  gaming: { main: "#FFD700", glow: "rgba(255, 215, 0, 0.8)", name: "Gaming" },
+  food: { main: "#E0E0E0", glow: "rgba(224, 224, 224, 0.6)", name: "Food" },
+  hangout: { main: "#CCFF00", glow: "rgba(204, 255, 0, 0.8)", name: "Hangout" },
   other: { main: "#E0E0E0", glow: "rgba(224, 224, 224, 0.6)", name: "Other" },
 }
 
@@ -217,7 +217,9 @@ export function MapView({
 
   const handleGetLocation = useCallback(() => {
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser")
+      if (mapRef.current) {
+        mapRef.current.setView(VASAI_VIRAR_CENTER, DEFAULT_ZOOM, { animate: true })
+      }
       return
     }
 
@@ -236,7 +238,9 @@ export function MapView({
       },
       (error) => {
         console.error("Error getting location:", error)
-        alert("Unable to get your location")
+        if (mapRef.current) {
+          mapRef.current.setView(VASAI_VIRAR_CENTER, DEFAULT_ZOOM, { animate: true })
+        }
         setIsLocating(false)
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
@@ -534,7 +538,7 @@ export function MapView({
 
       <div ref={mapContainerRef} className="w-full h-full" style={{ background: "#0a0a0f" }} />
 
-      <div className="absolute top-4 left-4 z-[50] bg-[#12121a]/95 border-2 border-cyber-primary/50 rounded-lg p-3 hidden md:block">
+      <div className="absolute top-20 md:top-4 left-4 z-[1000] bg-black/90 border-2 border-cyber-primary rounded-lg p-3 shadow-[0_0_15px_rgba(255,255,0,0.3)]">
         <div className="text-xs font-mono text-cyber-primary mb-2 uppercase tracking-wider font-bold">Categories</div>
         <div className="space-y-1.5">
           {Object.entries(categoryColors).map(([key, value]) => (
@@ -552,7 +556,7 @@ export function MapView({
       <button
         onClick={handleGetLocation}
         disabled={isLocating}
-        className="absolute bottom-20 right-4 z-[50] w-12 h-12 bg-[#12121a] border-2 border-cyber-primary rounded-full flex items-center justify-center transition-all hover:bg-cyber-primary/20 disabled:opacity-50 min-w-[48px] min-h-[48px]"
+        className="absolute bottom-8 right-4 z-[1000] w-12 h-12 bg-[#12121a] border-2 border-cyber-primary rounded-full flex items-center justify-center transition-all hover:bg-cyber-primary/20 hover:shadow-[0_0_15px_rgba(255,255,0,0.5)] disabled:opacity-50 min-w-[48px] min-h-[48px]"
         title="Find my location"
       >
         {isLocating ? (
