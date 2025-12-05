@@ -44,20 +44,21 @@ const getHotspotImage = (hotspot: Hotspot): string => {
 }
 
 const getCategoryColor = (category: string) => {
+  const common = "text-white dark:text-black"
   switch (category) {
     case "cafe":
-      return "bg-[#00FFFF] text-black border-[#00FFFF] shadow-[0_0_10px_rgba(0,255,255,0.5)]"
+      return `bg-cat-cafe border-cat-cafe shadow-[0_0_10px_var(--color-cat-cafe)] ${common}`
     case "park":
-      return "bg-[#39FF14] text-black border-[#39FF14] shadow-[0_0_10px_rgba(57,255,20,0.5)]"
+      return `bg-cat-park border-cat-park shadow-[0_0_10px_var(--color-cat-park)] ${common}`
     case "gaming":
-      return "bg-[#BF00FF] text-black border-[#BF00FF] shadow-[0_0_10px_rgba(191,0,255,0.5)]"
+      return `bg-cat-gaming border-cat-gaming shadow-[0_0_10px_var(--color-cat-gaming)] ${common}`
     case "food":
-      return "bg-[#FF6600] text-black border-[#FF6600] shadow-[0_0_10px_rgba(255,102,0,0.5)]"
+      return `bg-cat-food border-cat-food shadow-[0_0_10px_var(--color-cat-food)] ${common}`
     case "hangout":
-      return "bg-[#FF1493] text-black border-[#FF1493] shadow-[0_0_10px_rgba(255,20,147,0.5)]"
+      return `bg-cat-hangout border-cat-hangout shadow-[0_0_10px_var(--color-cat-hangout)] ${common}`
     case "other":
     default:
-      return "bg-[#FFFF00] text-black border-[#FFFF00] shadow-[0_0_10px_rgba(255,255,0,0.5)]"
+      return `bg-cat-other border-cat-other shadow-[0_0_10px_var(--color-cat-other)] ${common}`
   }
 }
 
@@ -76,8 +77,8 @@ export function HotspotCard({
       onClick={onClick}
       className={`relative overflow-hidden rounded-lg cursor-pointer transition-all duration-300 bg-cyber-dark border flex flex-col h-full active:scale-[0.98] ${
         isSelected
-          ? "border-cyber-cyan shadow-[0_0_20px_rgba(255,255,0,0.3)]"
-          : "border-cyber-gray hover:border-cyber-cyan/50"
+          ? "border-cyber-primary shadow-[0_0_20px_var(--color-cyber-primary)]"
+          : "border-cyber-gray hover:border-cyber-primary/50"
       }`}
       style={{ width: "100%" }}
     >
@@ -119,8 +120,8 @@ export function HotspotCard({
         <div className="flex items-center gap-1 mt-auto text-[14px]">
           {averageRating > 0 ? (
             <>
-              <span className="text-[#FFFF00] font-mono font-bold">{averageRating.toFixed(1)}</span>
-              <Star className="w-3.5 h-3.5 fill-[#FFFF00] text-[#FFFF00]" />
+              <span className="text-cyber-primary font-mono font-bold">{averageRating.toFixed(1)}</span>
+              <Star className="w-3.5 h-3.5 fill-cyber-primary text-cyber-primary" />
             </>
           ) : (
             <span className="text-cyber-gray text-xs font-mono">No ratings yet</span>

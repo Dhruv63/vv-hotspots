@@ -12,11 +12,11 @@ interface CyberButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const CyberButton = forwardRef<HTMLButtonElement, CyberButtonProps>(
   ({ className, variant = "cyan", size = "md", glowing = false, children, ...props }, ref) => {
     const variants = {
-      cyan: "bg-[#FFFF00] border-[#FFFF00] text-black hover:bg-[#E6E600] hover:text-black shadow-[0_0_15px_rgba(255,255,0,0.3)] hover:shadow-[0_0_25px_rgba(255,255,0,0.6)]",
-      outline: "bg-transparent border-[#FFFF00] text-[#FFFF00] hover:bg-[#FFFF00]/10 hover:shadow-[0_0_15px_rgba(255,255,0,0.5)]",
-      pink: "bg-cyber-pink/10 border-cyber-pink text-cyber-pink hover:bg-cyber-pink hover:text-white hover:shadow-[0_0_15px_rgba(255,255,0,0.5)]",
-      purple: "bg-cyber-purple/10 border-cyber-purple text-cyber-purple hover:bg-cyber-purple hover:text-white hover:shadow-[0_0_15px_rgba(255,255,0,0.5)]",
-      ghost: "bg-transparent border-cyber-gray text-cyber-light hover:border-[#FFFF00] hover:text-[#FFFF00] hover:shadow-[0_0_15px_rgba(255,255,0,0.5)]",
+      cyan: "bg-cyber-primary border-cyber-primary text-cyber-black hover:bg-cyber-yellow hover:text-cyber-black shadow-[0_0_15px_var(--color-cyber-primary)] hover:shadow-[0_0_25px_var(--color-cyber-primary)]",
+      outline: "bg-transparent border-cyber-primary text-cyber-primary hover:bg-cyber-primary/10 hover:shadow-[0_0_15px_var(--color-cyber-primary)]",
+      pink: "bg-cyber-pink/10 border-cyber-pink text-cyber-pink hover:bg-cyber-pink hover:text-white dark:hover:text-black hover:shadow-[0_0_15px_var(--color-cyber-pink)]",
+      purple: "bg-cyber-purple/10 border-cyber-purple text-cyber-purple hover:bg-cyber-purple hover:text-white dark:hover:text-black hover:shadow-[0_0_15px_var(--color-cyber-purple)]",
+      ghost: "bg-transparent border-cyber-gray text-cyber-light hover:border-cyber-primary hover:text-cyber-primary hover:shadow-[0_0_15px_var(--color-cyber-primary)]",
     }
 
     const sizes = {
@@ -27,10 +27,10 @@ const CyberButton = forwardRef<HTMLButtonElement, CyberButtonProps>(
 
     const glowStyles = glowing
       ? {
-          cyan: "shadow-[0_0_20px_rgba(255,255,0,0.5),0_0_40px_rgba(255,255,0,0.3),inset_0_0_20px_rgba(255,255,0,0.1)] animate-pulse",
-          pink: "shadow-[0_0_20px_rgba(204,255,0,0.5),0_0_40px_rgba(204,255,0,0.3),inset_0_0_20px_rgba(204,255,0,0.1)] animate-pulse",
+          cyan: "shadow-[0_0_20px_var(--color-cyber-primary),0_0_40px_var(--color-cyber-primary),inset_0_0_20px_rgba(255,255,0,0.1)] animate-pulse",
+          pink: "shadow-[0_0_20px_var(--color-cyber-pink),0_0_40px_var(--color-cyber-pink),inset_0_0_20px_rgba(204,255,0,0.1)] animate-pulse",
           purple:
-            "shadow-[0_0_20px_rgba(255,215,0,0.5),0_0_40px_rgba(255,215,0,0.3),inset_0_0_20px_rgba(255,215,0,0.1)] animate-pulse",
+            "shadow-[0_0_20px_var(--color-cyber-purple),0_0_40px_var(--color-cyber-purple),inset_0_0_20px_rgba(255,215,0,0.1)] animate-pulse",
           ghost: "",
         }[variant]
       : ""
