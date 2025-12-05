@@ -49,3 +49,15 @@ export interface ActivityFeedItem {
   hotspot_name: string
   hotspot_category: string
 }
+
+export interface HotspotPhoto {
+  id: string
+  user_id: string
+  hotspot_id: string
+  image_url: string
+  thumbnail_url: string | null
+  created_at: string
+  profiles?: {
+    username: string | null
+  }
+}

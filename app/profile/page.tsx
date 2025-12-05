@@ -57,5 +57,26 @@ export default async function ProfilePage() {
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
 
-  return <ProfileClient user={user} profile={profile} checkIns={checkIns || []} ratings={ratings || []} />
+  // Get user's photos
+  const { data: userPhotos } = await supabase
+    .from("hotspot_photos")
+    .select(`
+      id,
+      image_url,
+      thumbnail_url,
+      created_at,
+      hotspots (id, name, category)
+    `)
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+
+  return (
+    <ProfileClient
+      user={user}
+      profile={profile}
+      checkIns={checkIns || []}
+      ratings={ratings || []}
+      userPhotos={userPhotos || []}
+    />
+  )
 }
