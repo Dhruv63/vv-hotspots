@@ -18,6 +18,20 @@ interface MapViewProps {
 const VASAI_VIRAR_CENTER: [number, number] = [19.42, 72.82]
 const DEFAULT_ZOOM = 13
 
+// Map tile providers - prepared for future theme toggle
+const TILE_LAYERS = {
+  dark: {
+    url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  },
+  light: {
+    url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  },
+}
+
 const categoryColors: Record<string, { main: string; glow: string; name: string }> = {
   cafe: { main: "#FFFF00", glow: "rgba(255, 255, 0, 0.8)", name: "Cafe" },
   park: { main: "#FFFF00", glow: "rgba(255, 255, 0, 0.8)", name: "Park" },
@@ -240,8 +254,12 @@ export function MapView({
 
     L.control.zoom({ position: "topright" }).addTo(map)
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    // Default to dark theme for now, but ready for theme switching
+    const currentTheme = "dark"
+    const tileConfig = TILE_LAYERS[currentTheme as keyof typeof TILE_LAYERS]
+
+    L.tileLayer(tileConfig.url, {
+      attribution: tileConfig.attribution,
     }).addTo(map)
 
     map.on("popupclose", () => {
