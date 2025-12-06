@@ -37,12 +37,7 @@ export function PhotoGallery({ hotspotId, refreshTrigger }: PhotoGalleryProps) {
     try {
       let query = supabase
         .from("hotspot_photos")
-        .select(`
-          *,
-          profiles (
-            username
-          )
-        `, { count: 'exact' })
+        .select(`id, image_url, thumbnail_url, created_at`, { count: 'exact' })
         .eq("hotspot_id", hotspotId)
         .order("created_at", { ascending: false })
 
@@ -211,10 +206,10 @@ export function PhotoGallery({ hotspotId, refreshTrigger }: PhotoGalleryProps) {
             <div className="mt-4 flex justify-between items-center text-white">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-r from-cyber-purple to-cyber-pink flex items-center justify-center font-bold text-xs text-white">
-                  {selectedPhoto.profiles?.username?.[0]?.toUpperCase() || "?"}
+                  ?
                 </div>
                 <span className="font-mono font-bold text-cyber-light">
-                  @{selectedPhoto.profiles?.username || "Unknown"}
+                  Unknown
                 </span>
               </div>
               <span className="text-gray-400 text-xs font-mono">
