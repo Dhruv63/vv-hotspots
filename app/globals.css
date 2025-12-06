@@ -433,3 +433,8 @@
     var(--color-cyber-navy) 63%
   );
 }
+
+/* Safe area padding for mobile drawers */
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom, 20px);
+}

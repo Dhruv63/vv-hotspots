@@ -20,25 +20,7 @@ interface HotspotListProps {
   userRatings?: Record<string, number>
   userReviews?: Record<string, string>
   isLoading?: boolean
-}
-
-const categories = [
-  { value: "all", label: "All" },
-  { value: "cafe", label: "Cafes" },
-  { value: "park", label: "Parks" },
-  { value: "gaming", label: "Gaming" },
-  { value: "food", label: "Food" },
-  { value: "hangout", label: "Hangout" },
-]
-
-const categoryButtonColors: Record<string, string> = {
-  cafe: "bg-[#00FFFF] border-[#00FFFF] text-black hover:bg-[#00FFFF]/80 hover:text-black shadow-[0_0_15px_rgba(0,255,255,0.3)]",
-  park: "bg-[#39FF14] border-[#39FF14] text-black hover:bg-[#39FF14]/80 hover:text-black shadow-[0_0_15px_rgba(57,255,20,0.3)]",
-  gaming: "bg-[#BF00FF] border-[#BF00FF] text-black hover:bg-[#BF00FF]/80 hover:text-black shadow-[0_0_15px_rgba(191,0,255,0.3)]",
-  food: "bg-[#FF6600] border-[#FF6600] text-black hover:bg-[#FF6600]/80 hover:text-black shadow-[0_0_15px_rgba(255,102,0,0.3)]",
-  hangout: "bg-[#FF1493] border-[#FF1493] text-black hover:bg-[#FF1493]/80 hover:text-black shadow-[0_0_15px_rgba(255,20,147,0.3)]",
-  other: "bg-[#FFFF00] border-[#FFFF00] text-black hover:bg-[#FFFF00]/80 hover:text-black shadow-[0_0_15px_rgba(255,255,0,0.3)]",
-  all: "", // uses default cyan
+  viewMode?: "list" | "grid"
 }
 
 export function HotspotList({
@@ -53,10 +35,9 @@ export function HotspotList({
   userRatings = {},
   userReviews = {},
   isLoading,
+  viewMode = "list",
 }: HotspotListProps) {
   const [search, setSearch] = useState("")
-  const [category, setCategory] = useState("all")
-  const [viewMode, setViewMode] = useState<"list" | "grid">("list")
   const [ratingHotspot, setRatingHotspot] = useState<Hotspot | null>(null)
   const [pendingRating, setPendingRating] = useState<number>(0)
   const [pendingReview, setPendingReview] = useState<string>("")
@@ -67,8 +48,7 @@ export function HotspotList({
     const matchesSearch =
       hotspot.name.toLowerCase().includes(search.toLowerCase()) ||
       hotspot.address.toLowerCase().includes(search.toLowerCase())
-    const matchesCategory = category === "all" || hotspot.category === category
-    return matchesSearch && matchesCategory
+    return matchesSearch
   })
 
   const handleStarClick = (rating: number) => {
@@ -210,22 +190,6 @@ export function HotspotList({
           <h2 className="font-mono text-base text-cyber-light">
             <span className="text-cyber-cyan">{">"}</span> HOTSPOTS
           </h2>
-          <div className="flex gap-1">
-            <button
-              onClick={() => setViewMode("list")}
-              className={`p-1.5 ${viewMode === "list" ? "text-cyber-cyan" : "text-cyber-gray"}`}
-              aria-label="List view"
-            >
-              <List className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setViewMode("grid")}
-              className={`p-1.5 ${viewMode === "grid" ? "text-cyber-cyan" : "text-cyber-gray"}`}
-              aria-label="Grid view"
-            >
-              <Grid className="w-4 h-4" />
-            </button>
-          </div>
         </div>
 
         <div className="relative">
@@ -236,23 +200,6 @@ export function HotspotList({
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10 h-9 text-sm bg-cyber-black border-cyber-gray text-cyber-light placeholder:text-cyber-gray/50 focus:border-cyber-cyan"
           />
-        </div>
-
-        <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-thin">
-          {categories.map((cat) => (
-            <CyberButton
-              key={cat.value}
-              variant={category === cat.value ? "cyan" : "ghost"}
-              size="sm"
-              onClick={() => setCategory(cat.value)}
-              className={cn(
-                "flex-shrink-0 text-xs px-2 py-1",
-                category === cat.value && categoryButtonColors[cat.value],
-              )}
-            >
-              {cat.label}
-            </CyberButton>
-          ))}
         </div>
       </div>
 
