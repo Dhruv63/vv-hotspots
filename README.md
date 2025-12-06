@@ -83,6 +83,8 @@ VV Hotspots is a real-time social discovery platform that helps users explore an
    005_add_real_hotspots.sql  - Adds real Vasai-Virar locations
    006_add_review_column.sql  - Adds review text to ratings
    007_verify_rls.sql         - Verifies RLS policies
+   008_create_hotspot_photos.sql - Creates table for hotspot photos
+   009_hotspot_photos_rls.sql - Applies RLS policies for hotspot photos
    \`\`\`
 
 5. **Run the development server**

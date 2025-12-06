@@ -54,7 +54,9 @@ vv-hotspots/
 │   ├── 004_update_hotspot_images.sql
 │   ├── 005_add_real_hotspots.sql
 │   ├── 006_add_review_column.sql
-│   └── 007_verify_rls.sql
+│   ├── 007_verify_rls.sql
+│   ├── 008_create_hotspot_photos.sql
+│   └── 009_hotspot_photos_rls.sql
 │
 ├── proxy.ts                      # Next.js middleware
 └── hooks/                        # Custom React hooks
