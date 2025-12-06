@@ -1,17 +1,21 @@
 "use client"
 
 import { useState, useCallback, useEffect } from "react"
+import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
 import { Menu, X, Activity, WifiOff, RefreshCw, AlertTriangle, Clock } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { Navbar } from "@/components/navbar"
 import { MapView } from "@/components/map-view"
 import { HotspotList } from "@/components/hotspot-list"
-import { HotspotDetail } from "@/components/hotspot-detail"
 import { ActivityFeed } from "@/components/activity-feed"
 import { sanitizeInput, checkRateLimit, RATE_LIMITS } from "@/lib/security"
 import type { Hotspot, ActivityFeedItem } from "@/lib/types"
 import type { User } from "@supabase/supabase-js"
+
+const HotspotDetail = dynamic(() => import("@/components/hotspot-detail").then((mod) => mod.HotspotDetail), {
+  loading: () => null,
+})
 
 interface DashboardClientProps {
   user: User

@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next"
 import { Inter, Fira_Code } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
+import { Toaster } from "sonner"
 import { ThemeProvider } from "@/components/theme-provider"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
@@ -45,6 +46,7 @@ export default function RootLayout({
           storageKey="vv-theme"
         >
           {children}
+          <Toaster position="top-center" theme="system" />
         </ThemeProvider>
         <Analytics />
       </body>
