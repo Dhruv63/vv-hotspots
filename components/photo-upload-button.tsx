@@ -1,73 +1,40 @@
 "use client"
 
-import { useState } from "react"
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { CldUploadButton } from "next-cloudinary"
-import { toast } from "sonner"
-import { savePhotoAndAwardPoints } from "@/app/actions/photos"
 
 interface PhotoUploadButtonProps {
   hotspotId: string
   onUploadComplete?: () => void
   className?: string
-  children?: React.ReactNode
+  children?: any
 }
 
 export function PhotoUploadButton({
   hotspotId,
-  onUploadComplete,
   className,
   children
 }: PhotoUploadButtonProps) {
-  const [isSaving, setIsSaving] = useState(false)
 
   const handleUploadSuccess = async (result: any) => {
-    setIsSaving(true)
-    const toastId = toast.loading("Saving photo...")
+    const supabase = createClientComponentClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const userId = user?.id
 
-    try {
-      console.log("[PhotoUploadButton] Upload success:", result)
-      const info = result.info
+    const { data, error } = await supabase.from('hotspot_photos').insert({
+      hotspot_id: hotspotId,
+      user_id: userId,
+      image_url: result.info.secure_url,
+      thumbnail_url: result.info.secure_url,
+      created_at: new Date().toISOString()
+    })
 
-      if (!info || !info.secure_url) {
-        throw new Error("Invalid upload result: missing secure_url")
-      }
-
-      // Determine thumbnail URL
-      let thumbnailUrl = info.secure_url
-      if (info.eager && info.eager.length > 0) {
-        thumbnailUrl = info.eager[0].secure_url
-      } else {
-        // Fallback
-        thumbnailUrl = info.secure_url.replace("/upload/", "/upload/w_300,h_300,c_fill/")
-      }
-
-      console.log("[PhotoUploadButton] Saving to database...", {
-        hotspotId,
-        imageUrl: info.secure_url,
-        thumbnailUrl
-      })
-
-      const response = await savePhotoAndAwardPoints(hotspotId, info.secure_url, thumbnailUrl)
-
-      toast.dismiss(toastId)
-      if (response.success) {
-        toast.success(`Photo uploaded! +${response.pointsAwarded} points ⭐`)
-        if (onUploadComplete) {
-          onUploadComplete()
-        }
-      }
-    } catch (error: any) {
-      console.error("[PhotoUploadButton] Error saving photo:", error)
-      toast.dismiss(toastId)
-      toast.error(error.message || "Failed to save photo.")
-    } finally {
-      setIsSaving(false)
-    }
+    console.log(data)
+    console.log(error)
   }
 
   const handleUploadError = (error: any) => {
     console.error("[PhotoUploadButton] Cloudinary Upload Error:", error)
-    toast.error("Failed to upload photo to cloud.")
   }
 
   return (
