@@ -33,7 +33,7 @@ const TILE_LAYERS = {
   },
 }
 
-const THEME_COLORS = {
+export const THEME_COLORS = {
   dark: {
     cafe: { main: "#00FFFF", glow: "rgba(0, 255, 255, 0.8)", name: "Cafe" },
     park: { main: "#39FF14", glow: "rgba(57, 255, 20, 0.8)", name: "Park" },
@@ -593,7 +593,7 @@ export function MapView({
 
       <div ref={mapContainerRef} className="w-full h-full bg-cyber-black" />
 
-      <div className="absolute top-20 md:top-4 left-4 z-[1000] bg-cyber-black/90 border-2 border-cyber-primary rounded-lg p-3 shadow-[0_0_15px_rgba(0,0,0,0.3)]">
+      <div className="hidden md:block absolute top-20 md:top-4 left-4 z-[1000] bg-cyber-black/90 border-2 border-cyber-primary rounded-lg p-3 shadow-[0_0_15px_rgba(0,0,0,0.3)]">
         <div className="text-xs font-mono text-cyber-primary mb-2 uppercase tracking-wider font-bold">Categories</div>
         <div className="space-y-1.5">
           {Object.entries(colors).filter(([key]) => !['highlight', 'highlightGlow', 'userLocation', 'popupBg', 'popupText'].includes(key)).map(([key, value]) => (
