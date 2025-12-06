@@ -304,6 +304,7 @@ export function HotspotDetail({
               </div>
             </div>
 
+            {/* Photo Gallery Grid */}
             <PhotoGallery hotspotId={hotspot.id} refreshTrigger={galleryRefreshTrigger} />
           </div>
 
