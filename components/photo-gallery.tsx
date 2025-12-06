@@ -34,30 +34,35 @@ export function PhotoGallery({ hotspotId, refreshTrigger }: PhotoGalleryProps) {
   const fetchPhotos = async () => {
     const supabase = createClient()
 
-    let query = supabase
-      .from("hotspot_photos")
-      .select(`
-        *,
-        profiles (
-          username
-        )
-      `, { count: 'exact' })
-      .eq("hotspot_id", hotspotId)
-      .order("created_at", { ascending: false })
+    try {
+      let query = supabase
+        .from("hotspot_photos")
+        .select(`
+          *,
+          profiles (
+            username
+          )
+        `, { count: 'exact' })
+        .eq("hotspot_id", hotspotId)
+        .order("created_at", { ascending: false })
 
-    if (!isExpanded) {
-      query = query.limit(8)
-    } else {
-      query = query.limit(50)
+      if (!isExpanded) {
+        query = query.limit(8)
+      } else {
+        query = query.limit(50)
+      }
+
+      const { data, error, count } = await query
+
+      if (!error && data) {
+        setPhotos(data as unknown as HotspotPhoto[])
+        if (count !== null) setTotalCount(count)
+      }
+    } catch (error) {
+      console.error("Error fetching photos:", error)
+    } finally {
+      setIsLoading(false)
     }
-
-    const { data, error, count } = await query
-
-    if (!error && data) {
-      setPhotos(data as unknown as HotspotPhoto[])
-      if (count !== null) setTotalCount(count)
-    }
-    setIsLoading(false)
   }
 
   useEffect(() => {
