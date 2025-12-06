@@ -1,6 +1,6 @@
 "use client"
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createClient } from '@/lib/supabase/client'
 import { CldUploadButton } from "next-cloudinary"
 
 interface PhotoUploadButtonProps {
@@ -17,7 +17,7 @@ export function PhotoUploadButton({
 }: PhotoUploadButtonProps) {
 
   const handleUploadSuccess = async (result: any) => {
-    const supabase = createClientComponentClient()
+    const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     const userId = user?.id
 
