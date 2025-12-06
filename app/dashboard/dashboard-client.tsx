@@ -3,14 +3,14 @@
 import { useState, useCallback, useEffect } from "react"
 import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
-import { Menu, X, Activity, WifiOff, RefreshCw, AlertTriangle, Clock, Filter } from "lucide-react"
+import { WifiOff, RefreshCw, AlertTriangle, Clock } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { Navbar } from "@/components/navbar"
 import { MapView } from "@/components/map-view"
 import { HotspotList } from "@/components/hotspot-list"
 import { ActivityFeed } from "@/components/activity-feed"
-import { FilterDrawer } from "@/components/filter-drawer"
-import { sanitizeInput, checkRateLimit, RATE_LIMITS } from "@/lib/security"
+import { UnifiedMenuDrawer } from "@/components/unified-menu-drawer"
+import { sanitizeInput, checkRateLimit } from "@/lib/security"
 import type { Hotspot, ActivityFeedItem } from "@/lib/types"
 import type { User } from "@supabase/supabase-js"
 
@@ -27,7 +27,7 @@ interface DashboardClientProps {
   userCurrentCheckin: string | null
   userRatings: Record<string, number>
   userReviews: Record<string, string>
-  initError?: string | null // Added init error prop
+  initError?: string | null
 }
 
 export function DashboardClient({
@@ -39,16 +39,19 @@ export function DashboardClient({
   userCurrentCheckin: initialUserCheckin,
   userRatings: initialUserRatings,
   userReviews: initialUserReviews,
-  initError, // Accept init error
+  initError,
 }: DashboardClientProps) {
   const router = useRouter()
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null)
-  const [drawerOpen, setDrawerOpen] = useState<"hotspots" | "feed" | null>(null)
+
+  // New State for Unified Menu
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [viewMode, setViewMode] = useState<string>("all")
+  const [filterCategories, setFilterCategories] = useState<string[]>([])
+
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(initError || null) // Initialize with server error
+  const [error, setError] = useState<string | null>(initError || null)
   const [success, setSuccess] = useState<string | null>(null)
-  const [mobileCategory, setMobileCategory] = useState("all")
-  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false)
   const [isOffline, setIsOffline] = useState(false)
   const [processingAction, setProcessingAction] = useState<string | null>(null)
   const [rateLimitCooldown, setRateLimitCooldown] = useState<number>(0)
@@ -58,37 +61,19 @@ export function DashboardClient({
   const [userCurrentCheckin, setUserCurrentCheckin] = useState(initialUserCheckin)
   const [userRatings, setUserRatings] = useState(initialUserRatings)
   const [userReviews, setUserReviews] = useState(initialUserReviews)
+  const [isMobile, setIsMobile] = useState(false)
 
   // Sync state with props
-  useEffect(() => {
-    setActiveCheckins(initialActiveCheckins)
-  }, [initialActiveCheckins])
-
-  useEffect(() => {
-    setAverageRatings(initialAverageRatings)
-  }, [initialAverageRatings])
-
-  useEffect(() => {
-    setUserCurrentCheckin(initialUserCheckin)
-  }, [initialUserCheckin])
-
-  useEffect(() => {
-    setUserRatings(initialUserRatings)
-  }, [initialUserRatings])
-
-  useEffect(() => {
-    setUserReviews(initialUserReviews)
-  }, [initialUserReviews])
-
-  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => { setActiveCheckins(initialActiveCheckins) }, [initialActiveCheckins])
+  useEffect(() => { setAverageRatings(initialAverageRatings) }, [initialAverageRatings])
+  useEffect(() => { setUserCurrentCheckin(initialUserCheckin) }, [initialUserCheckin])
+  useEffect(() => { setUserRatings(initialUserRatings) }, [initialUserRatings])
+  useEffect(() => { setUserReviews(initialUserReviews) }, [initialUserReviews])
 
   useEffect(() => {
     const handleOnline = () => setIsOffline(false)
     const handleOffline = () => setIsOffline(true)
-
-    // Check initial state
     setIsOffline(!navigator.onLine)
-
     window.addEventListener("online", handleOnline)
     window.addEventListener("offline", handleOffline)
     return () => {
@@ -113,19 +98,13 @@ export function DashboardClient({
     }
   }, [rateLimitCooldown])
 
-  // Real-time subscription for active check-in counts
+  // Real-time subscription
   useEffect(() => {
     const supabase = createClient()
-
     const handleCheckInChange = async (payload: any) => {
       const hotspotIds = new Set<string>()
-
-      if (payload.new && payload.new.hotspot_id) {
-        hotspotIds.add(payload.new.hotspot_id)
-      }
-      if (payload.old && payload.old.hotspot_id) {
-        hotspotIds.add(payload.old.hotspot_id)
-      }
+      if (payload.new && payload.new.hotspot_id) hotspotIds.add(payload.new.hotspot_id)
+      if (payload.old && payload.old.hotspot_id) hotspotIds.add(payload.old.hotspot_id)
 
       for (const id of hotspotIds) {
         const { count, error } = await supabase
@@ -135,25 +114,14 @@ export function DashboardClient({
           .eq("is_active", true)
 
         if (!error && count !== null) {
-          setActiveCheckins((prev) => ({
-            ...prev,
-            [id]: count,
-          }))
+          setActiveCheckins((prev) => ({ ...prev, [id]: count }))
         }
       }
     }
 
     const channel = supabase
       .channel("global-checkins")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "check_ins",
-        },
-        handleCheckInChange,
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "check_ins" }, handleCheckInChange)
       .subscribe()
 
     return () => {
@@ -173,7 +141,10 @@ export function DashboardClient({
 
   const handleHotspotSelect = useCallback((hotspot: Hotspot) => {
     setSelectedHotspot(hotspot)
-    setDrawerOpen(null)
+    // Don't close view/drawer here if on desktop?
+    // On mobile, maybe we should close the list drawer to show the detail modal?
+    // Detail modal is separate.
+    // We can keep viewMode as is.
   }, [])
 
   const handleCheckIn = useCallback(
@@ -183,15 +154,11 @@ export function DashboardClient({
         showMessage("error", "Please select a hotspot first")
         return
       }
-
       if (isOffline) {
         showMessage("error", "You are offline. Please check your internet connection.")
         return
       }
-
-      if (processingAction === `checkin-${targetHotspot.id}`) {
-        return
-      }
+      if (processingAction === `checkin-${targetHotspot.id}`) return
 
       const rateCheck = checkRateLimit("checkIn", user.id)
       if (!rateCheck.allowed && rateCheck.waitTime) {
@@ -213,7 +180,6 @@ export function DashboardClient({
           return
         }
 
-        // Deactivate all existing check-ins to ensure single active location
         const { error: updateError } = await supabase
           .from("check_ins")
           .update({ is_active: false })
@@ -222,7 +188,7 @@ export function DashboardClient({
 
         if (updateError) throw updateError
 
-        const { data, error: insertError } = await supabase
+        const { error: insertError } = await supabase
           .from("check_ins")
           .insert({
             user_id: user.id,
@@ -258,15 +224,11 @@ export function DashboardClient({
 
   const handleCheckOut = useCallback(async () => {
     if (!userCurrentCheckin) return
-
     if (isOffline) {
       showMessage("error", "You are offline. Please check your internet connection.")
       return
     }
-
-    if (processingAction === "checkout") {
-      return
-    }
+    if (processingAction === "checkout") return
 
     setIsLoading(true)
     setProcessingAction("checkout")
@@ -300,14 +262,11 @@ export function DashboardClient({
   const handleRate = useCallback(
     async (rating: number): Promise<void> => {
       if (!selectedHotspot) return
-
       if (isOffline) {
         showMessage("error", "You are offline. Please check your internet connection.")
         throw new Error("Offline")
       }
-
       const supabase = createClient()
-
       try {
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
         if (sessionError || !sessionData?.session) {
@@ -315,27 +274,17 @@ export function DashboardClient({
           router.push("/auth/login")
           throw new Error("Not authenticated")
         }
-
         const { error: rateError } = await supabase.from("ratings").upsert(
-          {
-            user_id: user.id,
-            hotspot_id: selectedHotspot.id,
-            rating,
-          },
+          { user_id: user.id, hotspot_id: selectedHotspot.id, rating },
           { onConflict: "user_id,hotspot_id" },
         )
-
         if (rateError) throw rateError
-
         setUserRatings((prev) => ({ ...prev, [selectedHotspot.id]: rating }))
-
         const { data: avgData } = await supabase.from("ratings").select("rating").eq("hotspot_id", selectedHotspot.id)
-
         if (avgData && avgData.length > 0) {
           const avg = avgData.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / avgData.length
           setAverageRatings((prev) => ({ ...prev, [selectedHotspot.id]: Math.round(avg * 10) / 10 }))
         }
-
         showMessage("success", `Rated ${selectedHotspot.name} ${rating} stars!`)
       } catch (err: any) {
         if (err.message !== "Offline" && err.message !== "Not authenticated") {
@@ -353,16 +302,13 @@ export function DashboardClient({
         showMessage("error", "You are offline. Please check your internet connection.")
         return
       }
-
       const rateCheck = checkRateLimit("rating", user.id)
       if (!rateCheck.allowed && rateCheck.waitTime) {
         setRateLimitCooldown(rateCheck.waitTime * 1000)
         showMessage("error", `Too many ratings. Please wait ${rateCheck.waitTime} seconds.`)
         return
       }
-
       const supabase = createClient()
-
       try {
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
         if (sessionError || !sessionData?.session) {
@@ -370,33 +316,19 @@ export function DashboardClient({
           router.push("/auth/login")
           return
         }
-
         const sanitizedReview = review ? sanitizeInput(review) : null
-
         const { error: rateError } = await supabase.from("ratings").upsert(
-          {
-            user_id: user.id,
-            hotspot_id: hotspot.id,
-            rating,
-            review: sanitizedReview,
-          },
+          { user_id: user.id, hotspot_id: hotspot.id, rating, review: sanitizedReview },
           { onConflict: "user_id,hotspot_id" },
         )
-
         if (rateError) throw rateError
-
         setUserRatings((prev) => ({ ...prev, [hotspot.id]: rating }))
-        if (sanitizedReview) {
-          setUserReviews((prev) => ({ ...prev, [hotspot.id]: sanitizedReview }))
-        }
-
+        if (sanitizedReview) setUserReviews((prev) => ({ ...prev, [hotspot.id]: sanitizedReview }))
         const { data: avgData } = await supabase.from("ratings").select("rating").eq("hotspot_id", hotspot.id)
-
         if (avgData && avgData.length > 0) {
           const avg = avgData.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / avgData.length
           setAverageRatings((prev) => ({ ...prev, [hotspot.id]: Math.round(avg * 10) / 10 }))
         }
-
         showMessage("success", `Rated ${hotspot.name} ${rating} stars!`)
       } catch (err: any) {
         showMessage("error", err.message || "Rating failed. Please try again.")
@@ -415,21 +347,23 @@ export function DashboardClient({
 
   const currentCheckinHotspot = userCurrentCheckin ? hotspots.find((h) => h.id === userCurrentCheckin) : null
 
-  const mobileFilteredHotspots =
-    mobileCategory === "all" ? hotspots : hotspots.filter((h) => h.category === mobileCategory)
+  // Filter Logic
+  const filteredHotspots = hotspots.filter((h) => {
+      if (filterCategories.length === 0) return true
+      return filterCategories.includes(h.category)
+  })
 
-  const categories = [
-    { value: "all", label: "All" },
-    { value: "cafe", label: "Cafes" },
-    { value: "park", label: "Parks" },
-    { value: "gaming", label: "Gaming" },
-    { value: "food", label: "Food" },
-    { value: "hangout", label: "Hangout" },
-  ]
+  // View Logic
+  const showDesktopSidebar = ['all', 'list', 'grid'].includes(viewMode)
+  const showMobileList = ['list', 'grid'].includes(viewMode)
+  const showMobileFeed = viewMode === 'feed'
+
+  // List View Mode (List vs Grid in the sidebar/drawer)
+  const listComponentViewMode = viewMode === 'grid' ? 'grid' : 'list'
 
   return (
     <div className="h-screen flex flex-col bg-cyber-black overflow-hidden">
-      <Navbar user={user} />
+      <Navbar user={user} onMenuClick={() => setIsMenuOpen(true)} />
 
       {isOffline && (
         <div className="fixed top-16 left-0 right-0 z-[300] bg-yellow-500/90 text-cyber-black py-2 px-4 flex items-center justify-center gap-2 font-mono text-sm">
@@ -492,102 +426,41 @@ export function DashboardClient({
       )}
 
       <div className="flex-1 flex pt-14 md:pt-16 relative overflow-hidden">
-        <div className="md:hidden fixed top-[56px] left-0 right-0 z-40 bg-cyber-black/80 backdrop-blur-sm px-2 py-2 flex items-center gap-2 border-b border-cyber-gray/30">
-          <button
-            onClick={() => setDrawerOpen(drawerOpen === "hotspots" ? null : "hotspots")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[10px] transition-all min-h-[36px] ${
-              drawerOpen === "hotspots"
-                ? "bg-cyber-cyan text-cyber-black shadow-[0_0_15px_rgba(255,255,0,0.5)]"
-                : "bg-cyber-dark border border-cyber-gray text-cyber-light"
-            }`}
-          >
-            {drawerOpen === "hotspots" ? <X className="w-3.5 h-3.5" /> : <Menu className="w-3.5 h-3.5" />}
-            <span>Places</span>
-          </button>
 
-          <div className="flex-1 flex gap-1.5 overflow-x-auto scrollbar-hide">
-            <button
-              onClick={() => setMobileCategory("all")}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-lg font-mono text-[10px] transition-all min-h-[36px] ${
-                mobileCategory === "all"
-                  ? "bg-cyber-cyan text-cyber-black"
-                  : "bg-cyber-dark border border-cyber-gray text-cyber-gray"
-              }`}
-            >
-              All
-            </button>
-            <button
-              onClick={() => setMobileCategory("cafe")}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-lg font-mono text-[10px] transition-all min-h-[36px] ${
-                mobileCategory === "cafe"
-                  ? "bg-cyber-cyan text-cyber-black"
-                  : "bg-cyber-dark border border-cyber-gray text-cyber-gray"
-              }`}
-            >
-              Cafes
-            </button>
-            <button
-              onClick={() => setMobileCategory("park")}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-lg font-mono text-[10px] transition-all min-h-[36px] ${
-                mobileCategory === "park"
-                  ? "bg-cyber-cyan text-cyber-black"
-                  : "bg-cyber-dark border border-cyber-gray text-cyber-gray"
-              }`}
-            >
-              Parks
-            </button>
-             <button
-              onClick={() => setIsFilterDrawerOpen(true)}
-              className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[10px] transition-all min-h-[36px] ${
-                !['all', 'cafe', 'park'].includes(mobileCategory)
-                  ? "bg-cyber-cyan text-cyber-black"
-                  : "bg-cyber-dark border border-cyber-gray text-cyber-cyan"
-              }`}
-            >
-              <Filter className="w-3 h-3" />
-              <span>Filters</span>
-            </button>
-          </div>
-
-          <button
-            onClick={() => setDrawerOpen(drawerOpen === "feed" ? null : "feed")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[10px] transition-all min-h-[36px] ${
-              drawerOpen === "feed"
-                ? "bg-cyber-pink text-white shadow-[0_0_15px_rgba(204,255,0,0.5)]"
-                : "bg-cyber-dark border border-cyber-gray text-cyber-cyan"
-            }`}
-          >
-            <Activity className="w-3.5 h-3.5" />
-            <span>Feed</span>
-          </button>
-        </div>
-
-        <FilterDrawer
-          isOpen={isFilterDrawerOpen}
-          onClose={() => setIsFilterDrawerOpen(false)}
-          currentCategory={mobileCategory}
-          onSelectCategory={setMobileCategory}
+        <UnifiedMenuDrawer
+            isOpen={isMenuOpen}
+            onClose={() => setIsMenuOpen(false)}
+            currentView={viewMode}
+            currentCategories={filterCategories}
+            onApply={(view, cats) => {
+                setViewMode(view)
+                setFilterCategories(cats)
+            }}
+            onClear={() => setFilterCategories([])}
         />
 
-        <div className="hidden md:block w-72 lg:w-80 h-full bg-cyber-dark border-r border-cyber-gray">
-          <HotspotList
-            hotspots={hotspots}
-            selectedHotspot={selectedHotspot}
-            onHotspotSelect={handleHotspotSelect}
-            activeCheckins={activeCheckins}
-            averageRatings={averageRatings}
-            userCurrentCheckin={userCurrentCheckin}
-            onCheckIn={handleCheckIn}
-            onRate={handleRateHotspot}
-            userRatings={userRatings}
-            userReviews={userReviews}
-            isLoading={isLoading}
-          />
-        </div>
+        {showDesktopSidebar && (
+            <div className="hidden md:block w-72 lg:w-80 h-full bg-cyber-dark border-r border-cyber-gray">
+            <HotspotList
+                hotspots={filteredHotspots}
+                selectedHotspot={selectedHotspot}
+                onHotspotSelect={handleHotspotSelect}
+                activeCheckins={activeCheckins}
+                averageRatings={averageRatings}
+                userCurrentCheckin={userCurrentCheckin}
+                onCheckIn={handleCheckIn}
+                onRate={handleRateHotspot}
+                userRatings={userRatings}
+                userReviews={userReviews}
+                isLoading={isLoading}
+                viewMode={listComponentViewMode}
+            />
+            </div>
+        )}
 
         <div className="flex-1 relative z-0">
           <MapView
-            hotspots={isMobile ? mobileFilteredHotspots : hotspots}
+            hotspots={filteredHotspots}
             selectedHotspot={selectedHotspot}
             onHotspotSelect={handleHotspotSelect}
             activeCheckins={activeCheckins}
@@ -599,7 +472,7 @@ export function DashboardClient({
 
         <div
           className={`md:hidden fixed inset-x-0 bottom-0 z-[80] bg-cyber-dark border-t-2 border-cyber-cyan rounded-t-2xl transition-transform duration-300 ${
-            drawerOpen === "hotspots" ? "translate-y-0" : "translate-y-full"
+            showMobileList ? "translate-y-0" : "translate-y-full"
           }`}
           style={{ maxHeight: "70vh" }}
         >
@@ -608,11 +481,16 @@ export function DashboardClient({
           </div>
           <div className="h-[calc(70vh-20px)] overflow-hidden">
             <HotspotList
-              hotspots={hotspots}
+              hotspots={filteredHotspots}
               selectedHotspot={selectedHotspot}
               onHotspotSelect={(h) => {
                 handleHotspotSelect(h)
-                setDrawerOpen(null)
+                // Optionally close list on mobile after selection?
+                // Currently original code closed it. Let's keep it open or close it?
+                // Original: setDrawerOpen(null)
+                // New: setViewMode('map')? Or 'all'?
+                // If I set 'map', it closes the list drawer.
+                setViewMode('map')
               }}
               activeCheckins={activeCheckins}
               averageRatings={averageRatings}
@@ -622,13 +500,14 @@ export function DashboardClient({
               userRatings={userRatings}
               userReviews={userReviews}
               isLoading={isLoading}
+              viewMode={listComponentViewMode}
             />
           </div>
         </div>
 
         <div
           className={`md:hidden fixed inset-x-0 bottom-0 z-[80] bg-cyber-dark border-t-2 border-cyber-pink rounded-t-2xl transition-transform duration-300 ${
-            drawerOpen === "feed" ? "translate-y-0" : "translate-y-full"
+            showMobileFeed ? "translate-y-0" : "translate-y-full"
           }`}
           style={{ maxHeight: "70vh" }}
         >
@@ -660,13 +539,6 @@ export function DashboardClient({
           <ActivityFeed initialActivities={initialActivityFeed} />
         </div>
       </div>
-
-      {drawerOpen && (
-        <div
-          className="md:hidden fixed inset-0 bg-black/50 z-[70] backdrop-blur-sm"
-          onClick={() => setDrawerOpen(null)}
-        />
-      )}
     </div>
   )
 }
