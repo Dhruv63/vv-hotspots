@@ -7,9 +7,8 @@ import { createClient } from "@/lib/supabase/client"
 import { formatDistanceToNow } from "date-fns"
 import { Loader2, X, Plus, Camera } from "lucide-react"
 import type { HotspotPhoto } from "@/lib/types"
-import { savePhotoAndAwardPoints } from "@/app/actions/photos"
 import { toast } from "sonner"
-import { CldUploadButton } from "next-cloudinary"
+import { PhotoUploadButton } from "./photo-upload-button"
 
 interface PhotoGalleryProps {
   hotspotId: string
@@ -21,7 +20,6 @@ export function PhotoGallery({ hotspotId, refreshTrigger }: PhotoGalleryProps) {
   const [photos, setPhotos] = useState<HotspotPhoto[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedPhoto, setSelectedPhoto] = useState<HotspotPhoto | null>(null)
-  const [isUploading, setIsUploading] = useState(false)
   const [session, setSession] = useState<any>(null)
 
   useEffect(() => {
@@ -76,42 +74,6 @@ export function PhotoGallery({ hotspotId, refreshTrigger }: PhotoGalleryProps) {
     }
   }, [hotspotId, refreshTrigger])
 
-  const handleUploadSuccess = async (result: any) => {
-    setIsUploading(true)
-    const toastId = toast.loading("Saving photo...")
-
-    try {
-      const info = result.info
-      // Determine thumbnail URL
-      let thumbnailUrl = info.secure_url
-      if (info.eager && info.eager.length > 0) {
-        thumbnailUrl = info.eager[0].secure_url
-      } else {
-        // Fallback
-        thumbnailUrl = info.secure_url.replace("/upload/", "/upload/w_300,h_300,c_fill/")
-      }
-
-      const response = await savePhotoAndAwardPoints(hotspotId, info.secure_url, thumbnailUrl)
-
-      toast.dismiss(toastId)
-      if (response.success) {
-        toast.success(`Photo uploaded! +${response.pointsAwarded} points ⭐`)
-        fetchPhotos()
-      }
-    } catch (error: any) {
-      console.error("Upload error:", error)
-      toast.dismiss(toastId)
-      toast.error(error.message || "Failed to save photo.")
-    } finally {
-      setIsUploading(false)
-    }
-  }
-
-  const handleUploadError = (error: any) => {
-    console.error("Cloudinary Upload Error:", error)
-    toast.error("Failed to upload photo to cloud.")
-    setIsUploading(false)
-  }
 
   const handleLoginRedirect = () => {
     toast.error("You must be logged in to upload photos")
@@ -132,20 +94,14 @@ export function PhotoGallery({ hotspotId, refreshTrigger }: PhotoGalleryProps) {
         <div className="flex flex-col items-center justify-center py-8 text-cyber-gray text-sm italic border border-cyber-gray/30 rounded-lg bg-black/30 group gap-4">
           <p>No photos yet. Be the first to add one!</p>
           {session ? (
-            <CldUploadButton
-              options={{
-                folder: `vv-hotspots/${hotspotId}`,
-                maxFileSize: 5000000,
-                sources: ["local", "camera"],
-              }}
-              signatureEndpoint="/api/sign-cloudinary-params"
-              onSuccess={handleUploadSuccess}
-              onError={handleUploadError}
+            <PhotoUploadButton
+              hotspotId={hotspotId}
+              onUploadComplete={fetchPhotos}
               className="flex items-center gap-2 px-4 py-2 rounded-md font-bold text-sm bg-pink-500 text-white dark:bg-[#FFFF00] dark:text-black shadow-[0_0_10px_rgba(255,20,147,0.4)] dark:shadow-[0_0_10px_rgba(255,255,0,0.4)] hover:shadow-[0_0_20px_rgba(255,20,147,0.6)] dark:hover:shadow-[0_0_20px_rgba(255,255,0,0.6)] transition-all transform group-hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Camera className="w-4 h-4 mr-2" />
               Upload Photo (+20 points)
-            </CldUploadButton>
+            </PhotoUploadButton>
           ) : (
             <button
               onClick={handleLoginRedirect}
@@ -160,20 +116,14 @@ export function PhotoGallery({ hotspotId, refreshTrigger }: PhotoGalleryProps) {
         <div className="space-y-4">
           <div className="flex justify-end">
             {session ? (
-              <CldUploadButton
-                options={{
-                  folder: `vv-hotspots/${hotspotId}`,
-                  maxFileSize: 5000000,
-                  sources: ["local", "camera"],
-                }}
-                signatureEndpoint="/api/sign-cloudinary-params"
-                onSuccess={handleUploadSuccess}
-                onError={handleUploadError}
+              <PhotoUploadButton
+                hotspotId={hotspotId}
+                onUploadComplete={fetchPhotos}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-md font-bold text-xs bg-pink-500 text-white dark:bg-[#FFFF00] dark:text-black shadow-md hover:shadow-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Plus className="w-3 h-3 mr-1" />
                 Add Photo
-              </CldUploadButton>
+              </PhotoUploadButton>
             ) : (
               <button
                 onClick={handleLoginRedirect}
