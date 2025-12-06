@@ -31,6 +31,10 @@ export function PhotoUploadButton({
 
     console.log(data)
     console.log(error)
+
+    if (onUploadComplete) {
+      onUploadComplete()
+    }
   }
 
   const handleUploadError = (error: any) => {
