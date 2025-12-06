@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const { paramsToSign } = body;
+  const paramsToSign = body.paramsToSign || body;
 
   const signature = cloudinary.utils.api_sign_request(
     paramsToSign,
