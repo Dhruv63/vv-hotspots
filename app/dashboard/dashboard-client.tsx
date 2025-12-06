@@ -3,12 +3,13 @@
 import { useState, useCallback, useEffect } from "react"
 import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
-import { Menu, X, Activity, WifiOff, RefreshCw, AlertTriangle, Clock } from "lucide-react"
+import { Menu, X, Activity, WifiOff, RefreshCw, AlertTriangle, Clock, Filter } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { Navbar } from "@/components/navbar"
 import { MapView } from "@/components/map-view"
 import { HotspotList } from "@/components/hotspot-list"
 import { ActivityFeed } from "@/components/activity-feed"
+import { FilterDrawer } from "@/components/filter-drawer"
 import { sanitizeInput, checkRateLimit, RATE_LIMITS } from "@/lib/security"
 import type { Hotspot, ActivityFeedItem } from "@/lib/types"
 import type { User } from "@supabase/supabase-js"
@@ -47,6 +48,7 @@ export function DashboardClient({
   const [error, setError] = useState<string | null>(initError || null) // Initialize with server error
   const [success, setSuccess] = useState<string | null>(null)
   const [mobileCategory, setMobileCategory] = useState("all")
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false)
   const [isOffline, setIsOffline] = useState(false)
   const [processingAction, setProcessingAction] = useState<string | null>(null)
   const [rateLimitCooldown, setRateLimitCooldown] = useState<number>(0)
@@ -489,48 +491,83 @@ export function DashboardClient({
         </div>
       )}
 
-      <div className="flex-1 flex pt-16 relative overflow-hidden">
-        <div className="md:hidden fixed top-[72px] left-2 right-2 z-40 flex items-center gap-2">
+      <div className="flex-1 flex pt-14 md:pt-16 relative overflow-hidden">
+        <div className="md:hidden fixed top-[56px] left-0 right-0 z-40 bg-cyber-black/80 backdrop-blur-sm px-2 py-2 flex items-center gap-2 border-b border-cyber-gray/30">
           <button
             onClick={() => setDrawerOpen(drawerOpen === "hotspots" ? null : "hotspots")}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg font-mono text-xs transition-all min-h-[44px] ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[10px] transition-all min-h-[36px] ${
               drawerOpen === "hotspots"
                 ? "bg-cyber-cyan text-cyber-black shadow-[0_0_15px_rgba(255,255,0,0.5)]"
                 : "bg-cyber-dark border border-cyber-gray text-cyber-light"
             }`}
           >
-            {drawerOpen === "hotspots" ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+            {drawerOpen === "hotspots" ? <X className="w-3.5 h-3.5" /> : <Menu className="w-3.5 h-3.5" />}
             <span>Places</span>
           </button>
 
-          <div className="flex-1 overflow-x-auto flex gap-1 pb-1 scrollbar-hide">
-            {categories.map((cat) => (
-              <button
-                key={cat.value}
-                onClick={() => setMobileCategory(cat.value)}
-                className={`flex-shrink-0 px-3 py-2 rounded-lg font-mono text-xs transition-all min-h-[44px] ${
-                  mobileCategory === cat.value
-                    ? "bg-cyber-cyan text-cyber-black"
-                    : "bg-cyber-dark border border-cyber-gray text-cyber-gray"
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
+          <div className="flex-1 flex gap-1.5 overflow-x-auto scrollbar-hide">
+            <button
+              onClick={() => setMobileCategory("all")}
+              className={`flex-shrink-0 px-3 py-1.5 rounded-lg font-mono text-[10px] transition-all min-h-[36px] ${
+                mobileCategory === "all"
+                  ? "bg-cyber-cyan text-cyber-black"
+                  : "bg-cyber-dark border border-cyber-gray text-cyber-gray"
+              }`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setMobileCategory("cafe")}
+              className={`flex-shrink-0 px-3 py-1.5 rounded-lg font-mono text-[10px] transition-all min-h-[36px] ${
+                mobileCategory === "cafe"
+                  ? "bg-cyber-cyan text-cyber-black"
+                  : "bg-cyber-dark border border-cyber-gray text-cyber-gray"
+              }`}
+            >
+              Cafes
+            </button>
+            <button
+              onClick={() => setMobileCategory("park")}
+              className={`flex-shrink-0 px-3 py-1.5 rounded-lg font-mono text-[10px] transition-all min-h-[36px] ${
+                mobileCategory === "park"
+                  ? "bg-cyber-cyan text-cyber-black"
+                  : "bg-cyber-dark border border-cyber-gray text-cyber-gray"
+              }`}
+            >
+              Parks
+            </button>
+             <button
+              onClick={() => setIsFilterDrawerOpen(true)}
+              className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[10px] transition-all min-h-[36px] ${
+                !['all', 'cafe', 'park'].includes(mobileCategory)
+                  ? "bg-cyber-cyan text-cyber-black"
+                  : "bg-cyber-dark border border-cyber-gray text-cyber-cyan"
+              }`}
+            >
+              <Filter className="w-3 h-3" />
+              <span>Filters</span>
+            </button>
           </div>
 
           <button
             onClick={() => setDrawerOpen(drawerOpen === "feed" ? null : "feed")}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg font-mono text-xs transition-all min-h-[44px] ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[10px] transition-all min-h-[36px] ${
               drawerOpen === "feed"
                 ? "bg-cyber-pink text-white shadow-[0_0_15px_rgba(204,255,0,0.5)]"
                 : "bg-cyber-dark border border-cyber-gray text-cyber-cyan"
             }`}
           >
-            <Activity className="w-4 h-4" />
+            <Activity className="w-3.5 h-3.5" />
             <span>Feed</span>
           </button>
         </div>
+
+        <FilterDrawer
+          isOpen={isFilterDrawerOpen}
+          onClose={() => setIsFilterDrawerOpen(false)}
+          currentCategory={mobileCategory}
+          onSelectCategory={setMobileCategory}
+        />
 
         <div className="hidden md:block w-72 lg:w-80 h-full bg-cyber-dark border-r border-cyber-gray">
           <HotspotList
