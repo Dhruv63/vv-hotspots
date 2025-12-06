@@ -21,6 +21,8 @@ export function PhotoGallery({ hotspotId, refreshTrigger }: PhotoGalleryProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [selectedPhoto, setSelectedPhoto] = useState<HotspotPhoto | null>(null)
   const [session, setSession] = useState<any>(null)
+  const [totalCount, setTotalCount] = useState(0)
+  const [isExpanded, setIsExpanded] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -31,20 +33,29 @@ export function PhotoGallery({ hotspotId, refreshTrigger }: PhotoGalleryProps) {
 
   const fetchPhotos = async () => {
     const supabase = createClient()
-    const { data, error } = await supabase
+
+    let query = supabase
       .from("hotspot_photos")
       .select(`
         *,
         profiles (
           username
         )
-      `)
+      `, { count: 'exact' })
       .eq("hotspot_id", hotspotId)
       .order("created_at", { ascending: false })
-      .limit(12)
+
+    if (!isExpanded) {
+      query = query.limit(8)
+    } else {
+      query = query.limit(50)
+    }
+
+    const { data, error, count } = await query
 
     if (!error && data) {
       setPhotos(data as unknown as HotspotPhoto[])
+      if (count !== null) setTotalCount(count)
     }
     setIsLoading(false)
   }
@@ -72,7 +83,7 @@ export function PhotoGallery({ hotspotId, refreshTrigger }: PhotoGalleryProps) {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [hotspotId, refreshTrigger])
+  }, [hotspotId, refreshTrigger, isExpanded])
 
 
   const handleLoginRedirect = () => {
@@ -135,11 +146,11 @@ export function PhotoGallery({ hotspotId, refreshTrigger }: PhotoGalleryProps) {
             )}
           </div>
 
-          <div className="grid grid-cols-2 min-[400px]:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {photos.map((photo) => (
               <div
                 key={photo.id}
-                className="group relative aspect-square cursor-pointer overflow-hidden rounded-lg border-2 border-transparent hover:scale-105 transition-transform duration-300 dark:hover:border-[#FFFF00] dark:hover:shadow-[0_0_10px_rgba(255,255,0,0.3)] hover:border-pink-500 hover:shadow-[0_0_10px_rgba(255,20,147,0.2)]"
+                className="group relative aspect-square cursor-pointer overflow-hidden rounded-lg border-2 border-pink-500/30 dark:border-[#FFFF00]/30 hover:border-pink-500 dark:hover:border-[#FFFF00] hover:shadow-[0_0_10px_rgba(255,20,147,0.4)] dark:hover:shadow-[0_0_10px_rgba(255,255,0,0.4)] transition-all duration-300 hover:scale-105"
                 onClick={() => setSelectedPhoto(photo)}
               >
                 <Image
@@ -147,12 +158,21 @@ export function PhotoGallery({ hotspotId, refreshTrigger }: PhotoGalleryProps) {
                   alt="Hotspot photo"
                   fill
                   className="object-cover"
-                  sizes="(max-width: 768px) 33vw, 25vw"
+                  sizes="(max-width: 768px) 50vw, 25vw"
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
               </div>
             ))}
           </div>
+
+          {!isExpanded && totalCount > 8 && (
+            <button
+              onClick={() => setIsExpanded(true)}
+              className="w-full py-2 text-center text-xs font-mono font-bold text-cyber-cyan hover:text-cyber-pink transition-colors border border-cyber-cyan/30 rounded hover:bg-cyber-cyan/10"
+            >
+              View all {totalCount} photos
+            </button>
+          )}
         </div>
       )}
 

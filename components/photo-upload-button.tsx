@@ -12,6 +12,7 @@ interface PhotoUploadButtonProps {
 
 export function PhotoUploadButton({
   hotspotId,
+  onUploadComplete,
   className,
   children
 }: PhotoUploadButtonProps) {
