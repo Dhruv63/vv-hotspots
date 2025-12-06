@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { X, Check, Grid, List, Map as MapIcon, Activity, Layers } from "lucide-react"
+import { useEffect, useRef } from "react"
+import { X, Check, Grid, List, Map as MapIcon, Activity, Layers, ArrowLeft } from "lucide-react"
 import { useTheme } from "next-themes"
 import { THEME_COLORS } from "@/components/map-view"
 
@@ -22,19 +22,50 @@ export function UnifiedMenuDrawer({
   onApply,
   onClear
 }: UnifiedMenuDrawerProps) {
-  const [selectedView, setSelectedView] = useState(currentView)
-  const [selectedCategories, setSelectedCategories] = useState<string[]>(currentCategories)
   const { resolvedTheme } = useTheme()
   const theme = (resolvedTheme === "light" ? "light" : "dark") as keyof typeof THEME_COLORS
   const colors = THEME_COLORS[theme]
 
-  // Sync state when drawer opens
-  useEffect(() => {
-    if (isOpen) {
-      setSelectedView(currentView)
-      setSelectedCategories(currentCategories)
+  // Touch handling for swipe-down to close
+  const touchStartY = useRef<number | null>(null)
+  const drawerRef = useRef<HTMLDivElement>(null)
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartY.current === null || !drawerRef.current) return
+    const touchY = e.touches[0].clientY
+    const diff = touchY - touchStartY.current
+
+    // If swiping down and at the top of the scroll container
+    if (diff > 50 && drawerRef.current.scrollTop === 0) {
+      // Could add visual feedback here (transform)
     }
-  }, [isOpen, currentView, currentCategories])
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartY.current === null) return
+    const touchY = e.changedTouches[0].clientY
+    const diff = touchY - touchStartY.current
+
+    if (diff > 100) { // Threshold for closing
+      onClose()
+    }
+    touchStartY.current = null
+  }
+
+  // Close on ESC
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) {
+        onClose()
+      }
+    }
+    window.addEventListener("keydown", handleEsc)
+    return () => window.removeEventListener("keydown", handleEsc)
+  }, [isOpen, onClose])
 
   const categories = [
     { value: "cafe", label: "Cafes", color: colors.cafe.main },
@@ -54,31 +85,25 @@ export function UnifiedMenuDrawer({
   ]
 
   const toggleCategory = (cat: string) => {
-    setSelectedCategories(prev => {
-      if (prev.includes(cat)) {
-        return prev.filter(c => c !== cat)
-      } else {
-        return [...prev, cat]
-      }
-    })
+    let newCategories: string[]
+    if (currentCategories.includes(cat)) {
+      newCategories = currentCategories.filter(c => c !== cat)
+    } else {
+      newCategories = [...currentCategories, cat]
+    }
+    onApply(currentView, newCategories)
   }
 
-  const handleApply = () => {
-      onApply(selectedView, selectedCategories)
-      // We don't close automatically here? Usually apply closes the drawer.
-      onClose()
+  const setView = (view: string) => {
+    onApply(view, currentCategories)
   }
 
-  const handleClear = () => {
-      setSelectedCategories([])
-      // Don't reset view on clear filters, just filters.
-      // But user said "Clear All Filters", so we just clear categories.
-      onClear()
-      // If we want to clear everything and apply immediately:
-      // onApply(selectedView, [])
-      // But typically Clear button clears the form state.
-      // We'll just clear the local state for now.
-  }
+  const activeColor = theme === 'dark' ? 'text-[#FFFF00]' : 'text-pink-500'
+  const activeBorder = theme === 'dark' ? 'border-[#FFFF00]' : 'border-pink-500'
+  const activeBg = theme === 'dark' ? 'bg-[#FFFF00]/10' : 'bg-pink-500/10'
+  const activeGlow = theme === 'dark' ? 'shadow-[0_0_10px_rgba(255,255,0,0.3)]' : 'shadow-[0_0_10px_rgba(255,20,147,0.3)]'
+  const activeCheckBg = theme === 'dark' ? 'bg-[#FFFF00]' : 'bg-pink-500'
+  const activeCheckText = theme === 'dark' ? 'text-black' : 'text-white'
 
   if (!isOpen) return null
 
@@ -86,24 +111,47 @@ export function UnifiedMenuDrawer({
     <>
        {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] md:z-[40]"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] md:z-[40] transition-opacity duration-300"
         onClick={onClose}
+        aria-hidden="true"
       />
 
       {/* Drawer */}
       <div
+        ref={drawerRef}
         className={`fixed inset-x-0 bottom-0 md:top-16 md:bottom-0 md:left-0 md:right-auto md:w-80 z-[100] md:z-[50]
         bg-cyber-dark border-t-2 md:border-t-0 md:border-r border-cyber-primary md:border-cyber-gray
-        rounded-t-2xl md:rounded-none transition-transform duration-300
+        rounded-t-2xl md:rounded-none transition-transform duration-300 ease-out
         flex flex-col shadow-2xl
         ${isOpen ? "translate-y-0 md:translate-x-0" : "translate-y-full md:-translate-x-full"}`}
-        style={{ maxHeight: "85vh", height: "100%" }} // Mobile max height, Desktop full height
+        style={{ maxHeight: "85vh", height: "100%" }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
+        {/* Drag Handle for Mobile */}
+        <div className="md:hidden w-full flex justify-center pt-3 pb-1" onClick={onClose}>
+            <div className="w-12 h-1.5 bg-cyber-gray/50 rounded-full"></div>
+        </div>
+
         <div className="flex items-center justify-between p-4 border-b border-cyber-gray/30">
-          <h2 className="text-cyber-primary font-mono text-lg font-bold tracking-wider">MENU</h2>
+            <div className="flex items-center gap-3">
+                <button
+                    onClick={onClose}
+                    className="md:hidden p-2 -ml-2 text-cyber-gray hover:text-cyber-primary transition-colors rounded-full hover:bg-cyber-gray/10"
+                >
+                    <ArrowLeft className="w-5 h-5" />
+                </button>
+                <div>
+                    <h2 className="text-cyber-primary font-mono text-lg font-bold tracking-wider">FILTERS</h2>
+                    {currentCategories.length > 0 && (
+                        <p className="text-xs font-mono text-cyber-gray">{currentCategories.length} selected</p>
+                    )}
+                </div>
+            </div>
           <button
             onClick={onClose}
-            className="p-2 text-cyber-gray hover:text-cyber-primary transition-colors rounded-full hover:bg-cyber-gray/10"
+            className="hidden md:block p-2 text-cyber-gray hover:text-cyber-primary transition-colors rounded-full hover:bg-cyber-gray/10"
           >
             <X className="w-6 h-6" />
           </button>
@@ -114,82 +162,82 @@ export function UnifiedMenuDrawer({
             <section>
                 <h3 className="text-cyber-light/70 font-mono text-xs font-bold mb-3 uppercase tracking-wider">View Options</h3>
                 <div className="grid grid-cols-2 gap-2">
-                    {viewOptions.map((option) => (
-                        <button
-                            key={option.value}
-                            onClick={() => setSelectedView(option.value)}
-                            className={`flex items-center gap-2 p-3 rounded-lg border transition-all text-left
-                                ${selectedView === option.value
-                                    ? "border-cyber-primary bg-cyber-primary/10 text-cyber-primary shadow-[0_0_10px_rgba(255,255,0,0.2)]"
-                                    : "border-cyber-gray/30 bg-cyber-black/30 text-cyber-light hover:border-cyber-gray"
-                                }
-                            `}
-                        >
-                            <option.icon className="w-4 h-4 flex-shrink-0" />
-                            <span className="font-mono text-xs font-bold">{option.label}</span>
-                        </button>
-                    ))}
+                    {viewOptions.map((option) => {
+                        const isActive = currentView === option.value
+                        return (
+                            <button
+                                key={option.value}
+                                onClick={() => setView(option.value)}
+                                className={`flex items-center gap-2 p-3 rounded-lg border transition-all text-left duration-200
+                                    ${isActive
+                                        ? `${activeBorder} ${activeBg} ${activeColor} ${activeGlow}`
+                                        : "border-cyber-gray/30 bg-cyber-black/30 text-cyber-light hover:border-cyber-gray"
+                                    }
+                                `}
+                            >
+                                <option.icon className="w-4 h-4 flex-shrink-0" />
+                                <span className="font-mono text-xs font-bold">{option.label}</span>
+                            </button>
+                        )
+                    })}
                 </div>
             </section>
 
             {/* Filter Categories */}
              <section>
-                <h3 className="text-cyber-light/70 font-mono text-xs font-bold mb-3 uppercase tracking-wider">Filter by Category</h3>
-                <div className="space-y-2">
-                    {categories.map((cat) => (
-                        <button
-                            key={cat.value}
-                            onClick={() => toggleCategory(cat.value)}
-                            className={`flex items-center justify-between w-full p-3 rounded-lg border transition-all
-                                ${selectedCategories.includes(cat.value)
-                                    ? "border-cyber-primary/50 bg-cyber-primary/5"
-                                    : "border-cyber-gray/30 bg-cyber-black/30 hover:border-cyber-gray"
-                                }
-                            `}
+                <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-cyber-light/70 font-mono text-xs font-bold uppercase tracking-wider">Categories</h3>
+                    {currentCategories.length > 0 && (
+                         <button
+                            onClick={onClear}
+                            className="text-xs font-mono text-cyber-gray hover:text-cyber-primary underline decoration-dotted underline-offset-4"
                         >
-                            <div className="flex items-center gap-3">
-                                <div
-                                    className="w-2.5 h-2.5 rounded-full shadow-[0_0_5px]"
-                                    style={{
-                                        backgroundColor: cat.color,
-                                        boxShadow: `0 0 5px ${cat.color}`
-                                    }}
-                                />
-                                <span className={`font-mono text-sm ${selectedCategories.includes(cat.value) ? "text-cyber-light" : "text-cyber-gray"}`}>
-                                    {cat.label}
-                                </span>
-                            </div>
-
-                            <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors
-                                ${selectedCategories.includes(cat.value)
-                                    ? "bg-cyber-primary border-cyber-primary"
-                                    : "border-cyber-gray bg-transparent"
-                                }
-                            `}>
-                                {selectedCategories.includes(cat.value) && <Check className="w-3.5 h-3.5 text-cyber-black" />}
-                            </div>
+                            Clear All
                         </button>
-                    ))}
+                    )}
+                </div>
+                <div className="space-y-2">
+                    {categories.map((cat) => {
+                        const isSelected = currentCategories.includes(cat.value)
+                        return (
+                            <button
+                                key={cat.value}
+                                onClick={() => toggleCategory(cat.value)}
+                                className={`flex items-center justify-between w-full p-3 rounded-lg border transition-all duration-200
+                                    ${isSelected
+                                        ? `${activeBorder} ${activeBg}`
+                                        : "border-cyber-gray/30 bg-cyber-black/30 hover:border-cyber-gray"
+                                    }
+                                `}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div
+                                        className="w-2.5 h-2.5 rounded-full shadow-[0_0_5px] transition-transform duration-300"
+                                        style={{
+                                            backgroundColor: cat.color,
+                                            boxShadow: `0 0 5px ${cat.color}`,
+                                            transform: isSelected ? 'scale(1.2)' : 'scale(1)'
+                                        }}
+                                    />
+                                    <span className={`font-mono text-sm transition-colors ${isSelected ? "text-cyber-light font-bold" : "text-cyber-gray"}`}>
+                                        {cat.label}
+                                    </span>
+                                </div>
+
+                                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all duration-200
+                                    ${isSelected
+                                        ? `${activeCheckBg} border-transparent`
+                                        : "border-cyber-gray bg-transparent"
+                                    }
+                                `}>
+                                    <Check className={`w-3.5 h-3.5 ${activeCheckText} transition-opacity duration-200 ${isSelected ? 'opacity-100' : 'opacity-0'}`} />
+                                </div>
+                            </button>
+                        )
+                    })}
                 </div>
             </section>
         </div>
-
-        {/* Footer Actions */}
-        <div className="p-4 border-t border-cyber-gray/30 flex gap-3 bg-cyber-dark safe-area-pb">
-            <button
-                onClick={handleClear}
-                className="flex-1 py-3 border border-cyber-gray text-cyber-gray font-mono font-bold rounded-lg hover:border-cyber-light hover:text-cyber-light transition-colors"
-            >
-                Clear All
-            </button>
-            <button
-                onClick={handleApply}
-                className="flex-1 py-3 bg-cyber-primary text-cyber-black font-mono font-bold rounded-lg hover:bg-cyber-primary/90 transition-all shadow-[0_0_15px_rgba(255,255,0,0.3)]"
-            >
-                Apply
-            </button>
-        </div>
-
       </div>
     </>
   )
