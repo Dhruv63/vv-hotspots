@@ -80,7 +80,7 @@ export function Navbar({ user }: NavbarProps) {
           <ThemeToggle />
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 text-cyber-light hover:text-cyber-cyan transition-colors"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-cyber-light hover:text-cyber-cyan transition-colors"
             aria-label="Toggle menu"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}

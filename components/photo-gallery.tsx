@@ -9,6 +9,7 @@ import { Loader2, X, Plus, Camera } from "lucide-react"
 import type { HotspotPhoto } from "@/lib/types"
 import { toast } from "sonner"
 import { PhotoUploadButton } from "./photo-upload-button"
+import { PhotoGallerySkeleton } from "@/components/skeletons/photo-gallery-skeleton"
 
 interface PhotoGalleryProps {
   hotspotId: string
@@ -92,11 +93,7 @@ export function PhotoGallery({ hotspotId, refreshTrigger }: PhotoGalleryProps) {
   }
 
   if (isLoading && photos.length === 0) {
-    return (
-      <div className="flex justify-center py-8">
-        <Loader2 className="w-8 h-8 text-cyber-cyan animate-spin" />
-      </div>
-    )
+    return <PhotoGallerySkeleton />
   }
 
   return (

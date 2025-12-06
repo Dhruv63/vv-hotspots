@@ -83,8 +83,14 @@ export function HotspotCard({
       style={{ width: "100%" }}
     >
       {/* Image section */}
-      <div className="relative h-[120px] w-full shrink-0">
-        <Image src={imageUrl || "/placeholder.svg"} alt={hotspot.name} fill className="object-cover" />
+      <div className="relative h-[120px] w-full shrink-0 bg-cyber-dark/50">
+        <Image
+          src={imageUrl || "/placeholder.svg"}
+          alt={hotspot.name}
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, 320px"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-cyber-black/80 to-transparent" />
 
         {/* Category badge */}

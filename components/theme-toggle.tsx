@@ -16,7 +16,7 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <CyberButton variant="ghost" size="sm" className="w-9 h-9 px-0">
+      <CyberButton variant="ghost" size="sm" className="w-11 h-11 px-0 min-h-[44px] min-w-[44px]">
         <span className="sr-only">Toggle theme</span>
       </CyberButton>
     )
@@ -26,7 +26,7 @@ export function ThemeToggle() {
     <CyberButton
       variant="ghost"
       size="sm"
-      className="w-9 h-9 px-0"
+      className="w-11 h-11 px-0 min-h-[44px] min-w-[44px]"
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
       aria-label="Toggle theme"
     >

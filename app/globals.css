@@ -403,3 +403,33 @@
 .marker-glow {
   animation: marker-glow 2s ease-in-out infinite;
 }
+
+/* Global Skeleton Shimmer */
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-cyber-dark) 25%,
+    var(--color-cyber-gray) 37%,
+    var(--color-cyber-dark) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+}
+
+.light .skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-cyber-navy) 25%,
+    var(--color-cyber-gray) 37%,
+    var(--color-cyber-navy) 63%
+  );
+}
