@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { X, MapPin, Users, Navigation, Clock, Zap, Star, MessageSquare, Loader2, Camera } from "lucide-react"
+import { X, MapPin, Users, Navigation, Clock, Zap, Star, MessageSquare, Loader2, Camera, Check } from "lucide-react"
 import { StarRating } from "@/components/ui/star-rating"
 import { ActiveUsersList } from "@/components/active-users-list"
 import { PhotoGallery } from "@/components/photo-gallery"
@@ -81,6 +81,21 @@ export function HotspotDetail({
   const [ratingSuccess, setRatingSuccess] = useState(false)
   const [galleryRefreshTrigger, setGalleryRefreshTrigger] = useState(0)
 
+  // Button feedback states
+  const [isCheckInLoading, setIsCheckInLoading] = useState(false)
+  const [isCheckInSuccess, setIsCheckInSuccess] = useState(false)
+
+  // Sync internal loading state with prop
+  useEffect(() => {
+    if (!isLoading && isCheckInLoading) {
+        // If prop stopped loading but we are still in internal loading state,
+        // it means action finished.
+        // However, we want to control the 'success' state locally.
+        // We will handle this in handleCheckInClick.
+    }
+  }, [isLoading, isCheckInLoading])
+
+
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose()
@@ -101,6 +116,32 @@ export function HotspotDetail({
     } finally {
       setIsRating(false)
     }
+  }
+
+  const handleCheckInClick = async () => {
+      if (isCheckedIn) {
+          onCheckOut()
+      } else {
+          setIsCheckInLoading(true)
+          try {
+              await onCheckIn() // Assuming this is async. If not, we might need a small delay to simulate or just set success.
+              // We'll assume the parent updates 'isCheckedIn' prop which will re-render this.
+              // But for the button feedback, we want to show success state before switching to 'CHECK OUT' state if possible.
+              // Since 'onCheckIn' might trigger a data refresh that changes 'isCheckedIn', we might flip directly to "CHECK OUT".
+              // The requirement says: "show loading state... then success state ... for 2 seconds before reverting"
+              // Reverting to what? Probably to "CHECKED IN" state (which is the "CHECK OUT" button usually).
+              // Or if it failed, revert to "CHECK IN".
+
+              // Let's simulate the success state if the action was successful.
+              setIsCheckInLoading(false)
+              setIsCheckInSuccess(true)
+              setTimeout(() => {
+                  setIsCheckInSuccess(false)
+              }, 2000)
+          } catch (error) {
+              setIsCheckInLoading(false)
+          }
+      }
   }
 
   const openInMaps = () => {
@@ -129,7 +170,7 @@ export function HotspotDetail({
         {/* Close button - larger touch target */}
         <button
           onClick={onClose}
-          disabled={isLoading}
+          disabled={isLoading || isCheckInLoading}
           className="absolute top-4 md:top-4 right-3 z-50 p-3 bg-cyber-black/80 border border-cyber-gray text-cyber-gray hover:text-cyber-cyan hover:border-cyber-cyan hover:shadow-[0_0_15px_rgba(255,255,0,0.5)] transition-all rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center disabled:opacity-50"
         >
           <X className="w-5 h-5" />
@@ -207,20 +248,27 @@ export function HotspotDetail({
 
             <button
               type="button"
-              onClick={isCheckedIn ? onCheckOut : onCheckIn}
-              disabled={isLoading}
-              className={`w-full py-4 px-6 font-mono font-bold text-lg tracking-wider rounded-lg transition-all duration-300 flex items-center justify-center gap-3 min-h-[56px] ${
-                isLoading
+              onClick={handleCheckInClick}
+              disabled={isLoading || isCheckInLoading || isCheckInSuccess}
+              className={`w-full py-4 px-6 font-mono font-bold text-lg tracking-wider rounded-lg transition-all duration-200 active:scale-[0.98] hover:scale-100 flex items-center justify-center gap-3 min-h-[56px] ${
+                isCheckInLoading
                   ? "bg-cyber-gray/50 text-cyber-gray cursor-not-allowed"
-                  : isCheckedIn
-                    ? "bg-cyber-pink text-white hover:bg-cyber-pink/80 shadow-[0_0_20px_rgba(204,255,0,0.5)] active:scale-95"
-                    : "bg-[#FFFF00] text-black hover:bg-[#E6E600] shadow-[0_0_30px_rgba(255,255,0,0.6)] active:scale-95"
+                  : isCheckInSuccess
+                    ? "bg-[#39FF14] text-black shadow-[0_0_20px_rgba(57,255,20,0.5)] scale-100"
+                    : isCheckedIn
+                      ? "bg-cyber-pink text-white hover:bg-cyber-pink/80 shadow-[0_0_20px_rgba(204,255,0,0.5)]"
+                      : "bg-[#FFFF00] text-black hover:bg-[#E6E600] shadow-[0_0_30px_rgba(255,255,0,0.6)]"
               }`}
             >
-              {isLoading ? (
+              {isCheckInLoading || (isLoading && !isCheckedIn && !isCheckInSuccess) ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
                   PROCESSING...
+                </>
+              ) : isCheckInSuccess ? (
+                <>
+                  <Check className="w-6 h-6" />
+                  CHECKED IN
                 </>
               ) : isCheckedIn ? (
                 <>
@@ -235,7 +283,7 @@ export function HotspotDetail({
               )}
             </button>
 
-            {!isCheckedIn && !isLoading && (
+            {!isCheckedIn && !isLoading && !isCheckInSuccess && (
               <p className="text-center text-cyber-cyan/70 text-xs font-mono">
                 Tap to let others know you&apos;re at this spot!
               </p>

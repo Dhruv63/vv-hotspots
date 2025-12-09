@@ -186,11 +186,11 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
             <div
               key={activity.id}
               className={`
-                relative p-3 border transition-all duration-500 rounded-lg min-h-[72px]
+                relative p-3 border transition-all duration-200 rounded-lg min-h-[72px]
                 ${
                   activity.id === newActivityId
                     ? "border-cyber-primary bg-cyber-primary/10 shadow-[0_0_20px_var(--color-cyber-primary)] animate-pulse"
-                    : "border-cyber-gray/30 bg-cyber-black/50 hover:border-cyber-primary/50 hover:bg-cyber-primary/5"
+                    : "border-cyber-gray/30 bg-cyber-black/50 hover:-translate-y-0.5 hover:bg-cyber-navy hover:border-[rgba(232,255,0,0.3)]"
                 }
               `}
             >

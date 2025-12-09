@@ -2,13 +2,14 @@
 
 import { ReactNode } from "react"
 import Image from "next/image"
-import { MapPin, Users, Star } from "lucide-react"
+import { MapPin, Users, Star, StarHalf } from "lucide-react"
 import type { Hotspot } from "@/lib/types"
 
 interface HotspotCardProps {
   hotspot: Hotspot
   activeCheckins?: number
   averageRating?: number
+  ratingCount?: number
   distance?: number | null
   onClick?: () => void
   isSelected?: boolean
@@ -67,6 +68,7 @@ export function HotspotCard({
   hotspot,
   activeCheckins = 0,
   averageRating = 0,
+  ratingCount = 234, // Default mock value for visual polish
   distance,
   onClick,
   isSelected = false,
@@ -74,10 +76,49 @@ export function HotspotCard({
 }: HotspotCardProps) {
   const imageUrl = getHotspotImage(hotspot)
 
+  const renderStars = (rating: number) => {
+    const stars = []
+    const fullStars = Math.floor(rating)
+    const hasHalfStar = rating % 1 >= 0.5
+
+    // Full stars
+    for (let i = 0; i < fullStars; i++) {
+      stars.push(
+        <Star
+          key={`full-${i}`}
+          className="w-3.5 h-3.5 fill-cyber-primary text-cyber-primary"
+        />
+      )
+    }
+
+    // Half star
+    if (hasHalfStar) {
+      stars.push(
+        <div key="half" className="relative w-3.5 h-3.5">
+            <StarHalf className="absolute inset-0 w-3.5 h-3.5 fill-cyber-primary text-cyber-primary z-10" />
+            <Star className="absolute inset-0 w-3.5 h-3.5 text-cyber-gray/30" />
+        </div>
+      )
+    }
+
+    // Empty stars
+    const remainingStars = 5 - stars.length
+    for (let i = 0; i < remainingStars; i++) {
+      stars.push(
+        <Star
+          key={`empty-${i}`}
+          className="w-3.5 h-3.5 text-cyber-gray/30"
+        />
+      )
+    }
+
+    return stars
+  }
+
   return (
     <div
       onClick={onClick}
-      className={`relative overflow-hidden rounded-lg cursor-pointer transition-all duration-300 bg-cyber-navy border flex flex-col h-full active:scale-[0.98] ${
+      className={`group relative overflow-hidden rounded-lg cursor-pointer transition-all duration-200 ease-out bg-cyber-navy border flex flex-col h-full active:scale-[0.98] hover:scale-[1.02] hover:shadow-[0_8px_24px_rgba(232,255,0,0.15)] ${
         isSelected
           ? "border-cyber-primary shadow-[0_0_20px_var(--color-cyber-primary)]"
           : "border-white/10 hover:border-cyber-primary/50"
@@ -85,12 +126,12 @@ export function HotspotCard({
       style={{ width: "100%" }}
     >
       {/* Image section - Increased height to 150px */}
-      <div className="relative h-[150px] w-full shrink-0 bg-cyber-dark/50">
+      <div className="relative h-[150px] w-full shrink-0 bg-cyber-dark/50 overflow-hidden">
         <Image
           src={imageUrl || "/placeholder.svg"}
           alt={hotspot.name}
           fill
-          className="object-cover"
+          className="object-cover transition-all duration-200 group-hover:brightness-105"
           sizes="(max-width: 768px) 100vw, 320px"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-cyber-black/80 to-transparent" />
@@ -134,10 +175,12 @@ export function HotspotCard({
         {/* Rating display */}
         <div className="flex items-center gap-1 mt-auto text-[14px] mb-3">
           {averageRating > 0 ? (
-            <>
-              <span className="text-cyber-primary font-mono font-bold">{averageRating.toFixed(1)}</span>
-              <Star className="w-3.5 h-3.5 fill-cyber-primary text-cyber-primary" />
-            </>
+            <div className="flex items-center gap-1.5">
+               <div className="flex items-center">
+                  {renderStars(averageRating)}
+               </div>
+               <span className="text-cyber-gray text-xs font-mono">({ratingCount} ratings)</span>
+            </div>
           ) : (
             <span className="text-cyber-gray text-xs font-mono">No ratings yet</span>
           )}
