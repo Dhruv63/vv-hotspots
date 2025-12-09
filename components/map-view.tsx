@@ -4,6 +4,8 @@ import { useEffect, useRef, useState, useCallback } from "react"
 import { Locate, Loader2, X, Compass } from "lucide-react"
 import type { Hotspot } from "@/lib/types"
 import { useTheme } from "next-themes"
+import "leaflet.markercluster/dist/MarkerCluster.css"
+import "leaflet.markercluster/dist/MarkerCluster.Default.css"
 
 interface MapViewProps {
   hotspots: Hotspot[]
@@ -80,7 +82,7 @@ export function MapView({
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<L.Map | null>(null)
   const tileLayerRef = useRef<L.TileLayer | null>(null)
-  const clusterGroupRef = useRef<L.MarkerClusterGroup | null>(null)
+  const clusterGroupRef = useRef<L.MarkerClusterGroup | L.FeatureGroup | null>(null)
   const markersRef = useRef<Map<string, L.Marker>>(new Map())
   const userMarkerRef = useRef<L.Marker | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
@@ -132,7 +134,10 @@ export function MapView({
   useEffect(() => {
     const loadLeaflet = async () => {
       try {
-        const leaflet = await import("leaflet")
+        const leafletModule = await import("leaflet")
+        const leaflet = leafletModule.default || leafletModule
+        // @ts-ignore
+        if (typeof window !== "undefined") window.L = leaflet
         await import("leaflet.markercluster")
 
         delete (leaflet.Icon.Default.prototype as any)._getIconUrl
@@ -314,19 +319,31 @@ export function MapView({
 
     tileLayerRef.current = tileLayer
 
-    // Initialize Cluster Group
-    const clusterGroup = L.markerClusterGroup({
-      maxClusterRadius: 50,
-      showCoverageOnHover: false,
-      iconCreateFunction: (cluster: any) => {
-        const childCount = cluster.getChildCount()
-        return L.divIcon({
-          html: `<div class="cyber-cluster"><span>${childCount}</span></div>`,
-          className: "custom-cluster-icon",
-          iconSize: L.point(40, 40),
+    // Initialize Cluster Group or Fallback
+    let clusterGroup: L.MarkerClusterGroup | L.FeatureGroup
+    try {
+      if ((L as any).markerClusterGroup) {
+        clusterGroup = (L as any).markerClusterGroup({
+          maxClusterRadius: 50,
+          showCoverageOnHover: false,
+          iconCreateFunction: (cluster: any) => {
+            const childCount = cluster.getChildCount()
+            return L.divIcon({
+              html: `<div class="cyber-cluster"><span>${childCount}</span></div>`,
+              className: "custom-cluster-icon",
+              iconSize: L.point(40, 40),
+            })
+          },
         })
-      },
-    })
+      } else {
+        console.warn("MarkerClusterGroup not found, falling back to FeatureGroup")
+        clusterGroup = L.featureGroup()
+      }
+    } catch (e) {
+      console.error("Error initializing MarkerClusterGroup:", e)
+      clusterGroup = L.featureGroup()
+    }
+
     map.addLayer(clusterGroup)
     clusterGroupRef.current = clusterGroup
 
