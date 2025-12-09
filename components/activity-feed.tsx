@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { formatDistanceToNow } from "date-fns"
-import { Activity, MapPin, User, Zap, Radio } from "lucide-react"
+import { Activity, MapPin, User, Zap, Radio, Clock } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import type { ActivityFeedItem } from "@/lib/types"
 
@@ -115,10 +115,38 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
       if (isNaN(date.getTime())) {
         return "recently"
       }
+      // Shorten "about 2 hours ago" to "2 hrs ago"
       return formatDistanceToNow(date, { addSuffix: true })
+        .replace("about ", "")
+        .replace(" hours", " hrs")
+        .replace(" hour", " hr")
+        .replace(" minutes", " mins")
+        .replace(" minute", " min")
+        .replace("less than a min", "now")
     } catch {
       return "recently"
     }
+  }
+
+  // Generate initials from username
+  const getInitials = (name: string) => {
+    return name.slice(0, 2).toUpperCase()
+  }
+
+  // Generate consistent color from username
+  const getUserColor = (name: string) => {
+    const colors = [
+      "bg-red-500", "bg-orange-500", "bg-amber-500",
+      "bg-green-500", "bg-emerald-500", "bg-teal-500",
+      "bg-cyan-500", "bg-sky-500", "bg-blue-500",
+      "bg-indigo-500", "bg-violet-500", "bg-purple-500",
+      "bg-fuchsia-500", "bg-pink-500", "bg-rose-500"
+    ]
+    let hash = 0
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash)
+    }
+    return colors[Math.abs(hash) % colors.length]
   }
 
   return (
@@ -173,45 +201,51 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
                 </div>
               )}
 
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-4">
                 {/* Avatar */}
                 <div className="relative flex-shrink-0">
                   {activity.avatar_url ? (
                     <img
                       src={activity.avatar_url || "/placeholder.svg"}
                       alt={activity.username || "User"}
-                      className="w-11 h-11 md:w-10 md:h-10 border-2 border-cyber-primary object-cover rounded-full shadow-[0_0_10px_var(--color-cyber-primary)]"
+                      className="w-12 h-12 border-2 border-cyber-primary object-cover rounded-full shadow-[0_0_10px_var(--color-cyber-primary)]"
                       onError={(e) => {
                         ;(e.target as HTMLImageElement).style.display = "none"
                       }}
                     />
                   ) : (
-                    <div className="w-11 h-11 md:w-10 md:h-10 bg-gradient-to-br from-cyber-primary/20 to-cyber-purple/20 border-2 border-cyber-primary flex items-center justify-center rounded-full shadow-[0_0_10px_var(--color-cyber-primary)]">
-                      <User className="w-5 h-5 text-cyber-primary" />
+                    <div className={`w-12 h-12 border-2 border-cyber-primary flex items-center justify-center rounded-full shadow-[0_0_10px_var(--color-cyber-primary)] ${getUserColor(activity.username || "Anonymous")} text-white`}>
+                      <span className="font-mono font-bold text-lg">{getInitials(activity.username || "AN")}</span>
                     </div>
                   )}
-                  <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-cyber-black rounded-full" />
+                  <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-400 border-2 border-cyber-black rounded-full" />
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm leading-tight">
-                    <span className="font-mono text-cyber-primary font-semibold">{activity.username || "Anonymous"}</span>
-                    <span className="text-cyber-gray mx-1">checked in at</span>
-                    <span className="text-cyber-light font-medium">{activity.hotspot_name}</span>
-                  </p>
+                  <div className="flex flex-col gap-1">
+                    <p className="text-sm text-cyber-gray font-mono">
+                      <span className="text-cyber-primary font-bold">{activity.username || "Anonymous"}</span> checked in
+                    </p>
+                    <p className="text-lg text-cyber-light font-bold leading-tight line-clamp-2">
+                        {activity.hotspot_name}
+                    </p>
+                  </div>
 
-                  <div className="flex items-center gap-2 mt-2 flex-wrap">
+                  <div className="flex items-center justify-between mt-3">
                     <span
                       className={`
-                      text-[10px] font-mono px-2 py-0.5 border uppercase tracking-wider rounded
+                      text-[10px] font-mono px-2 py-0.5 border uppercase tracking-wider rounded font-bold
                       ${getCategoryColor(activity.hotspot_category)}
                     `}
                     >
                       {activity.hotspot_category}
                     </span>
 
-                    <span className="text-cyber-gray text-xs font-mono">{formatTimestamp(activity.checked_in_at)}</span>
+                    <span className="text-cyber-gray text-xs font-mono flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {formatTimestamp(activity.checked_in_at)}
+                    </span>
                   </div>
                 </div>
               </div>

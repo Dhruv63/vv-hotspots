@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState, useCallback } from "react"
-import { Locate, Loader2, X } from "lucide-react"
+import { Locate, Loader2, X, Compass } from "lucide-react"
 import type { Hotspot } from "@/lib/types"
 import { useTheme } from "next-themes"
 
@@ -80,6 +80,7 @@ export function MapView({
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<L.Map | null>(null)
   const tileLayerRef = useRef<L.TileLayer | null>(null)
+  const clusterGroupRef = useRef<L.MarkerClusterGroup | null>(null)
   const markersRef = useRef<Map<string, L.Marker>>(new Map())
   const userMarkerRef = useRef<L.Marker | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
@@ -132,6 +133,7 @@ export function MapView({
     const loadLeaflet = async () => {
       try {
         const leaflet = await import("leaflet")
+        await import("leaflet.markercluster")
 
         delete (leaflet.Icon.Default.prototype as any)._getIconUrl
         leaflet.Icon.Default.mergeOptions({
@@ -312,6 +314,22 @@ export function MapView({
 
     tileLayerRef.current = tileLayer
 
+    // Initialize Cluster Group
+    const clusterGroup = L.markerClusterGroup({
+      maxClusterRadius: 50,
+      showCoverageOnHover: false,
+      iconCreateFunction: (cluster: any) => {
+        const childCount = cluster.getChildCount()
+        return L.divIcon({
+          html: `<div class="cyber-cluster"><span>${childCount}</span></div>`,
+          className: "custom-cluster-icon",
+          iconSize: L.point(40, 40),
+        })
+      },
+    })
+    map.addLayer(clusterGroup)
+    clusterGroupRef.current = clusterGroup
+
     map.on("popupclose", () => {
       setOpenPopupId(null)
     })
@@ -323,6 +341,7 @@ export function MapView({
       map.remove()
       mapRef.current = null
       tileLayerRef.current = null
+      clusterGroupRef.current = null
     }
   }, [L]) // Removed theme dependency here to prevent map re-initialization
 
@@ -413,14 +432,6 @@ export function MapView({
     if (!isLoaded || !mapRef.current || !L) return
 
     // Re-create markers when dependencies (like theme/colors) change
-    // We iterate through existing markers to update their icons/popups
-    // OR we can clear and recreate. Clearing and recreating might be safer for icon updates.
-    // However, recreating markers might close open popups if we are not careful.
-    // The previous implementation used a diff approach for hotspots list.
-    // Here we also need to account for color changes.
-
-    // For simplicity and correctness with theme changes, we can update the icon of existing markers.
-
     const currentMarkerIds = new Set(markersRef.current.keys())
     const newHotspotIds = new Set(hotspots.map((h) => h.id))
 
@@ -429,7 +440,7 @@ export function MapView({
       if (!newHotspotIds.has(id)) {
         const marker = markersRef.current.get(id)
         if (marker) {
-          marker.remove()
+          clusterGroupRef.current?.removeLayer(marker)
           markersRef.current.delete(id)
         }
       }
@@ -453,7 +464,6 @@ export function MapView({
           icon,
           title: hotspot.name,
         })
-          .addTo(mapRef.current!)
           .on("click", () => {
             if (openPopupId !== hotspot.id) {
               setOpenPopupId(hotspot.id)
@@ -472,6 +482,7 @@ export function MapView({
           keepInView: true,
         })
 
+        clusterGroupRef.current?.addLayer(marker)
         markersRef.current.set(hotspot.id, marker)
       }
     })
@@ -497,10 +508,19 @@ export function MapView({
 
       const marker = markersRef.current.get(selectedHotspot.id)
       if (marker) {
-        setTimeout(() => {
-          marker.openPopup()
-          setOpenPopupId(selectedHotspot.id)
-        }, 300)
+        if (clusterGroupRef.current) {
+             clusterGroupRef.current.zoomToShowLayer(marker, () => {
+                 setTimeout(() => {
+                    marker.openPopup()
+                    setOpenPopupId(selectedHotspot.id)
+                 }, 300)
+             });
+        } else {
+             setTimeout(() => {
+                marker.openPopup()
+                setOpenPopupId(selectedHotspot.id)
+              }, 300)
+        }
       }
     }
   }, [selectedHotspot])
@@ -594,6 +614,37 @@ export function MapView({
           background-size: 200% 100%;
           animation: shimmer 1.5s infinite;
         }
+        .cyber-cluster {
+          width: 40px;
+          height: 40px;
+          background: rgba(255, 255, 0, 0.2);
+          border: 2px solid #FFFF00;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          color: #FFFF00;
+          box-shadow: 0 0 15px #FFFF00;
+          font-family: monospace;
+        }
+        :global(.light) .cyber-cluster {
+           background: rgba(255, 20, 147, 0.2);
+           border-color: #FF1493;
+           color: #FF1493;
+           box-shadow: 0 0 15px #FF1493;
+        }
+        .custom-cluster-icon {
+          background: transparent !important;
+          border: none !important;
+        }
+        .marker-wrapper {
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .marker-wrapper:hover {
+            transform: scale(1.1) translateY(-5px);
+            z-index: 1000;
+        }
       `}</style>
 
       <div ref={mapContainerRef} className="w-full h-full bg-cyber-black" />
@@ -622,7 +673,7 @@ export function MapView({
         {isLocating ? (
           <Loader2 className="w-5 h-5 text-cyber-primary animate-spin" />
         ) : (
-          <Locate className="w-5 h-5 text-cyber-primary" />
+          <Compass className="w-5 h-5 text-cyber-primary" />
         )}
       </button>
 
