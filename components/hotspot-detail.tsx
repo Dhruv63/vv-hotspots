@@ -6,6 +6,7 @@ import { X, MapPin, Users, Navigation, Clock, Zap, Star, MessageSquare, Loader2,
 import { StarRating } from "@/components/ui/star-rating"
 import { ActiveUsersList } from "@/components/active-users-list"
 import { PhotoGallery } from "@/components/photo-gallery"
+import { ReviewsTab } from "@/components/reviews-tab"
 import type { Hotspot } from "@/lib/types"
 
 interface HotspotDetailProps {
@@ -80,6 +81,7 @@ export function HotspotDetail({
   const [isRating, setIsRating] = useState(false)
   const [ratingSuccess, setRatingSuccess] = useState(false)
   const [galleryRefreshTrigger, setGalleryRefreshTrigger] = useState(0)
+  const [activeTab, setActiveTab] = useState<'photos' | 'reviews'>('photos')
 
   // Button feedback states
   const [isCheckInLoading, setIsCheckInLoading] = useState(false)
@@ -343,17 +345,39 @@ export function HotspotDetail({
             </div>
           </div>
 
-          {/* Photos Section */}
-          <div className="space-y-3 p-4 bg-gradient-to-b from-cyber-black/30 to-cyber-purple/5 rounded-lg border border-cyber-gray/30">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Camera className="w-5 h-5 text-cyber-pink" />
-                <p className="text-cyber-light text-sm font-mono font-bold">PHOTOS</p>
-              </div>
-            </div>
+          {/* Tabs Navigation */}
+          <div className="flex border-b border-cyber-gray/30 mb-4 sticky top-0 bg-cyber-dark z-10 pt-2">
+             <button
+               onClick={() => setActiveTab('photos')}
+               className={`flex-1 py-3 font-mono text-sm font-bold border-b-2 transition-colors flex items-center justify-center gap-2 ${activeTab === 'photos' ? 'border-cyber-pink text-cyber-pink bg-cyber-pink/5' : 'border-transparent text-cyber-gray hover:text-cyber-light'}`}
+             >
+               <Camera className="w-4 h-4" />
+               PHOTOS
+             </button>
+             <button
+               onClick={() => setActiveTab('reviews')}
+               className={`flex-1 py-3 font-mono text-sm font-bold border-b-2 transition-colors flex items-center justify-center gap-2 ${activeTab === 'reviews' ? 'border-[#FFFF00] text-[#FFFF00] bg-[#FFFF00]/5' : 'border-transparent text-cyber-gray hover:text-cyber-light'}`}
+             >
+               <MessageSquare className="w-4 h-4" />
+               REVIEWS
+             </button>
+          </div>
 
-            {/* Photo Gallery Grid */}
-            <PhotoGallery hotspotId={hotspot.id} refreshTrigger={galleryRefreshTrigger} />
+          {/* Tab Content */}
+          <div className="min-h-[300px]">
+            {activeTab === 'photos' && (
+              <div className="space-y-3 p-4 bg-gradient-to-b from-cyber-black/30 to-cyber-purple/5 rounded-lg border border-cyber-gray/30 animate-in fade-in slide-in-from-bottom-2">
+                 <PhotoGallery hotspotId={hotspot.id} refreshTrigger={galleryRefreshTrigger} />
+              </div>
+            )}
+
+            {activeTab === 'reviews' && (
+              <ReviewsTab
+                hotspotId={hotspot.id}
+                onWriteReview={() => onRate(userRating || 0)}
+                currentUserReview={userReview}
+              />
+            )}
           </div>
 
           <div className="h-6 md:h-0" />
