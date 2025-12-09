@@ -26,11 +26,6 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
   const router = useRouter()
   const [profile, setProfile] = useState(initialProfile)
   const [activeTab, setActiveTab] = useState<'history' | 'reviews' | 'saved' | 'photos'>('history')
-  const [isEditing, setIsEditing] = useState(false)
-  const [editUsername, setEditUsername] = useState(profile?.username || "")
-  const [editAvatarUrl, setEditAvatarUrl] = useState(profile?.avatar_url || "")
-  const [isSaving, setIsSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   // Stats
   const totalCheckIns = checkIns?.length || 0
@@ -42,62 +37,6 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
       ? (ratings.reduce((acc: number, r: any) => acc + r.rating, 0) / ratings.length).toFixed(1)
       : null
 
-  const handleSaveProfile = async () => {
-    const sanitizedUsername = sanitizeUsername(editUsername)
-    const sanitizedAvatarUrl = sanitizeAvatarUrl(editAvatarUrl)
-
-    if (!sanitizedUsername) {
-      setError("Username must contain only letters, numbers, underscores, or hyphens")
-      return
-    }
-
-    if (sanitizedUsername.length < 3) {
-      setError("Username must be at least 3 characters")
-      return
-    }
-
-    const rateCheck = checkRateLimit("profile", user.id)
-    if (!rateCheck.allowed) {
-      const seconds = rateCheck.waitTime || 60
-      setError(`Too many updates. Please wait ${seconds} seconds.`)
-      return
-    }
-
-    if (editAvatarUrl.trim() && !sanitizedAvatarUrl) {
-      setError("Avatar URL must be a valid HTTPS URL")
-      return
-    }
-
-    setIsSaving(true)
-    setError(null)
-
-    const supabase = createClient()
-    const { data, error: updateError } = await supabase
-      .from("profiles")
-      .update({
-        username: sanitizedUsername,
-        avatar_url: sanitizedAvatarUrl || null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", user.id)
-      .select()
-      .single()
-
-    if (updateError) {
-      if (updateError.message.includes("unique")) {
-        setError("This username is already taken")
-      } else {
-        setError(updateError.message)
-      }
-      setIsSaving(false)
-      return
-    }
-
-    setProfile(data)
-    setIsEditing(false)
-    setIsSaving(false)
-    router.refresh()
-  }
 
   return (
     <div className="min-h-screen bg-cyber-black scanlines">
@@ -130,12 +69,12 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                   </div>
                 )}
               </div>
-              <button
-                onClick={() => setIsEditing(true)}
+              <Link
+                href="/profile/edit"
                 className="absolute bottom-0 right-0 w-8 h-8 bg-cyber-purple rounded-full flex items-center justify-center border-2 border-cyber-black hover:scale-110 transition-transform shadow-[0_0_10px_rgba(255,215,0,0.5)]"
               >
                 <Camera className="w-4 h-4 text-white" />
-              </button>
+              </Link>
             </div>
 
             <div className="flex-1 text-center sm:text-left">
@@ -143,13 +82,13 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                 <h1 className="font-mono text-2xl sm:text-3xl font-bold text-cyber-light">
                   {profile?.username || user.email?.split("@")[0] || "Anonymous"}
                 </h1>
-                <button
-                  onClick={() => setIsEditing(true)}
+                <Link
+                  href="/profile/edit"
                   className="inline-flex items-center gap-1 text-[#FFFF00] hover:text-cyber-light transition-colors text-sm"
                 >
                   <Edit2 className="w-4 h-4" />
                   Edit Profile
-                </button>
+                </Link>
               </div>
               <p className="text-[#CCCCCC] text-sm mb-4">{user.email}</p>
 
@@ -378,102 +317,6 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
         </div>
       </main>
 
-      {/* Edit Profile Modal */}
-      {isEditing && (
-        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-cyber-dark border-2 border-cyber-purple rounded-lg shadow-[0_0_30px_rgba(255,215,0,0.3)] p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="font-mono text-xl text-cyber-light">Edit Profile</h2>
-              <button
-                onClick={() => {
-                  setIsEditing(false)
-                  setEditUsername(profile?.username || "")
-                  setEditAvatarUrl(profile?.avatar_url || "")
-                  setError(null)
-                }}
-                className="text-[#CCCCCC] hover:text-cyber-light transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            {error && (
-              <div className="mb-4 p-3 bg-cyber-pink/20 border border-cyber-pink text-cyber-pink text-sm rounded">
-                {error}
-              </div>
-            )}
-
-            {/* Avatar Preview */}
-            <div className="flex justify-center mb-6">
-              <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-cyber-purple bg-cyber-dark">
-                {editAvatarUrl ? (
-                  <img
-                    src={editAvatarUrl || "/placeholder.svg"}
-                    alt="Avatar preview"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      ;(e.target as HTMLImageElement).style.display = "none"
-                    }}
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-cyber-cyan/20 to-cyber-purple/20">
-                    <User className="w-10 h-10 text-cyber-purple" />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {/* Username */}
-              <div>
-                <label className="block text-[#CCCCCC] text-sm mb-2 font-mono">Username</label>
-                <input
-                  type="text"
-                  value={editUsername}
-                  onChange={(e) => setEditUsername(e.target.value)}
-                  className="w-full px-4 py-3 bg-cyber-black border-2 border-cyber-gray rounded text-cyber-light font-mono focus:border-cyber-purple focus:outline-none focus:shadow-[0_0_10px_rgba(255,215,0,0.3)] transition-all"
-                  placeholder="Enter username"
-                  maxLength={30}
-                />
-              </div>
-
-              {/* Avatar URL */}
-              <div>
-                <label className="block text-[#CCCCCC] text-sm mb-2 font-mono">Avatar URL</label>
-                <input
-                  type="url"
-                  value={editAvatarUrl}
-                  onChange={(e) => setEditAvatarUrl(e.target.value)}
-                  className="w-full px-4 py-3 bg-cyber-black border-2 border-cyber-gray rounded text-cyber-light font-mono focus:border-cyber-purple focus:outline-none focus:shadow-[0_0_10px_rgba(255,215,0,0.3)] transition-all"
-                  placeholder="https://example.com/avatar.jpg"
-                />
-                <p className="text-[#CCCCCC] text-xs mt-1">Paste a URL to an image (JPG, PNG, GIF)</p>
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => {
-                  setIsEditing(false)
-                  setEditUsername(profile?.username || "")
-                  setEditAvatarUrl(profile?.avatar_url || "")
-                  setError(null)
-                }}
-                className="flex-1 px-4 py-3 border-2 border-cyber-gray text-[#CCCCCC] hover:text-cyber-light hover:border-cyber-light rounded font-mono transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveProfile}
-                disabled={isSaving}
-                className="flex-1 px-4 py-3 bg-cyber-purple border-2 border-cyber-purple text-white rounded font-mono hover:shadow-[0_0_15px_rgba(255,215,0,0.5)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSaving ? "Saving..." : "Save Changes"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
