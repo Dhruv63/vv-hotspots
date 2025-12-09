@@ -5,8 +5,9 @@ import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { formatDistanceToNow } from "date-fns"
-import { User, MapPin, Calendar, Star, ArrowLeft, Edit2, Camera, X, MessageSquare, Heart, Instagram, Twitter } from "lucide-react"
+import { User, MapPin, Calendar, Star, ArrowLeft, Edit2, Camera, X, MessageSquare, Heart, Instagram, Twitter, Upload, Plus } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
+import { toast } from "sonner"
 import { Navbar } from "@/components/navbar"
 import { CyberCard } from "@/components/ui/cyber-card"
 import { CyberButton } from "@/components/ui/cyber-button"
@@ -20,9 +21,10 @@ interface ProfileClientProps {
   checkIns: any[]
   ratings: any[]
   userPhotos: any[]
+  popularHotspots: any[]
 }
 
-export function ProfileClient({ user, profile: initialProfile, checkIns, ratings, userPhotos }: ProfileClientProps) {
+export function ProfileClient({ user, profile: initialProfile, checkIns, ratings, userPhotos, popularHotspots }: ProfileClientProps) {
   const router = useRouter()
   const [profile, setProfile] = useState(initialProfile)
   const [activeTab, setActiveTab] = useState<'history' | 'reviews' | 'saved' | 'photos'>('history')
@@ -291,22 +293,52 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
             )}
 
             {activeTab === 'saved' && (
-               <CyberCard className="p-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="font-mono text-lg text-cyber-light flex items-center gap-2">
-                    <Heart className="w-5 h-5 text-cyber-pink" />
+               <CyberCard className="p-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                 <div className="flex items-center justify-between mb-6">
+                  <h2 className="font-mono text-xl text-cyber-light flex items-center gap-2 font-bold">
+                    <Heart className="w-6 h-6 text-cyber-pink" />
                     SAVED HOTSPOTS
                   </h2>
                 </div>
-                <div className="text-center py-12 text-cyber-gray">
-                    <Heart className="w-12 h-12 mx-auto mb-4 opacity-30" />
-                    <p className="font-mono">No saved hotspots</p>
-                    <p className="text-sm mt-2">Save your favorite spots for quick access.</p>
+                <div className="text-center py-8">
+                    <Heart className="w-16 h-16 mx-auto mb-6 text-cyber-gray/30" />
+                    <p className="font-mono text-xl text-cyber-light mb-2">No saved hotspots yet</p>
+                    <p className="text-cyber-gray mb-8 max-w-md mx-auto">Save your favorite spots for quick access and get notified about new events.</p>
                     <Link href="/dashboard">
-                      <CyberButton variant="pink" size="sm" className="mt-4">
-                        Browse Hotspots
-                      </CyberButton>
+                      <button className="px-8 py-4 bg-[#E8FF00] text-black font-mono font-bold text-lg rounded-lg hover:bg-[#D4E600] shadow-[0_0_20px_rgba(232,255,0,0.4)] transition-all active:scale-95 flex items-center gap-3 mx-auto">
+                        <MapPin className="w-5 h-5" />
+                        BROWSE HOTSPOTS
+                      </button>
                     </Link>
+
+                    {/* Popular Spots Preview */}
+                    <div className="mt-12 text-left">
+                       <p className="text-cyber-gray text-xs font-mono mb-4 uppercase tracking-widest">Popular right now</p>
+                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          {popularHotspots.slice(0, 3).map((spot: any) => (
+                             <div key={spot.id} className="group relative rounded-lg overflow-hidden border border-cyber-gray/30 bg-cyber-dark hover:border-cyber-cyan/50 transition-all">
+                                <div className="h-32 relative">
+                                   <Image src={spot.image_url || "/placeholder.svg"} alt={spot.name} fill className="object-cover" />
+                                   <div className="absolute inset-0 bg-gradient-to-t from-cyber-black via-transparent to-transparent opacity-80" />
+                                   <div className="absolute top-2 right-2">
+                                      <CategoryBadge category={spot.category} />
+                                   </div>
+                                </div>
+                                <div className="p-3">
+                                   <h3 className="font-bold text-cyber-light truncate">{spot.name}</h3>
+                                   <p className="text-xs text-cyber-gray truncate mb-3">{spot.address}</p>
+                                   <button
+                                      onClick={() => toast.success(`Saved ${spot.name} to favorites!`)}
+                                      className="w-full py-2 bg-cyber-gray/20 hover:bg-cyber-pink/20 text-cyber-pink text-xs font-mono font-bold rounded border border-cyber-gray/30 hover:border-cyber-pink transition-colors flex items-center justify-center gap-2"
+                                   >
+                                      <Heart className="w-3 h-3" />
+                                      SAVE THIS
+                                   </button>
+                                </div>
+                             </div>
+                          ))}
+                       </div>
+                    </div>
                   </div>
                </CyberCard>
             )}
@@ -339,10 +371,30 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-12 text-cyber-gray">
-                    <Camera className="w-12 h-12 mx-auto mb-4 opacity-30" />
-                    <p className="font-mono">No photos yet</p>
-                    <p className="text-sm">Upload photos when you check in!</p>
+                  <div className="space-y-8">
+                     {/* Drag & Drop Area */}
+                     <div
+                        className="border-2 border-dashed border-cyber-gray/40 rounded-xl p-12 text-center hover:border-cyber-cyan/60 hover:bg-cyber-cyan/5 transition-all cursor-pointer group"
+                        onClick={() => toast("Please go to a hotspot on the map to upload photos.")}
+                     >
+                        <div className="w-16 h-16 rounded-full bg-cyber-gray/10 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                           <Upload className="w-8 h-8 text-cyber-gray group-hover:text-cyber-cyan transition-colors" />
+                        </div>
+                        <h3 className="font-mono text-lg text-cyber-light font-bold mb-2">Drag photos here or click to upload</h3>
+                        <p className="text-cyber-gray text-sm">Share your best moments with the community</p>
+                     </div>
+
+                     {/* Inspiration */}
+                     <div>
+                        <p className="text-cyber-gray text-xs font-mono mb-4 uppercase tracking-widest">Inspiration from others</p>
+                        <div className="grid grid-cols-3 gap-4">
+                           {popularHotspots.slice(0, 3).map((spot: any) => (
+                              <div key={spot.id} className="relative aspect-square rounded-lg overflow-hidden opacity-60 hover:opacity-100 transition-opacity">
+                                 <Image src={spot.image_url || "/placeholder.svg"} alt="Inspiration" fill className="object-cover grayscale hover:grayscale-0 transition-all" />
+                              </div>
+                           ))}
+                        </div>
+                     </div>
                   </div>
                 )}
               </CyberCard>

@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Search, Filter, List, Grid, Zap, Star, X, MessageSquare, Loader2 } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
+import { Search, Filter, List, Grid, Zap, Star, X, MessageSquare, Loader2, Clock, Coffee, Trees, Gamepad2, Utensils, Beer, MapPin } from "lucide-react"
 import { HotspotCard } from "@/components/hotspot-card"
 import { Input } from "@/components/ui/input"
 import type { Hotspot } from "@/lib/types"
@@ -39,6 +39,52 @@ export function HotspotList({
   userLocation,
 }: HotspotListProps) {
   const [search, setSearch] = useState("")
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [recentSearches, setRecentSearches] = useState<string[]>([])
+
+  useEffect(() => {
+    const saved = localStorage.getItem('vv-recent-searches')
+    if (saved) {
+      try {
+        setRecentSearches(JSON.parse(saved))
+      } catch (e) {
+        // ignore error
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        inputRef.current?.focus()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
+  const handleSuggestionClick = (hotspot: Hotspot) => {
+    setSearch(hotspot.name)
+    setShowSuggestions(false)
+    onHotspotSelect(hotspot)
+
+    const newRecents = [hotspot.name, ...recentSearches.filter(s => s !== hotspot.name)].slice(0, 5)
+    setRecentSearches(newRecents)
+    localStorage.setItem('vv-recent-searches', JSON.stringify(newRecents))
+  }
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'cafe': return <Coffee className="w-4 h-4 text-orange-400" />
+      case 'park': return <Trees className="w-4 h-4 text-green-400" />
+      case 'gaming': return <Gamepad2 className="w-4 h-4 text-purple-400" />
+      case 'food': return <Utensils className="w-4 h-4 text-red-400" />
+      case 'hangout': return <Beer className="w-4 h-4 text-pink-400" />
+      default: return <MapPin className="w-4 h-4 text-gray-400" />
+    }
+  }
 
   // Scroll to selected hotspot
   useEffect(() => {
@@ -69,14 +115,71 @@ export function HotspotList({
           </h2>
         </div>
 
-        <div className="relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-cyber-gray group-focus-within:scale-110 group-focus-within:text-cyber-primary transition-all duration-200" />
+        <div className="relative group z-20">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-cyber-gray group-focus-within:scale-110 group-focus-within:text-cyber-primary transition-all duration-200 pointer-events-none" />
           <Input
-            placeholder="Search hotspots..."
+            ref={inputRef}
+            placeholder="Search cafes, beaches, parks..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-12 h-12 text-base rounded-xl bg-cyber-navy border-cyber-gray text-cyber-light placeholder:text-cyber-gray/50 transition-all duration-200 focus:border-cyber-primary focus:ring-cyber-primary/20 focus:shadow-[0_0_12px_rgba(232,255,0,0.3)] shadow-inner"
+            onChange={(e) => {
+                setSearch(e.target.value)
+                setShowSuggestions(true)
+            }}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+            className="pl-12 pr-12 h-14 text-lg rounded-xl bg-cyber-navy border-cyber-gray text-cyber-light placeholder:text-cyber-gray/50 transition-all duration-200 focus:border-cyber-primary focus:ring-cyber-primary/20 focus:shadow-[0_0_12px_rgba(232,255,0,0.3)] shadow-inner"
           />
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
+             <kbd className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded bg-cyber-black border border-cyber-gray text-[10px] font-mono text-cyber-gray">
+               <span className="text-xs">⌘</span>K
+             </kbd>
+          </div>
+
+          {/* Autocomplete / Recent Searches Dropdown */}
+          {showSuggestions && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-cyber-navy border border-cyber-primary/30 rounded-lg shadow-[0_0_20px_rgba(0,0,0,0.5)] overflow-hidden animate-in fade-in zoom-in-95 duration-100 max-h-[300px] overflow-y-auto">
+               {search.trim() === '' ? (
+                 recentSearches.length > 0 && (
+                   <div className="p-2">
+                     <p className="text-xs font-mono text-cyber-gray px-2 py-1">RECENT SEARCHES</p>
+                     {recentSearches.map(term => (
+                       <button
+                         key={term}
+                         onClick={() => { setSearch(term); }}
+                         className="w-full text-left px-3 py-2 hover:bg-cyber-gray/10 rounded flex items-center gap-2 text-cyber-light transition-colors"
+                       >
+                         <Clock className="w-4 h-4 text-cyber-gray" />
+                         <span className="font-mono text-sm">{term}</span>
+                       </button>
+                     ))}
+                   </div>
+                 )
+               ) : (
+                 <div className="p-2">
+                   {filteredHotspots.slice(0, 5).map(hotspot => (
+                      <button
+                        key={hotspot.id}
+                        onClick={() => handleSuggestionClick(hotspot)}
+                        className="w-full text-left px-3 py-2 hover:bg-cyber-gray/10 rounded flex items-center gap-3 text-cyber-light group/item transition-colors"
+                      >
+                         <div className={`p-1.5 rounded-full bg-cyber-black border border-cyber-gray group-hover/item:border-cyber-primary transition-colors`}>
+                            {getCategoryIcon(hotspot.category)}
+                         </div>
+                         <div className="flex-1 overflow-hidden">
+                            <p className="font-bold font-mono text-sm truncate">{hotspot.name}</p>
+                            <p className="text-xs text-cyber-gray truncate">{hotspot.address}</p>
+                         </div>
+                      </button>
+                   ))}
+                   {filteredHotspots.length === 0 && (
+                      <div className="p-4 text-center text-cyber-gray text-sm font-mono">
+                        No matches found
+                      </div>
+                   )}
+                 </div>
+               )}
+            </div>
+          )}
         </div>
       </div>
 

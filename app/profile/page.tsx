@@ -70,6 +70,12 @@ export default async function ProfilePage() {
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
 
+  // Get popular hotspots for recommendations (limit 3)
+  const { data: popularHotspots } = await supabase
+    .from("hotspots")
+    .select("id, name, category, image_url, address")
+    .limit(3)
+
   return (
     <ProfileClient
       user={user}
@@ -77,6 +83,7 @@ export default async function ProfilePage() {
       checkIns={checkIns || []}
       ratings={ratings || []}
       userPhotos={userPhotos || []}
+      popularHotspots={popularHotspots || []}
     />
   )
 }

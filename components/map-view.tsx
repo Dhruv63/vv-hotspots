@@ -82,7 +82,7 @@ export function MapView({
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<L.Map | null>(null)
   const tileLayerRef = useRef<L.TileLayer | null>(null)
-  const clusterGroupRef = useRef<L.MarkerClusterGroup | L.FeatureGroup | null>(null)
+  const clusterGroupRef = useRef<any>(null)
   const markersRef = useRef<Map<string, L.Marker>>(new Map())
   const userMarkerRef = useRef<L.Marker | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
@@ -335,6 +335,18 @@ export function MapView({
             })
           },
         })
+
+          clusterGroup.on('clustermouseover', (a: any) => {
+              if (!a.layer.getTooltip()) {
+                  const childCount = a.layer.getChildCount();
+                  a.layer.bindTooltip(`${childCount} hotspots in this area<br>Click to zoom in`, {
+                     className: 'cyber-tooltip',
+                     direction: 'top',
+                     opacity: 1
+                  });
+              }
+              a.layer.openTooltip();
+          });
       } else {
         console.warn("MarkerClusterGroup not found, falling back to FeatureGroup")
         clusterGroup = L.featureGroup()
@@ -662,12 +674,24 @@ export function MapView({
             transform: scale(1.1) translateY(-5px);
             z-index: 1000;
         }
+        .cyber-tooltip {
+          background: var(--color-cyber-navy) !important;
+          border: 1px solid var(--color-cyber-primary) !important;
+          color: var(--color-cyber-primary) !important;
+          font-family: monospace;
+          font-size: 10px;
+          border-radius: 4px;
+          box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        .cyber-tooltip::before {
+            border-top-color: var(--color-cyber-primary) !important;
+        }
       `}</style>
 
       <div ref={mapContainerRef} className="w-full h-full bg-cyber-black" />
 
-      <div className="hidden md:block absolute top-20 md:top-4 left-4 z-[1000] bg-cyber-black/90 border-2 border-cyber-primary rounded-lg p-3 shadow-[0_0_15px_rgba(0,0,0,0.3)]">
-        <div className="text-xs font-mono text-cyber-primary mb-2 uppercase tracking-wider font-bold">Categories</div>
+      <div className="hidden md:block absolute bottom-8 left-4 z-[1000] bg-cyber-black/90 border-2 border-cyber-primary rounded-lg p-3 shadow-[0_0_15px_rgba(0,0,0,0.3)]">
+        <div className="text-xs font-mono text-cyber-primary mb-2 uppercase tracking-wider font-bold">Legend</div>
         <div className="space-y-1.5">
           {Object.entries(colors).filter(([key]) => !['highlight', 'highlightGlow', 'userLocation', 'popupBg', 'popupText'].includes(key)).map(([key, value]) => (
             <div key={key} className="flex items-center gap-2">
@@ -678,6 +702,10 @@ export function MapView({
               <span className="text-xs font-mono text-cyber-gray capitalize">{(value as any).name}</span>
             </div>
           ))}
+          <div className="flex items-center gap-2 pt-2 border-t border-cyber-gray/30 mt-1">
+             <div className="w-3 h-3 rounded-full bg-[#FFFF00]/20 border border-[#FFFF00]" />
+             <span className="text-xs font-mono text-cyber-gray">Cluster</span>
+          </div>
         </div>
       </div>
 
