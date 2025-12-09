@@ -213,6 +213,16 @@
   h1, h2, h3, h4, h5, h6 {
     @apply text-cyber-light font-bold;
   }
+
+  /* Reduced Motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
 
 /* Global button hover effect */
@@ -221,6 +231,13 @@ button:not(:disabled) {
 }
 button:not(:disabled):hover {
   @apply scale-[1.02] shadow-[0_0_15px_rgba(232,255,0,0.3)];
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button:not(:disabled):hover {
+    transform: none;
+    box-shadow: none; /* Optional: keep styles but remove motion */
+  }
 }
 
 /* Scanline overlay effect */

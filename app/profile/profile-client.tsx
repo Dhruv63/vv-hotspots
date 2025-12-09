@@ -11,6 +11,7 @@ import { Navbar } from "@/components/navbar"
 import { CyberCard } from "@/components/ui/cyber-card"
 import { CyberButton } from "@/components/ui/cyber-button"
 import { CategoryBadge } from "@/components/ui/category-badge"
+import { EmptyState } from "@/components/empty-state"
 import { sanitizeUsername, sanitizeAvatarUrl, checkRateLimit, RATE_LIMITS } from "@/lib/security"
 import type { User as SupabaseUser } from "@supabase/supabase-js"
 
@@ -251,15 +252,19 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-12 text-cyber-gray">
-                    <MapPin className="w-12 h-12 mx-auto mb-4 opacity-30" />
-                    <p className="font-mono">No check-ins yet</p>
-                    <Link href="/dashboard">
-                      <CyberButton variant="cyan" size="sm" className="mt-4">
-                        Explore Hotspots
-                      </CyberButton>
-                    </Link>
-                  </div>
+                  <EmptyState
+                    icon={MapPin}
+                    title="Start exploring!"
+                    description="Check in to your first hotspot"
+                    variant="cyan"
+                    action={
+                      <Link href="/dashboard">
+                        <CyberButton variant="cyan" size="sm" className="mt-4">
+                          Explore Hotspots
+                        </CyberButton>
+                      </Link>
+                    }
+                  />
                 )}
               </CyberCard>
             )}
@@ -308,11 +313,12 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-12 text-cyber-gray">
-                    <Star className="w-12 h-12 mx-auto mb-4 opacity-30" />
-                    <p className="font-mono">No reviews yet</p>
-                    <p className="text-sm">Rate hotspots to keep track of your favorites!</p>
-                  </div>
+                  <EmptyState
+                    icon={Star}
+                    title="Share your first review"
+                    description="Rate hotspots to keep track of your favorites!"
+                    variant="yellow"
+                  />
                 )}
               </CyberCard>
             )}
@@ -325,16 +331,19 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                     SAVED HOTSPOTS
                   </h2>
                 </div>
-                <div className="text-center py-12 text-cyber-gray">
-                    <Heart className="w-12 h-12 mx-auto mb-4 opacity-30" />
-                    <p className="font-mono">No saved hotspots</p>
-                    <p className="text-sm mt-2">Save your favorite spots for quick access.</p>
+                <EmptyState
+                  icon={Heart}
+                  title="No saved hotspots"
+                  description="Save your favorite spots for quick access."
+                  variant="pink"
+                  action={
                     <Link href="/dashboard">
                       <CyberButton variant="pink" size="sm" className="mt-4">
                         Browse Hotspots
                       </CyberButton>
                     </Link>
-                  </div>
+                  }
+                />
                </CyberCard>
             )}
 
@@ -366,11 +375,12 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-12 text-cyber-gray">
-                    <Camera className="w-12 h-12 mx-auto mb-4 opacity-30" />
-                    <p className="font-mono">No photos yet</p>
-                    <p className="text-sm">Upload photos when you check in!</p>
-                  </div>
+                  <EmptyState
+                    icon={Camera}
+                    title="No photos yet"
+                    description="Upload photos when you check in!"
+                    variant="cyan"
+                  />
                 )}
               </CyberCard>
             )}

@@ -1,8 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, Filter, List, Grid, Zap, Star, X, MessageSquare, Loader2 } from "lucide-react"
+import { Search, MapPin, List, Grid, Zap, Star, X, MessageSquare, Loader2 } from "lucide-react"
 import { HotspotCard } from "@/components/hotspot-card"
+import { EmptyState } from "@/components/empty-state"
 import { Input } from "@/components/ui/input"
 import type { Hotspot } from "@/lib/types"
 import { cn, calculateDistance } from "@/lib/utils"
@@ -113,7 +114,8 @@ export function HotspotList({
             <button
               onClick={() => setRatingHotspot(null)}
               disabled={isSubmittingRating}
-              className="absolute top-3 right-3 text-cyber-gray hover:text-cyber-light p-1 z-10 disabled:opacity-50"
+              className="absolute top-3 right-3 text-cyber-gray hover:text-cyber-light p-1 z-10 disabled:opacity-50 min-h-[44px] min-w-[44px] flex items-center justify-center"
+              aria-label="Close rating modal"
             >
               <X className="w-6 h-6" />
             </button>
@@ -294,11 +296,12 @@ export function HotspotList({
         </div>
 
         {filteredHotspots.length === 0 && (
-          <div className="text-center py-12 text-cyber-gray">
-            <Filter className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p className="font-mono">No hotspots found</p>
-            <p className="text-sm">Try adjusting your filters</p>
-          </div>
+          <EmptyState
+            icon={MapPin}
+            title="No hotspots near you yet"
+            description="Expand your map view or check back soon!"
+            variant="cyan"
+          />
         )}
       </div>
     </div>

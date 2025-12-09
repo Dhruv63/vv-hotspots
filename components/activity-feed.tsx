@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { Activity, MapPin, User, Zap, Radio, Clock } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
+import { EmptyState } from "@/components/empty-state"
 import type { ActivityFeedItem } from "@/lib/types"
 
 interface ActivityFeedProps {
@@ -173,13 +174,13 @@ export function ActivityFeed({ initialActivities }: ActivityFeedProps) {
 
       {/* Activity list */}
       {activities.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-cyber-gray py-8">
-          <div className="w-16 h-16 border border-cyber-gray/30 rounded-full flex items-center justify-center mb-4">
-            <MapPin className="w-8 h-8 opacity-50" />
-          </div>
-          <p className="font-mono text-sm">No recent activity</p>
-          <p className="text-xs mt-1 opacity-70">Be the first to check in!</p>
-        </div>
+        <EmptyState
+          icon={Activity}
+          title="No recent activity"
+          description="No one's checked in recently. Be the first!"
+          variant="purple"
+          className="flex-1 py-8"
+        />
       ) : (
         <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
           {activities.map((activity) => (

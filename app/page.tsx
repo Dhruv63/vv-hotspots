@@ -43,9 +43,22 @@ export default async function HomePage() {
       <Navbar user={user} />
 
       {/* Hero Section */}
-      <section className="relative pt-24 pb-16 px-4 md:pt-32 md:pb-24 overflow-hidden flex-1 flex items-center">
+      <section className="relative pt-24 pb-16 px-4 md:pt-32 md:pb-24 overflow-hidden flex-1 flex items-center min-h-[80vh]">
+        {/* Local Background Images (Blurred/Desaturated) */}
+        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+          <div className="absolute inset-0 bg-cyber-black/80 z-10" /> {/* Overlay */}
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-40 blur-sm saturate-50"
+            style={{
+              backgroundImage: `url('https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?q=80&w=2670&auto=format&fit=crop')`, // Placeholder for Vasai Fort/Beach
+            }}
+            role="img"
+            aria-label="Background showing Vasai Fort and coastal vibe"
+          />
+        </div>
+
         {/* Background grid effect */}
-        <div className="absolute inset-0 opacity-10 pointer-events-none">
+        <div className="absolute inset-0 opacity-10 pointer-events-none z-10">
           <div
             className="absolute inset-0"
             style={{
@@ -164,9 +177,15 @@ export default async function HomePage() {
                     <span className="text-cyber-yellow">VV</span>
                     <span className="text-cyber-light"> HOTSPOTS</span>
                 </span>
-                <p className="text-cyber-gray text-sm">
+                <p className="text-cyber-gray text-sm mb-4">
                     Built by locals, for locals.
                 </p>
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-cyber-yellow/30 bg-cyber-yellow/10">
+                    <MapPin className="w-3 h-3 text-cyber-yellow" />
+                    <span className="text-[10px] font-mono text-cyber-yellow font-bold uppercase tracking-wider">
+                        Proudly serving Vasai-Virar
+                    </span>
+                </div>
             </div>
 
             <div>
@@ -205,6 +224,11 @@ export default async function HomePage() {
                     <li>
                         <Link href="#" className="flex items-center gap-2 hover:text-cyber-cyan transition-colors">
                             <FileText className="w-4 h-4" /> Terms of Service
+                        </Link>
+                    </li>
+                    <li>
+                        <Link href="#" className="flex items-center gap-2 hover:text-cyber-cyan transition-colors">
+                            <Zap className="w-4 h-4" /> Report an Issue
                         </Link>
                     </li>
                 </ul>
