@@ -16,6 +16,10 @@ export interface Profile {
   id: string
   username: string | null
   avatar_url: string | null
+  bio?: string | null
+  city?: string | null
+  instagram_username?: string | null
+  twitter_username?: string | null
   created_at: string
   updated_at: string
 }
@@ -26,6 +30,8 @@ export interface CheckIn {
   hotspot_id: string
   checked_in_at: string
   is_active: boolean
+  note?: string | null
+  is_public?: boolean
   profiles?: Profile
   hotspots?: Hotspot
 }
@@ -48,6 +54,7 @@ export interface ActivityFeedItem {
   avatar_url: string | null
   hotspot_name: string
   hotspot_category: string
+  note?: string | null
 }
 
 export interface HotspotPhoto {
