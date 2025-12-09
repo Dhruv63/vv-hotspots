@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { X, MapPin, Users, Navigation, Clock, Zap, Star, MessageSquare, Loader2, Camera, Check } from "lucide-react"
+import { X, MapPin, Users, Navigation, Clock, Zap, Star, MessageSquare, Loader2, Camera, Check, Heart, Share2, Copy, Instagram } from "lucide-react"
+import { toast } from "sonner"
+import { createClient } from "@/lib/supabase/client"
 import { StarRating } from "@/components/ui/star-rating"
 import { ActiveUsersList } from "@/components/active-users-list"
 import { PhotoGallery } from "@/components/photo-gallery"
@@ -82,6 +84,8 @@ export function HotspotDetail({
   const [ratingSuccess, setRatingSuccess] = useState(false)
   const [galleryRefreshTrigger, setGalleryRefreshTrigger] = useState(0)
   const [activeTab, setActiveTab] = useState<'photos' | 'reviews'>('photos')
+  const [isSaved, setIsSaved] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
 
   // Button feedback states
   const [isCheckInLoading, setIsCheckInLoading] = useState(false)
@@ -105,6 +109,71 @@ export function HotspotDetail({
     window.addEventListener("keydown", handleEsc)
     return () => window.removeEventListener("keydown", handleEsc)
   }, [onClose])
+
+  useEffect(() => {
+    const checkSaved = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data } = await supabase
+        .from('saved_hotspots')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('hotspot_id', hotspot.id)
+        .maybeSingle()
+
+      if (data) setIsSaved(true)
+    }
+    checkSaved()
+  }, [hotspot.id])
+
+  const toggleSave = async () => {
+    setIsSaving(true)
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      toast.error("Please login to save hotspots")
+      setIsSaving(false)
+      return
+    }
+
+    try {
+      if (isSaved) {
+        await supabase.from("saved_hotspots").delete().eq("user_id", user.id).eq("hotspot_id", hotspot.id)
+        setIsSaved(false)
+        toast.success("Removed from saved spots")
+      } else {
+        await supabase.from("saved_hotspots").insert({ user_id: user.id, hotspot_id: hotspot.id })
+        setIsSaved(true)
+        toast.success("Added to saved spots")
+      }
+    } catch (error) {
+      toast.error("Failed to update saved spots")
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleShare = (platform: 'whatsapp' | 'copy' | 'instagram') => {
+    const url = window.location.origin + `?hotspot=${hotspot.id}`
+    const text = `Check out ${hotspot.name} on VV Hotspots!`
+
+    if (platform === 'whatsapp') {
+      window.open(`whatsapp://send?text=${encodeURIComponent(text + ' ' + url)}`, '_blank')
+    } else if (platform === 'copy') {
+      navigator.clipboard.writeText(url)
+      toast.success("Link copied to clipboard!")
+    } else if (platform === 'instagram') {
+      // Instagram sharing via web is limited, usually copying link is best or direct message if app supported
+      navigator.clipboard.writeText(url)
+      toast.success("Link copied! Paste in Instagram DM.")
+    }
+
+    // Track share in analytics (mock)
+    console.log(`[Analytics] Shared via ${platform}`)
+  }
 
   const handleRating = async (rating: number) => {
     setIsRating(true)
@@ -169,14 +238,23 @@ export function HotspotDetail({
         {/* Glowing header bar */}
         <div className="h-1 w-full bg-gradient-to-r from-cyber-cyan via-cyber-pink to-cyber-purple" />
 
-        {/* Close button - larger touch target */}
-        <button
-          onClick={onClose}
-          disabled={isLoading || isCheckInLoading}
-          className="absolute top-4 md:top-4 right-3 z-50 p-3 bg-cyber-black/80 border border-cyber-gray text-cyber-gray hover:text-cyber-cyan hover:border-cyber-cyan hover:shadow-[0_0_15px_rgba(255,255,0,0.5)] transition-all rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center disabled:opacity-50"
-        >
-          <X className="w-5 h-5" />
-        </button>
+        {/* Top Controls */}
+        <div className="absolute top-4 right-3 z-50 flex items-center gap-2">
+           <button
+             onClick={toggleSave}
+             disabled={isSaving}
+             className={`p-3 bg-cyber-black/80 border transition-all rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center disabled:opacity-50 ${isSaved ? "border-cyber-pink text-cyber-pink shadow-[0_0_15px_rgba(255,0,110,0.5)]" : "border-cyber-gray text-cyber-gray hover:text-cyber-pink hover:border-cyber-pink"}`}
+           >
+             <Heart className={`w-5 h-5 ${isSaved ? "fill-cyber-pink" : ""}`} />
+           </button>
+           <button
+            onClick={onClose}
+            disabled={isLoading || isCheckInLoading}
+            className="p-3 bg-cyber-black/80 border border-cyber-gray text-cyber-gray hover:text-cyber-cyan hover:border-cyber-cyan hover:shadow-[0_0_15px_rgba(255,255,0,0.5)] transition-all rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center disabled:opacity-50"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
         {/* Image header */}
         <div className="relative h-48 md:h-48">
@@ -235,6 +313,31 @@ export function HotspotDetail({
                 {averageRating > 0 ? averageRating.toFixed(1) : "-"}
               </span>
             </div>
+          </div>
+
+          {/* Share Section */}
+          <div className="flex items-center justify-between gap-2 py-2">
+             <button
+               onClick={() => handleShare('whatsapp')}
+               className="flex-1 flex flex-col items-center justify-center gap-1 py-2 bg-green-500/10 border border-green-500/30 rounded hover:bg-green-500/20 transition-colors"
+             >
+               <Share2 className="w-5 h-5 text-green-500" />
+               <span className="text-[10px] font-mono text-green-400">WhatsApp</span>
+             </button>
+             <button
+               onClick={() => handleShare('instagram')}
+               className="flex-1 flex flex-col items-center justify-center gap-1 py-2 bg-pink-500/10 border border-pink-500/30 rounded hover:bg-pink-500/20 transition-colors"
+             >
+               <Instagram className="w-5 h-5 text-pink-500" />
+               <span className="text-[10px] font-mono text-pink-400">Instagram</span>
+             </button>
+             <button
+               onClick={() => handleShare('copy')}
+               className="flex-1 flex flex-col items-center justify-center gap-1 py-2 bg-cyber-cyan/10 border border-cyber-cyan/30 rounded hover:bg-cyber-cyan/20 transition-colors"
+             >
+               <Copy className="w-5 h-5 text-cyber-cyan" />
+               <span className="text-[10px] font-mono text-cyber-cyan">Copy Link</span>
+             </button>
           </div>
 
           <ActiveUsersList hotspotId={hotspot.id} />

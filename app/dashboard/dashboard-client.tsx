@@ -30,6 +30,8 @@ interface DashboardClientProps {
   userCurrentCheckin: string | null
   userRatings: Record<string, number>
   userReviews: Record<string, string>
+  savedHotspotIds: string[]
+  todayCheckinCount: number
   initError?: string | null
 }
 
@@ -42,10 +44,47 @@ export function DashboardClient({
   userCurrentCheckin: initialUserCheckin,
   userRatings: initialUserRatings,
   userReviews: initialUserReviews,
+  savedHotspotIds,
+  todayCheckinCount,
   initError,
 }: DashboardClientProps) {
   const router = useRouter()
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null)
+  const [localSavedIds, setLocalSavedIds] = useState<Set<string>>(new Set(savedHotspotIds))
+
+  useEffect(() => {
+    setLocalSavedIds(new Set(savedHotspotIds))
+  }, [savedHotspotIds])
+
+  const handleToggleSave = useCallback(async (hotspotId: string) => {
+    const isSaved = localSavedIds.has(hotspotId)
+    setLocalSavedIds(prev => {
+      const next = new Set(prev)
+      if (isSaved) next.delete(hotspotId)
+      else next.add(hotspotId)
+      return next
+    })
+
+    const supabase = createClient()
+    try {
+      if (isSaved) {
+        await supabase.from("saved_hotspots").delete().eq("user_id", user.id).eq("hotspot_id", hotspotId)
+        showMessage("success", "Removed from saved")
+      } else {
+        await supabase.from("saved_hotspots").insert({ user_id: user.id, hotspot_id: hotspotId })
+        showMessage("success", "Hotspot saved")
+      }
+      router.refresh()
+    } catch (err) {
+      showMessage("error", "Failed to update saved status")
+      setLocalSavedIds(prev => {
+        const next = new Set(prev)
+        if (isSaved) next.add(hotspotId)
+        else next.delete(hotspotId)
+        return next
+      })
+    }
+  }, [user.id, localSavedIds, router])
 
   // New State for Unified Menu
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -450,6 +489,8 @@ export function DashboardClient({
                 isLoading={isLoading}
                 viewMode={listComponentViewMode}
                 userLocation={userLocation}
+                savedHotspotIds={Array.from(localSavedIds)}
+                onToggleSave={handleToggleSave}
             />
             </div>
         )}
@@ -494,6 +535,8 @@ export function DashboardClient({
               isLoading={isLoading}
               viewMode={listComponentViewMode}
               userLocation={userLocation}
+              savedHotspotIds={Array.from(localSavedIds)}
+              onToggleSave={handleToggleSave}
             />
           </div>
         </div>
@@ -508,7 +551,11 @@ export function DashboardClient({
             <div className="w-12 h-1 bg-cyber-gray rounded-full" />
           </div>
           <div className="h-[calc(70vh-20px)] overflow-hidden p-4">
-            <ActivityFeed initialActivities={initialActivityFeed} />
+            <ActivityFeed
+              initialActivities={initialActivityFeed}
+              todayCount={todayCheckinCount}
+              currentUserId={user.id}
+            />
           </div>
         </div>
 
@@ -529,7 +576,11 @@ export function DashboardClient({
         )}
 
         <div className="hidden md:block md:w-[280px] lg:w-1/4 h-full bg-cyber-dark border-l border-cyber-gray p-4 overflow-hidden transition-all duration-300">
-          <ActivityFeed initialActivities={initialActivityFeed} />
+          <ActivityFeed
+            initialActivities={initialActivityFeed}
+            todayCount={todayCheckinCount}
+            currentUserId={user.id}
+          />
         </div>
       </div>
 

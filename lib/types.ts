@@ -10,6 +10,7 @@ export interface Hotspot {
   created_at: string
   average_rating?: number
   active_checkins?: number
+  is_saved?: boolean
 }
 
 export interface Profile {
@@ -55,6 +56,8 @@ export interface ActivityFeedItem {
   hotspot_name: string
   hotspot_category: string
   note?: string | null
+  likes_count?: number
+  has_liked?: boolean
 }
 
 export interface HotspotPhoto {
@@ -67,4 +70,18 @@ export interface HotspotPhoto {
   profiles?: {
     username: string | null
   }
+}
+
+export interface CheckInLike {
+  id: string
+  user_id: string
+  check_in_id: string
+  created_at: string
+}
+
+export interface SavedHotspot {
+  id: string
+  user_id: string
+  hotspot_id: string
+  created_at: string
 }

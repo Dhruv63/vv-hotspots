@@ -76,6 +76,17 @@ export default async function ProfilePage() {
     .select("id, name, category, image_url, address")
     .limit(3)
 
+  // Get saved hotspots
+  const { data: savedHotspots } = await supabase
+    .from("saved_hotspots")
+    .select(`
+      id,
+      created_at,
+      hotspots (id, name, category, address, image_url)
+    `)
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+
   return (
     <ProfileClient
       user={user}
@@ -84,6 +95,7 @@ export default async function ProfilePage() {
       ratings={ratings || []}
       userPhotos={userPhotos || []}
       popularHotspots={popularHotspots || []}
+      savedHotspots={savedHotspots || []}
     />
   )
 }

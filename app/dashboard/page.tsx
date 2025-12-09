@@ -124,6 +124,22 @@ export default async function DashboardPage() {
     }
   })
 
+  // Fetch saved hotspots
+  const { data: savedHotspotsData } = await supabase
+    .from("saved_hotspots")
+    .select("hotspot_id")
+    .eq("user_id", user.id)
+
+  const savedHotspotIds = savedHotspotsData?.map(s => s.hotspot_id) || []
+
+  // Count today's checkins
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
+  const { count: todayCount } = await supabase
+    .from("check_ins")
+    .select("*", { count: "exact", head: true })
+    .gte("checked_in_at", todayStart.toISOString())
+
   const errors = [hotspotsError, checkinsError, ratingsError].filter(Boolean)
   const initError = errors.length > 0 ? "Failed to load some data. Please refresh the page." : null
 
@@ -138,6 +154,8 @@ export default async function DashboardPage() {
         userCurrentCheckin={userCheckin?.hotspot_id || null}
         userRatings={userRatingsMap}
         userReviews={userReviewsMap}
+        savedHotspotIds={savedHotspotIds}
+        todayCheckinCount={todayCount || 0}
         initError={initError}
       />
     </ErrorBoundary>

@@ -2,7 +2,7 @@
 
 import { ReactNode } from "react"
 import Image from "next/image"
-import { MapPin, Users, Star, StarHalf } from "lucide-react"
+import { MapPin, Users, Star, StarHalf, Heart } from "lucide-react"
 import type { Hotspot } from "@/lib/types"
 
 interface HotspotCardProps {
@@ -14,6 +14,8 @@ interface HotspotCardProps {
   onClick?: () => void
   isSelected?: boolean
   children?: ReactNode
+  isSaved?: boolean
+  onToggleSave?: (id: string) => void
 }
 
 const getHotspotImage = (hotspot: Hotspot): string => {
@@ -73,6 +75,8 @@ export function HotspotCard({
   onClick,
   isSelected = false,
   children,
+  isSaved,
+  onToggleSave,
 }: HotspotCardProps) {
   const imageUrl = getHotspotImage(hotspot)
 
@@ -145,13 +149,23 @@ export function HotspotCard({
           </span>
         </div>
 
-        {/* Active users badge */}
-        {activeCheckins > 0 && (
-          <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 bg-cyber-black/80 border border-cyber-cyan text-cyber-cyan text-[10px] font-mono rounded z-10">
-            <Users className="w-3 h-3" />
-            <span>{activeCheckins}</span>
-          </div>
-        )}
+        {/* Active users badge & Save Button */}
+        <div className="absolute top-2 right-2 z-10 flex items-center gap-2">
+          {activeCheckins > 0 && (
+            <div className="flex items-center gap-1 px-2 py-0.5 bg-cyber-black/80 border border-cyber-cyan text-cyber-cyan text-[10px] font-mono rounded">
+              <Users className="w-3 h-3" />
+              <span>{activeCheckins}</span>
+            </div>
+          )}
+          {onToggleSave && (
+             <button
+                onClick={(e) => { e.stopPropagation(); onToggleSave(hotspot.id) }}
+                className={`p-1.5 rounded-full bg-cyber-black/80 border transition-colors ${isSaved ? "border-cyber-pink text-cyber-pink" : "border-white/20 text-white/50 hover:text-white hover:border-white"}`}
+             >
+                <Heart className={`w-3.5 h-3.5 ${isSaved ? "fill-cyber-pink" : ""}`} />
+             </button>
+          )}
+        </div>
       </div>
 
       {/* Content section */}
