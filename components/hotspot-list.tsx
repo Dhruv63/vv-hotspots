@@ -191,13 +191,13 @@ export function HotspotList({
           </h2>
         </div>
 
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-cyber-gray" />
+        <div className="relative group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-cyber-gray group-focus-within:scale-110 group-focus-within:text-cyber-primary transition-all duration-200" />
           <Input
             placeholder="Search hotspots..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-12 h-12 text-base rounded-xl bg-cyber-navy border-cyber-gray text-cyber-light placeholder:text-cyber-gray/50 focus:border-cyber-primary focus:ring-cyber-primary/20 shadow-inner"
+            className="pl-12 h-12 text-base rounded-xl bg-cyber-navy border-cyber-gray text-cyber-light placeholder:text-cyber-gray/50 transition-all duration-200 focus:border-cyber-primary focus:ring-cyber-primary/20 focus:shadow-[0_0_12px_rgba(232,255,0,0.3)] shadow-inner"
           />
         </div>
       </div>
