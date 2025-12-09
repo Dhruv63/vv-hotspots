@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import Link from "next/link"
-import { MapPin, Mail, Lock, AlertTriangle } from "lucide-react"
+import { MapPin, Mail, Lock, AlertTriangle, Eye, EyeOff, Globe } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { CyberButton } from "@/components/ui/cyber-button"
 import { CyberCard } from "@/components/ui/cyber-card"
@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label"
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -55,6 +56,16 @@ export default function LoginPage() {
     }
   }
 
+  const handleGoogleLogin = async () => {
+    const supabase = createClient()
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    })
+  }
+
   return (
     <div className="min-h-screen bg-cyber-black scanlines flex items-center justify-center p-4">
       {/* Background grid */}
@@ -63,8 +74,8 @@ export default function LoginPage() {
           className="absolute inset-0"
           style={{
             backgroundImage: `
-              linear-gradient(rgba(255, 255, 0, 0.3) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255, 255, 0, 0.3) 1px, transparent 1px)
+              linear-gradient(rgba(232, 255, 0, 0.3) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(232, 255, 0, 0.3) 1px, transparent 1px)
             `,
             backgroundSize: "50px 50px",
           }}
@@ -74,26 +85,44 @@ export default function LoginPage() {
       <div className="relative w-full max-w-md">
         {/* Logo */}
         <Link href="/" className="flex items-center justify-center gap-2 mb-8 glitch-hover">
-          <div className="w-10 h-10 bg-cyber-cyan cyber-clip-sm flex items-center justify-center">
-            <MapPin className="w-6 h-6 text-cyber-black" />
+          <div className="w-10 h-10 bg-cyber-primary cyber-clip-sm flex items-center justify-center shadow-[0_0_15px_var(--color-cyber-primary)]">
+            <MapPin className="w-6 h-6 text-black" />
           </div>
           <span className="font-mono text-2xl font-bold">
-            <span className="neon-text-cyan">VV</span>
+            <span className="neon-text-yellow">VV</span>
             <span className="text-cyber-light"> HOTSPOTS</span>
           </span>
         </Link>
 
-        <CyberCard className="p-8">
-          <h1 className="font-mono text-2xl font-bold text-cyber-light mb-2">{"> LOGIN"}</h1>
-          <p className="text-cyber-gray mb-6">Access your account to explore hotspots</p>
+        <CyberCard className="p-8 bg-cyber-navy border-white/10">
+          <h1 className="font-sans text-2xl font-bold text-cyber-light mb-2">Welcome Back</h1>
+          <p className="text-cyber-gray mb-6">Login to access the real-time map</p>
+
+          <div className="mb-6">
+             <button
+                type="button"
+                onClick={handleGoogleLogin}
+                className="w-full flex items-center justify-center gap-3 bg-white text-black font-bold py-3 px-4 rounded-lg hover:bg-gray-200 transition-colors"
+             >
+                <Globe className="w-5 h-5" />
+                Continue with Google
+             </button>
+
+             <div className="relative my-6 text-center">
+                 <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-cyber-gray/30"></div>
+                 </div>
+                 <span className="relative bg-cyber-navy px-2 text-xs text-cyber-gray uppercase">Or continue with email</span>
+             </div>
+          </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-cyber-light font-mono">
+              <Label htmlFor="email" className="text-cyber-light font-mono text-xs">
                 EMAIL
               </Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cyber-gray" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-cyber-gray" />
                 <Input
                   id="email"
                   type="email"
@@ -102,46 +131,55 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   disabled={isLoading}
-                  className="pl-10 bg-cyber-black border-cyber-gray text-cyber-light placeholder:text-cyber-gray/50 focus:border-cyber-cyan disabled:opacity-50"
+                  className="pl-12 h-12 bg-cyber-dark border-cyber-gray/50 text-cyber-light placeholder:text-cyber-gray/50 focus:border-cyber-primary rounded-lg"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-cyber-light font-mono">
-                PASSWORD
-              </Label>
+              <div className="flex justify-between">
+                <Label htmlFor="password" className="text-cyber-light font-mono text-xs">
+                    PASSWORD
+                </Label>
+              </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cyber-gray" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-cyber-gray" />
                 <Input
                   id="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={isLoading}
-                  className="pl-10 bg-cyber-black border-cyber-gray text-cyber-light placeholder:text-cyber-gray/50 focus:border-cyber-cyan disabled:opacity-50"
+                  className="pl-12 pr-12 h-12 bg-cyber-dark border-cyber-gray/50 text-cyber-light placeholder:text-cyber-gray/50 focus:border-cyber-primary rounded-lg"
                 />
+                <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-cyber-gray hover:text-cyber-light"
+                >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
             </div>
 
             {error && (
-              <div className="p-3 bg-cyber-pink/10 border border-cyber-pink text-cyber-pink text-sm font-mono flex items-start gap-2">
+              <div className="p-3 bg-cyber-secondary/10 border border-cyber-secondary text-cyber-secondary text-sm font-mono flex items-start gap-2 rounded">
                 <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                 <span>{error}</span>
               </div>
             )}
 
-            <CyberButton type="submit" variant="cyan" size="lg" className="w-full" disabled={isLoading} glowing>
-              {isLoading ? "AUTHENTICATING..." : "LOGIN"}
+            <CyberButton type="submit" variant="cyan" size="lg" className="w-full font-bold" disabled={isLoading} glowing>
+              {isLoading ? "AUTHENTICATING..." : "ACCESS MAP"}
             </CyberButton>
           </form>
 
-          <p className="mt-6 text-center text-cyber-gray">
+          <p className="mt-6 text-center text-cyber-gray text-sm">
             Don&apos;t have an account?{" "}
-            <Link href="/auth/sign-up" className="text-cyber-cyan hover:underline">
-              Sign up
+            <Link href="/auth/sign-up" className="text-cyber-primary hover:underline font-bold">
+              Join the Map
             </Link>
           </p>
         </CyberCard>

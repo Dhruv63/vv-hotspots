@@ -3,10 +3,9 @@
 import { useState } from "react"
 import { Search, Filter, List, Grid, Zap, Star, X, MessageSquare, Loader2 } from "lucide-react"
 import { HotspotCard } from "@/components/hotspot-card"
-import { CyberButton } from "@/components/ui/cyber-button"
 import { Input } from "@/components/ui/input"
 import type { Hotspot } from "@/lib/types"
-import { cn } from "@/lib/utils"
+import { cn, calculateDistance } from "@/lib/utils"
 
 interface HotspotListProps {
   hotspots: Hotspot[]
@@ -21,6 +20,7 @@ interface HotspotListProps {
   userReviews?: Record<string, string>
   isLoading?: boolean
   viewMode?: "list" | "grid"
+  userLocation?: [number, number] | null
 }
 
 export function HotspotList({
@@ -36,6 +36,7 @@ export function HotspotList({
   userReviews = {},
   isLoading,
   viewMode = "list",
+  userLocation,
 }: HotspotListProps) {
   const [search, setSearch] = useState("")
   const [ratingHotspot, setRatingHotspot] = useState<Hotspot | null>(null)
@@ -50,6 +51,9 @@ export function HotspotList({
       hotspot.address.toLowerCase().includes(search.toLowerCase())
     return matchesSearch
   })
+
+  // Sort by distance if available? Or leave order? The prompt doesn't specify sort.
+  // "make search bar prominent..."
 
   const handleStarClick = (rating: number) => {
     setPendingRating(rating)
@@ -86,14 +90,14 @@ export function HotspotList({
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-cyber-dark">
       {ratingHotspot && (
         <div
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
           onClick={() => !isSubmittingRating && setRatingHotspot(null)}
         >
           <div
-            className="relative w-full max-w-md bg-[#0a0a0f] border-2 border-cyber-purple rounded-xl p-6 shadow-[0_0_60px_rgba(255,215,0,0.5)] mx-4"
+            className="relative w-full max-w-md bg-[#0a0a0f] border-2 border-cyber-pink rounded-xl p-6 shadow-[0_0_60px_rgba(255,0,110,0.3)] mx-4"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -105,7 +109,7 @@ export function HotspotList({
             </button>
 
             <h3 className="text-xl font-mono font-bold text-cyber-light text-center mb-2 pr-8">Rate this spot</h3>
-            <p className="text-cyber-cyan font-mono text-center mb-6 text-lg">{ratingHotspot.name}</p>
+            <p className="text-cyber-primary font-mono text-center mb-6 text-lg">{ratingHotspot.name}</p>
 
             <div className="flex justify-center gap-3 mb-4">
               {[1, 2, 3, 4, 5].map((star) => (
@@ -118,22 +122,13 @@ export function HotspotList({
                   <Star
                     className={`w-10 h-10 sm:w-12 sm:h-12 transition-all ${
                       star <= pendingRating
-                        ? "fill-yellow-400 text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,1)]"
-                        : "fill-transparent text-cyber-gray/40 hover:text-yellow-400/60"
+                        ? "fill-cyber-primary text-cyber-primary drop-shadow-[0_0_15px_var(--color-cyber-primary)]"
+                        : "fill-transparent text-cyber-gray/40 hover:text-cyber-primary/60"
                     }`}
                   />
                 </button>
               ))}
             </div>
-
-            <p className="text-center text-cyber-light font-mono mb-4 text-lg">
-              {pendingRating === 0 && "Tap a star to rate"}
-              {pendingRating === 1 && "Poor"}
-              {pendingRating === 2 && "Fair"}
-              {pendingRating === 3 && "Good"}
-              {pendingRating === 4 && "Great"}
-              {pendingRating === 5 && "Amazing!"}
-            </p>
 
             <div className="mb-4">
               <label className="flex items-center gap-2 text-cyber-gray text-sm font-mono mb-2">
@@ -147,7 +142,7 @@ export function HotspotList({
                 rows={3}
                 maxLength={500}
                 disabled={isSubmittingRating}
-                className="w-full bg-cyber-black border border-cyber-gray rounded-lg p-3 text-cyber-light font-mono text-sm placeholder:text-cyber-gray/50 focus:border-cyber-cyan focus:outline-none focus:ring-1 focus:ring-cyber-cyan resize-none disabled:opacity-50"
+                className="w-full bg-cyber-black border border-cyber-gray rounded-lg p-3 text-cyber-light font-mono text-sm placeholder:text-cyber-gray/50 focus:border-cyber-primary focus:outline-none focus:ring-1 focus:ring-cyber-primary resize-none disabled:opacity-50"
               />
               <p className="text-cyber-gray/50 text-xs font-mono text-right mt-1">{pendingReview.length}/500</p>
             </div>
@@ -163,7 +158,7 @@ export function HotspotList({
               <button
                 onClick={handleSubmitRating}
                 disabled={pendingRating === 0 || isSubmittingRating}
-                className="flex-1 py-3 px-4 bg-cyber-purple text-white font-mono text-sm font-bold rounded-lg hover:shadow-[0_0_20px_rgba(255,215,0,0.5)] disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 flex items-center justify-center gap-2"
+                className="flex-1 py-3 px-4 bg-cyber-secondary text-white font-mono text-sm font-bold rounded-lg hover:shadow-[0_0_20px_var(--color-cyber-secondary)] disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 flex items-center justify-center gap-2"
               >
                 {isSubmittingRating ? (
                   <>
@@ -175,12 +170,6 @@ export function HotspotList({
                 )}
               </button>
             </div>
-
-            {userRatings[ratingHotspot.id] && (
-              <p className="text-center text-cyber-cyan text-xs font-mono mt-4">
-                Your current rating: {userRatings[ratingHotspot.id]}★{userReviews[ratingHotspot.id] && " (with review)"}
-              </p>
-            )}
           </div>
         </div>
       )}
@@ -188,17 +177,17 @@ export function HotspotList({
       <div className="p-4 border-b border-cyber-gray space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="font-mono text-base text-cyber-light">
-            <span className="text-cyber-cyan">{">"}</span> HOTSPOTS
+            <span className="text-cyber-primary">{">"}</span> HOTSPOTS
           </h2>
         </div>
 
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cyber-gray" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-cyber-gray" />
           <Input
             placeholder="Search hotspots..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 h-9 text-sm bg-cyber-black border-cyber-gray text-cyber-light placeholder:text-cyber-gray/50 focus:border-cyber-cyan"
+            className="pl-12 h-12 text-base rounded-xl bg-cyber-navy border-cyber-gray text-cyber-light placeholder:text-cyber-gray/50 focus:border-cyber-primary focus:ring-cyber-primary/20 shadow-inner"
           />
         </div>
       </div>
@@ -208,13 +197,23 @@ export function HotspotList({
           className={
             viewMode === "grid"
               ? "grid grid-cols-1 min-[400px]:grid-cols-2 gap-[12px] p-[12px] auto-rows-fr"
-              : "space-y-4"
+              : "space-y-3"
           }
         >
           {filteredHotspots.map((hotspot) => {
             const isCheckedInHere = userCurrentCheckin === hotspot.id
             const userRating = userRatings[hotspot.id]
             const isCheckingIn = checkingInHotspotId === hotspot.id
+
+            let distance: number | null = null
+            if (userLocation) {
+                distance = calculateDistance(
+                    userLocation[0],
+                    userLocation[1],
+                    Number(hotspot.latitude),
+                    Number(hotspot.longitude)
+                )
+            }
 
             return (
               <div key={hotspot.id} className="h-full">
@@ -224,8 +223,9 @@ export function HotspotList({
                   averageRating={averageRatings[hotspot.id] || 0}
                   onClick={() => onHotspotSelect(hotspot)}
                   isSelected={selectedHotspot?.id === hotspot.id}
+                  distance={distance}
                 >
-                  <div className="flex justify-between w-full">
+                  <div className="flex justify-between w-full gap-2 mt-2">
                     {onCheckIn && (
                       <button
                         onClick={(e) => {
@@ -237,22 +237,22 @@ export function HotspotList({
                           isCheckingIn ||
                           (checkingInHotspotId !== null && checkingInHotspotId !== hotspot.id)
                         }
-                        className={`w-[48%] py-3 px-1 font-mono text-[10px] sm:text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1 min-h-[40px] ${
+                        className={`flex-1 py-2.5 px-2 font-mono text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 min-h-[40px] ${
                           isCheckedInHere
-                            ? "bg-cyber-pink text-white shadow-[0_0_15px_rgba(204,255,0,0.4)]"
-                            : "bg-cyber-cyan text-cyber-black hover:shadow-[0_0_20px_rgba(255,255,0,0.5)]"
+                            ? "bg-cyber-pink text-white shadow-[0_0_15px_rgba(255,0,110,0.4)]"
+                            : "bg-cyber-primary text-black hover:bg-cyber-yellow hover:shadow-[0_0_15px_var(--color-cyber-primary)]"
                         } disabled:opacity-50 disabled:cursor-not-allowed active:scale-95`}
                       >
                         {isCheckingIn ? (
-                          <Loader2 className="w-3 h-3 animate-spin" />
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
                         ) : isCheckedInHere ? (
                           <>
-                            <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                            <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
                             HERE
                           </>
                         ) : (
                           <>
-                            <Zap className="w-3 h-3" />
+                            <Zap className="w-3.5 h-3.5" />
                             CHECK IN
                           </>
                         )}
@@ -266,13 +266,13 @@ export function HotspotList({
                           openRatingModal(hotspot)
                         }}
                         disabled={isLoading}
-                        className={`w-[48%] py-3 px-1 font-mono text-[10px] sm:text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1 min-h-[40px] ${
+                        className={`flex-1 py-2.5 px-2 font-mono text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 min-h-[40px] ${
                           userRating
-                            ? "bg-yellow-400 text-cyber-black shadow-[0_0_15px_rgba(250,204,21,0.4)]"
-                            : "bg-cyber-purple text-white hover:shadow-[0_0_15px_rgba(255,215,0,0.5)]"
+                            ? "bg-yellow-400 text-black shadow-[0_0_15px_rgba(250,204,21,0.4)]"
+                            : "bg-cyber-secondary text-white hover:bg-cyber-pink hover:shadow-[0_0_15px_var(--color-cyber-secondary)]"
                         } active:scale-95 disabled:opacity-50`}
                       >
-                        <Star className={`w-3 h-3 ${userRating ? "fill-cyber-black" : ""}`} />
+                        <Star className={`w-3.5 h-3.5 ${userRating ? "fill-black" : ""}`} />
                         {userRating ? `${userRating}★` : "RATE"}
                       </button>
                     )}

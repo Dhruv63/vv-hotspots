@@ -5,7 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { MapPin, Mail, Lock, User } from "lucide-react"
+import { MapPin, Mail, Lock, User, Eye, EyeOff, Globe, AlertTriangle } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { CyberButton } from "@/components/ui/cyber-button"
 import { CyberCard } from "@/components/ui/cyber-card"
@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label"
 export default function SignUpPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const [username, setUsername] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -25,12 +25,6 @@ export default function SignUpPage() {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match")
-      setIsLoading(false)
-      return
-    }
 
     if (password.length < 6) {
       setError("Password must be at least 6 characters")
@@ -81,6 +75,16 @@ export default function SignUpPage() {
     }
   }
 
+  const handleGoogleLogin = async () => {
+    const supabase = createClient()
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    })
+  }
+
   return (
     <div className="min-h-screen bg-cyber-black scanlines flex items-center justify-center p-4">
       {/* Background grid */}
@@ -89,8 +93,8 @@ export default function SignUpPage() {
           className="absolute inset-0"
           style={{
             backgroundImage: `
-              linear-gradient(rgba(204, 255, 0, 0.3) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(204, 255, 0, 0.3) 1px, transparent 1px)
+              linear-gradient(rgba(255, 0, 110, 0.3) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255, 0, 110, 0.3) 1px, transparent 1px)
             `,
             backgroundSize: "50px 50px",
           }}
@@ -100,7 +104,7 @@ export default function SignUpPage() {
       <div className="relative w-full max-w-md">
         {/* Logo */}
         <Link href="/" className="flex items-center justify-center gap-2 mb-8 glitch-hover">
-          <div className="w-10 h-10 bg-cyber-pink cyber-clip-sm flex items-center justify-center">
+          <div className="w-10 h-10 bg-cyber-secondary cyber-clip-sm flex items-center justify-center shadow-[0_0_15px_var(--color-cyber-secondary)]">
             <MapPin className="w-6 h-6 text-white" />
           </div>
           <span className="font-mono text-2xl font-bold">
@@ -109,34 +113,52 @@ export default function SignUpPage() {
           </span>
         </Link>
 
-        <CyberCard className="p-8">
-          <h1 className="font-mono text-2xl font-bold text-cyber-light mb-2">{"> CREATE ACCOUNT"}</h1>
+        <CyberCard className="p-8 bg-cyber-navy border-white/10">
+          <h1 className="font-sans text-2xl font-bold text-cyber-light mb-2">Create Account</h1>
           <p className="text-cyber-gray mb-6">Join the Vasai-Virar social discovery network</p>
+
+          <div className="mb-6">
+             <button
+                type="button"
+                onClick={handleGoogleLogin}
+                className="w-full flex items-center justify-center gap-3 bg-white text-black font-bold py-3 px-4 rounded-lg hover:bg-gray-200 transition-colors"
+             >
+                <Globe className="w-5 h-5" />
+                Continue with Google
+             </button>
+
+             <div className="relative my-6 text-center">
+                 <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-cyber-gray/30"></div>
+                 </div>
+                 <span className="relative bg-cyber-navy px-2 text-xs text-cyber-gray uppercase">Or continue with email</span>
+             </div>
+          </div>
 
           <form onSubmit={handleSignUp} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-cyber-light font-mono">
+              <Label htmlFor="username" className="text-cyber-light font-mono text-xs">
                 USERNAME
               </Label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cyber-gray" />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-cyber-gray" />
                 <Input
                   id="username"
                   type="text"
                   placeholder="cyber_user"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="pl-10 bg-cyber-black border-cyber-gray text-cyber-light placeholder:text-cyber-gray/50 focus:border-cyber-pink"
+                  className="pl-12 h-12 bg-cyber-dark border-cyber-gray/50 text-cyber-light placeholder:text-cyber-gray/50 focus:border-cyber-secondary rounded-lg"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-cyber-light font-mono">
+              <Label htmlFor="email" className="text-cyber-light font-mono text-xs">
                 EMAIL
               </Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cyber-gray" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-cyber-gray" />
                 <Input
                   id="email"
                   type="email"
@@ -144,62 +166,52 @@ export default function SignUpPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="pl-10 bg-cyber-black border-cyber-gray text-cyber-light placeholder:text-cyber-gray/50 focus:border-cyber-pink"
+                  className="pl-12 h-12 bg-cyber-dark border-cyber-gray/50 text-cyber-light placeholder:text-cyber-gray/50 focus:border-cyber-secondary rounded-lg"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-cyber-light font-mono">
+              <Label htmlFor="password" className="text-cyber-light font-mono text-xs">
                 PASSWORD
               </Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cyber-gray" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-cyber-gray" />
                 <Input
                   id="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="pl-10 bg-cyber-black border-cyber-gray text-cyber-light placeholder:text-cyber-gray/50 focus:border-cyber-pink"
+                  className="pl-12 pr-12 h-12 bg-cyber-dark border-cyber-gray/50 text-cyber-light placeholder:text-cyber-gray/50 focus:border-cyber-secondary rounded-lg"
                 />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-cyber-light font-mono">
-                CONFIRM PASSWORD
-              </Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cyber-gray" />
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  placeholder="••••••••"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  className="pl-10 bg-cyber-black border-cyber-gray text-cyber-light placeholder:text-cyber-gray/50 focus:border-cyber-pink"
-                />
+                <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-cyber-gray hover:text-cyber-light"
+                >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
             </div>
 
             {error && (
-              <div className="p-3 bg-cyber-pink/10 border border-cyber-pink text-cyber-pink text-sm font-mono">
-                {error}
+              <div className="p-3 bg-cyber-secondary/10 border border-cyber-secondary text-cyber-secondary text-sm font-mono flex items-start gap-2 rounded">
+                 <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                 <span>{error}</span>
               </div>
             )}
 
-            <CyberButton type="submit" variant="pink" size="lg" className="w-full" disabled={isLoading} glowing>
-              {isLoading ? "CREATING ACCOUNT..." : "SIGN UP"}
+            <CyberButton type="submit" variant="pink" size="lg" className="w-full font-bold" disabled={isLoading} glowing>
+              {isLoading ? "CREATING ACCOUNT..." : "JOIN THE MAP"}
             </CyberButton>
           </form>
 
-          <p className="mt-6 text-center text-cyber-gray">
+          <p className="mt-6 text-center text-cyber-gray text-sm">
             Already have an account?{" "}
-            <Link href="/auth/login" className="text-cyber-pink hover:underline">
-              Login
+            <Link href="/auth/login" className="text-cyber-secondary hover:underline font-bold">
+              Access Map
             </Link>
           </p>
         </CyberCard>

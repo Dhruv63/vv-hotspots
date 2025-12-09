@@ -32,6 +32,7 @@ const CyberButton = forwardRef<HTMLButtonElement, CyberButtonProps>(
           purple:
             "shadow-[0_0_20px_var(--color-cyber-purple),0_0_40px_var(--color-cyber-purple),inset_0_0_20px_rgba(255,215,0,0.1)] animate-pulse",
           ghost: "",
+          outline: "",
         }[variant]
       : ""
 
