@@ -5,7 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { formatDistanceToNow } from "date-fns"
-import { User, MapPin, Calendar, Star, ArrowLeft, Edit2, Camera, X, MessageSquare } from "lucide-react"
+import { User, MapPin, Calendar, Star, ArrowLeft, Edit2, Camera, X, MessageSquare, Heart } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { Navbar } from "@/components/navbar"
 import { CyberCard } from "@/components/ui/cyber-card"
@@ -25,6 +25,7 @@ interface ProfileClientProps {
 export function ProfileClient({ user, profile: initialProfile, checkIns, ratings, userPhotos }: ProfileClientProps) {
   const router = useRouter()
   const [profile, setProfile] = useState(initialProfile)
+  const [activeTab, setActiveTab] = useState<'history' | 'reviews' | 'saved' | 'photos'>('history')
   const [isEditing, setIsEditing] = useState(false)
   const [editUsername, setEditUsername] = useState(profile?.username || "")
   const [editAvatarUrl, setEditAvatarUrl] = useState(profile?.avatar_url || "")
@@ -181,144 +182,199 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
           </div>
         </CyberCard>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Check-in History */}
-          <CyberCard className="p-4">
-            <h2 className="font-mono text-lg text-cyber-light mb-4 flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-cyber-cyan" />
-              CHECK-IN HISTORY
-              <span className="text-[#CCCCCC] text-sm ml-auto">{totalCheckIns} total</span>
-            </h2>
+        <div className="mt-8">
+          {/* Tabs Navigation */}
+          <div className="flex overflow-x-auto border-b border-cyber-gray/30 mb-6">
+            {['history', 'reviews', 'saved', 'photos'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab as any)}
+                className={`px-6 py-3 font-mono text-sm uppercase tracking-wider transition-all border-b-2 flex-shrink-0 ${
+                  activeTab === tab
+                    ? 'border-[#FFFF00] text-[#FFFF00] font-bold bg-[#FFFF00]/5'
+                    : 'border-transparent text-cyber-gray hover:text-cyber-light hover:border-cyber-gray'
+                }`}
+              >
+                {tab === 'history' && 'Check-in History'}
+                {tab === 'reviews' && 'My Reviews'}
+                {tab === 'saved' && 'Saved Hotspots'}
+                {tab === 'photos' && 'My Photos'}
+              </button>
+            ))}
+          </div>
 
-            {checkIns && checkIns.length > 0 ? (
-              <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
-                {checkIns.map((checkin: any) => (
-                  <div
-                    key={checkin.id}
-                    className={`p-3 border rounded-lg transition-all ${
-                      checkin.is_active
-                        ? "border-cyber-cyan bg-cyber-cyan/10 shadow-[0_0_10px_rgba(255,255,0,0.2)]"
-                        : "border-cyber-gray/50 bg-cyber-black/50 hover:border-cyber-cyan hover:shadow-[0_0_10px_rgba(255,255,0,0.2)]"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="font-semibold text-cyber-light">{checkin.hotspots?.name}</p>
-                        <CategoryBadge category={checkin.hotspots?.category} className="mt-1" />
-                      </div>
-                      {checkin.is_active && (
-                        <span className="px-2 py-1 bg-cyber-cyan/20 border border-cyber-cyan text-cyber-cyan text-xs font-mono animate-pulse rounded">
-                          ACTIVE
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-[#CCCCCC] text-xs mt-2 flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      {formatDistanceToNow(new Date(checkin.checked_in_at), {
-                        addSuffix: true,
-                      })}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-[#CCCCCC]">
-                <MapPin className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="font-mono text-sm">No check-ins yet</p>
-                <Link href="/dashboard">
-                  <CyberButton variant="cyan" size="sm" className="mt-4">
-                    Explore Hotspots
-                  </CyberButton>
-                </Link>
-              </div>
-            )}
-          </CyberCard>
+          {/* Tab Content */}
+          <div className="min-h-[400px]">
 
-          {/* My Photos */}
-          <CyberCard className="p-4">
-            <h2 className="font-mono text-lg text-cyber-light mb-4 flex items-center gap-2">
-              <Camera className="w-5 h-5 text-cyber-pink" />
-              MY PHOTOS
-              <span className="text-[#CCCCCC] text-sm ml-auto">{totalPhotos} total</span>
-            </h2>
+            {activeTab === 'history' && (
+              <CyberCard className="p-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-mono text-lg text-cyber-light flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-cyber-cyan" />
+                    CHECK-IN HISTORY
+                  </h2>
+                  <span className="text-cyber-gray text-xs font-mono">{totalCheckIns} total</span>
+                </div>
 
-            {userPhotos && userPhotos.length > 0 ? (
-              <div className="grid grid-cols-3 gap-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
-                {userPhotos.map((photo: any) => (
-                  <div key={photo.id} className="relative aspect-square rounded overflow-hidden group border border-cyber-gray/50 hover:border-cyber-pink transition-colors">
-                    <Image
-                      src={photo.thumbnail_url || photo.image_url}
-                      alt="My upload"
-                      fill
-                      className="object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2">
-                        <p className="text-[10px] text-white font-mono truncate">{photo.hotspots?.name}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-[#CCCCCC]">
-                <Camera className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="font-mono text-sm">No photos yet</p>
-                <p className="text-xs">Check in to add photos!</p>
-              </div>
-            )}
-          </CyberCard>
-
-          {/* Ratings & Reviews */}
-          <CyberCard className="p-4">
-            <h2 className="font-mono text-lg text-cyber-light mb-4 flex items-center gap-2">
-              <Star className="w-5 h-5 text-cyber-yellow" />
-              YOUR RATINGS & REVIEWS
-              <span className="text-[#CCCCCC] text-sm ml-auto">{totalRatings} total</span>
-            </h2>
-
-            {ratings && ratings.length > 0 ? (
-              <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
-                {ratings.map((rating: any) => (
-                  <div
-                    key={rating.id}
-                    className="p-3 border border-cyber-gray/50 bg-cyber-black/50 rounded-lg hover:border-cyber-purple hover:shadow-[0_0_10px_rgba(255,215,0,0.3)] transition-all"
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <p className="font-semibold text-cyber-light">{rating.hotspots?.name}</p>
-                        <CategoryBadge category={rating.hotspots?.category} className="mt-1" />
-                      </div>
-                      <div className="flex items-center gap-1 bg-cyber-yellow/10 px-2 py-1 rounded border border-cyber-yellow/30">
-                        <Star className="w-4 h-4 text-cyber-yellow fill-cyber-yellow" />
-                        <span className="font-mono text-cyber-yellow">{rating.rating}</span>
-                      </div>
-                    </div>
-
-                    {/* Review text */}
-                    {rating.review && (
-                      <div className="mt-2 p-2 bg-cyber-purple/10 border-l-2 border-cyber-purple rounded-r">
-                        <div className="flex items-start gap-2">
-                          <MessageSquare className="w-4 h-4 text-cyber-purple flex-shrink-0 mt-0.5" />
-                          <p className="text-cyber-light text-sm italic">"{rating.review}"</p>
+                {checkIns && checkIns.length > 0 ? (
+                  <div className="space-y-3">
+                    {checkIns.map((checkin: any) => (
+                      <div
+                        key={checkin.id}
+                        className={`p-4 border rounded-lg transition-all ${
+                          checkin.is_active
+                            ? "border-cyber-cyan bg-cyber-cyan/10 shadow-[0_0_10px_rgba(255,255,0,0.2)]"
+                            : "border-cyber-gray/30 bg-cyber-black/50 hover:border-cyber-cyan/50 hover:bg-cyber-gray/5"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h3 className="font-bold text-cyber-light text-lg">{checkin.hotspots?.name}</h3>
+                            <div className="flex items-center gap-2 mt-1">
+                              <CategoryBadge category={checkin.hotspots?.category} />
+                              <span className="text-cyber-gray text-xs">{checkin.hotspots?.address}</span>
+                            </div>
+                          </div>
+                          {checkin.is_active && (
+                            <span className="px-2 py-1 bg-cyber-cyan/20 border border-cyber-cyan text-cyber-cyan text-xs font-mono animate-pulse rounded">
+                              ACTIVE
+                            </span>
+                          )}
+                        </div>
+                        <div className="mt-3 flex items-center gap-2 text-cyber-gray text-xs font-mono">
+                          <Calendar className="w-3 h-3" />
+                          <span>
+                            {new Date(checkin.checked_in_at).toLocaleDateString()} at {new Date(checkin.checked_in_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                          </span>
                         </div>
                       </div>
-                    )}
-
-                    <p className="text-[#CCCCCC] text-xs mt-2">
-                      {formatDistanceToNow(new Date(rating.created_at), {
-                        addSuffix: true,
-                      })}
-                    </p>
+                    ))}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-[#CCCCCC]">
-                <Star className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="font-mono text-sm">No ratings yet</p>
-                <p className="text-xs">Rate hotspots to help others!</p>
-              </div>
+                ) : (
+                  <div className="text-center py-12 text-cyber-gray">
+                    <MapPin className="w-12 h-12 mx-auto mb-4 opacity-30" />
+                    <p className="font-mono">No check-ins yet</p>
+                    <Link href="/dashboard">
+                      <CyberButton variant="cyan" size="sm" className="mt-4">
+                        Explore Hotspots
+                      </CyberButton>
+                    </Link>
+                  </div>
+                )}
+              </CyberCard>
             )}
-          </CyberCard>
+
+            {activeTab === 'reviews' && (
+              <CyberCard className="p-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                 <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-mono text-lg text-cyber-light flex items-center gap-2">
+                    <Star className="w-5 h-5 text-cyber-yellow" />
+                    YOUR REVIEWS
+                  </h2>
+                  <span className="text-cyber-gray text-xs font-mono">{totalRatings} total</span>
+                </div>
+
+                {ratings && ratings.length > 0 ? (
+                  <div className="space-y-4">
+                    {ratings.map((rating: any) => (
+                      <div
+                        key={rating.id}
+                        className="p-4 border border-cyber-gray/30 bg-cyber-black/50 rounded-lg hover:border-cyber-yellow/50 transition-all"
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <h3 className="font-bold text-cyber-light text-lg">{rating.hotspots?.name}</h3>
+                            <CategoryBadge category={rating.hotspots?.category} className="mt-1" />
+                          </div>
+                          <div className="flex items-center gap-1 bg-cyber-yellow/10 px-3 py-1.5 rounded border border-cyber-yellow/30">
+                            <Star className="w-4 h-4 text-cyber-yellow fill-cyber-yellow" />
+                            <span className="font-mono text-cyber-yellow font-bold">{rating.rating}</span>
+                          </div>
+                        </div>
+
+                        {rating.review && (
+                          <div className="p-3 bg-cyber-gray/5 rounded border-l-2 border-cyber-purple mb-3">
+                            <div className="flex items-start gap-2">
+                              <MessageSquare className="w-4 h-4 text-cyber-purple flex-shrink-0 mt-1" />
+                              <p className="text-cyber-light italic">"{rating.review}"</p>
+                            </div>
+                          </div>
+                        )}
+
+                        <p className="text-cyber-gray text-xs font-mono">
+                          {formatDistanceToNow(new Date(rating.created_at), { addSuffix: true })}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-cyber-gray">
+                    <Star className="w-12 h-12 mx-auto mb-4 opacity-30" />
+                    <p className="font-mono">No reviews yet</p>
+                    <p className="text-sm">Rate hotspots to keep track of your favorites!</p>
+                  </div>
+                )}
+              </CyberCard>
+            )}
+
+            {activeTab === 'saved' && (
+               <CyberCard className="p-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                 <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-mono text-lg text-cyber-light flex items-center gap-2">
+                    <Heart className="w-5 h-5 text-cyber-pink" />
+                    SAVED HOTSPOTS
+                  </h2>
+                </div>
+                <div className="text-center py-12 text-cyber-gray">
+                    <Heart className="w-12 h-12 mx-auto mb-4 opacity-30" />
+                    <p className="font-mono">No saved hotspots</p>
+                    <p className="text-sm mt-2">Save your favorite spots for quick access.</p>
+                    <Link href="/dashboard">
+                      <CyberButton variant="pink" size="sm" className="mt-4">
+                        Browse Hotspots
+                      </CyberButton>
+                    </Link>
+                  </div>
+               </CyberCard>
+            )}
+
+            {activeTab === 'photos' && (
+              <CyberCard className="p-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                 <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-mono text-lg text-cyber-light flex items-center gap-2">
+                    <Camera className="w-5 h-5 text-cyber-cyan" />
+                    MY PHOTOS
+                  </h2>
+                  <span className="text-cyber-gray text-xs font-mono">{totalPhotos} total</span>
+                </div>
+
+                {userPhotos && userPhotos.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {userPhotos.map((photo: any) => (
+                      <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden group border border-cyber-gray/30 hover:border-cyber-cyan transition-all hover:shadow-[0_0_15px_rgba(0,255,255,0.3)]">
+                        <Image
+                          src={photo.thumbnail_url || photo.image_url}
+                          alt="My upload"
+                          fill
+                          className="object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
+                            <p className="text-xs text-white font-mono font-bold truncate">{photo.hotspots?.name}</p>
+                            <p className="text-[10px] text-cyber-gray">{new Date(photo.created_at).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-cyber-gray">
+                    <Camera className="w-12 h-12 mx-auto mb-4 opacity-30" />
+                    <p className="font-mono">No photos yet</p>
+                    <p className="text-sm">Upload photos when you check in!</p>
+                  </div>
+                )}
+              </CyberCard>
+            )}
+          </div>
         </div>
       </main>
 

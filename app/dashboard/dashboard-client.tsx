@@ -441,7 +441,7 @@ export function DashboardClient({
         />
 
         {showDesktopSidebar && (
-            <div className="hidden md:block w-72 lg:w-80 h-full bg-cyber-dark border-r border-cyber-gray">
+            <div className="hidden md:block md:w-[280px] lg:w-1/4 h-full bg-cyber-dark border-r border-cyber-gray transition-all duration-300">
             <HotspotList
                 hotspots={filteredHotspots}
                 selectedHotspot={selectedHotspot}
@@ -534,7 +534,7 @@ export function DashboardClient({
           />
         )}
 
-        <div className="hidden md:block w-72 lg:w-80 h-full bg-cyber-dark border-l border-cyber-gray p-4 overflow-hidden">
+        <div className="hidden md:block md:w-[280px] lg:w-1/4 h-full bg-cyber-dark border-l border-cyber-gray p-4 overflow-hidden transition-all duration-300">
           <ActivityFeed initialActivities={initialActivityFeed} />
         </div>
       </div>

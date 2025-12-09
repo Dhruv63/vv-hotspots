@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Search, Filter, List, Grid, Zap, Star, X, MessageSquare, Loader2 } from "lucide-react"
 import { HotspotCard } from "@/components/hotspot-card"
 import { Input } from "@/components/ui/input"
@@ -44,6 +44,16 @@ export function HotspotList({
   const [pendingReview, setPendingReview] = useState<string>("")
   const [isSubmittingRating, setIsSubmittingRating] = useState(false)
   const [checkingInHotspotId, setCheckingInHotspotId] = useState<string | null>(null)
+
+  // Scroll to selected hotspot
+  useEffect(() => {
+    if (selectedHotspot) {
+      const el = document.getElementById(`hotspot-card-${selectedHotspot.id}`)
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" })
+      }
+    }
+  }, [selectedHotspot])
 
   const filteredHotspots = hotspots.filter((hotspot) => {
     const matchesSearch =
@@ -216,7 +226,7 @@ export function HotspotList({
             }
 
             return (
-              <div key={hotspot.id} className="h-full">
+              <div key={hotspot.id} id={`hotspot-card-${hotspot.id}`} className="h-full">
                 <HotspotCard
                   hotspot={hotspot}
                   activeCheckins={activeCheckins[hotspot.id] || 0}

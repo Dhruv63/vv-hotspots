@@ -1,9 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { User, LogOut, MapPin, Menu, X, List } from "lucide-react"
+import { useRouter, usePathname } from "next/navigation"
+import { User, LogOut, MapPin, Menu, X, List, Settings, ChevronDown } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { CyberButton } from "@/components/ui/cyber-button"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -16,20 +16,38 @@ interface NavbarProps {
 
 export function Navbar({ user, onMenuClick }: NavbarProps) {
   const router = useRouter()
+  const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setUserDropdownOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
 
   const handleSignOut = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
     setMobileMenuOpen(false)
+    setUserDropdownOpen(false)
     router.push("/")
     router.refresh()
   }
 
+  const isActive = (path: string) => pathname === path
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-cyber-black/90 backdrop-blur-md border-b border-cyber-gray transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 h-14 md:h-16 flex items-center justify-between">
-        {/* Logo */}
+        {/* Left: Logo */}
         <div className="flex items-center gap-4">
           <Link href="/" className="flex items-center gap-2 glitch-hover">
             <div className="w-8 h-8 bg-cyber-cyan cyber-clip-sm flex items-center justify-center transition-colors duration-300">
@@ -40,45 +58,97 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
               <span className="text-cyber-light transition-colors duration-300"> HOTSPOTS</span>
             </span>
           </Link>
+        </div>
 
-          {/* Unified Menu Button - Visible if onMenuClick is provided */}
+        {/* Center: Navigation Links (Desktop) */}
+        {user && (
+          <div className="hidden md:flex items-center gap-8">
+            <Link
+              href="/dashboard"
+              className={`font-mono text-sm tracking-wider transition-all py-1 border-b-2 ${
+                isActive("/dashboard")
+                  ? "border-[#FFFF00] text-[#FFFF00] shadow-[0_2px_10px_rgba(255,255,0,0.3)]"
+                  : "border-transparent text-cyber-light hover:text-cyber-cyan hover:border-cyber-cyan/50"
+              }`}
+            >
+              EXPLORE
+            </Link>
+            <Link
+              href="/profile"
+              className={`font-mono text-sm tracking-wider transition-all py-1 border-b-2 ${
+                isActive("/profile")
+                  ? "border-[#FFFF00] text-[#FFFF00] shadow-[0_2px_10px_rgba(255,255,0,0.3)]"
+                  : "border-transparent text-cyber-light hover:text-cyber-cyan hover:border-cyber-cyan/50"
+              }`}
+            >
+              PROFILE
+            </Link>
+          </div>
+        )}
+
+        {/* Right: Theme Toggle + User Dropdown */}
+        <div className="flex items-center gap-4">
+          {/* Divider */}
+          <div className="hidden md:block w-px h-6 bg-cyber-gray/30" />
+
+          <ThemeToggle />
+
+          {/* Unified Menu Button (Mobile Only usually) */}
           {onMenuClick && (
             <button
               onClick={onMenuClick}
-              className="flex items-center gap-2 px-3 py-1.5 bg-cyber-dark border border-cyber-primary/50 text-cyber-primary rounded-md hover:bg-cyber-primary hover:text-cyber-black transition-all shadow-[0_0_10px_rgba(255,255,0,0.1)]"
+              className="md:hidden flex items-center gap-2 px-2 py-1.5 bg-cyber-dark border border-cyber-primary/50 text-cyber-primary rounded-md hover:bg-cyber-primary hover:text-cyber-black transition-all"
             >
               <List className="w-5 h-5" />
-              <span className="font-mono text-xs font-bold hidden sm:inline">MENU</span>
             </button>
           )}
-        </div>
 
-        {/* Standard Navigation (Hidden if using simplified dashboard menu) */}
-        {!onMenuClick && (
-          <div className="hidden md:flex items-center gap-4">
-            {user ? (
-              <>
-                <Link href="/dashboard">
-                  <CyberButton variant="ghost" size="sm">
-                    Explore
-                  </CyberButton>
-                </Link>
-                <Link href="/profile">
-                  <CyberButton variant="ghost" size="sm">
-                    <User className="w-4 h-4 mr-2" />
-                    Profile
-                  </CyberButton>
-                </Link>
-                <ThemeToggle />
-                <CyberButton variant="outline" size="sm" onClick={handleSignOut}>
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sign Out
-                </CyberButton>
-              </>
-            ) : (
-              <>
-                <ThemeToggle />
-                <Link href="/auth/login">
+          {user ? (
+            <div className="relative hidden md:block" ref={dropdownRef}>
+              <button
+                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                className="flex items-center gap-2 hover:bg-cyber-gray/10 rounded-full pr-2 transition-colors"
+              >
+                <div className="w-9 h-9 rounded-full bg-cyber-cyan/20 border border-cyber-cyan flex items-center justify-center text-cyber-cyan overflow-hidden">
+                  <User className="w-5 h-5" />
+                </div>
+                <ChevronDown className={`w-4 h-4 text-cyber-gray transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {userDropdownOpen && (
+                <div className="absolute right-0 top-full mt-2 w-48 bg-cyber-dark border border-cyber-primary/30 rounded-lg shadow-[0_0_20px_rgba(0,0,0,0.5)] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                  <div className="py-1">
+                    <Link
+                      href="/profile"
+                      onClick={() => setUserDropdownOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-cyber-light hover:bg-cyber-cyan/10 hover:text-cyber-cyan transition-colors"
+                    >
+                      <User className="w-4 h-4" />
+                      Profile
+                    </Link>
+                    <Link
+                      href="/settings"
+                      onClick={() => setUserDropdownOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-cyber-light hover:bg-cyber-cyan/10 hover:text-cyber-cyan transition-colors"
+                    >
+                      <Settings className="w-4 h-4" />
+                      Settings
+                    </Link>
+                    <div className="h-px bg-cyber-gray/30 my-1" />
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors text-left"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="hidden md:flex items-center gap-2">
+               <Link href="/auth/login">
                   <CyberButton variant="ghost" size="sm">
                     Login
                   </CyberButton>
@@ -88,17 +158,13 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
                     Sign Up
                   </CyberButton>
                 </Link>
-              </>
-            )}
-          </div>
-        )}
+            </div>
+          )}
 
-        {/* Right Side: Theme Toggle + Hamburger (Always visible on mobile, or always if simplified menu) */}
-        <div className={`flex items-center gap-2 ${!onMenuClick ? 'md:hidden' : ''}`}>
-          <ThemeToggle />
-          <button
+          {/* Mobile Hamburger (Always visible on mobile) */}
+           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-cyber-light hover:text-cyber-cyan transition-colors"
+            className="md:hidden min-h-[44px] min-w-[44px] flex items-center justify-center text-cyber-light hover:text-cyber-cyan transition-colors"
             aria-label="Toggle menu"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -107,14 +173,16 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
       </div>
 
       {mobileMenuOpen && (
-        <div className="absolute top-14 md:top-16 left-0 right-0 bg-cyber-dark border-b border-cyber-gray shadow-[0_10px_30px_rgba(0,0,0,0.5)] transition-colors duration-300 z-50">
+        <div className="absolute top-14 md:top-16 left-0 right-0 bg-cyber-dark border-b border-cyber-gray shadow-[0_10px_30px_rgba(0,0,0,0.5)] transition-colors duration-300 z-50 md:hidden">
           <div className="p-4 space-y-3">
             {user ? (
               <>
                 <Link
                   href="/dashboard"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 w-full p-3 text-cyber-light hover:bg-cyber-cyan/10 hover:text-cyber-cyan rounded-lg transition-colors font-mono min-h-[44px]"
+                  className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors font-mono min-h-[44px] ${
+                      isActive("/dashboard") ? "bg-cyber-primary/10 text-cyber-primary border border-cyber-primary" : "text-cyber-light hover:bg-cyber-cyan/10"
+                  }`}
                 >
                   <MapPin className="w-5 h-5" />
                   Explore
@@ -122,14 +190,26 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
                 <Link
                   href="/profile"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 w-full p-3 text-cyber-light hover:bg-cyber-cyan/10 hover:text-cyber-cyan rounded-lg transition-colors font-mono min-h-[44px]"
+                   className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors font-mono min-h-[44px] ${
+                      isActive("/profile") ? "bg-cyber-primary/10 text-cyber-primary border border-cyber-primary" : "text-cyber-light hover:bg-cyber-cyan/10"
+                  }`}
                 >
                   <User className="w-5 h-5" />
                   Profile
                 </Link>
+                <Link
+                  href="/settings"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors font-mono min-h-[44px] ${
+                      isActive("/settings") ? "bg-cyber-primary/10 text-cyber-primary border border-cyber-primary" : "text-cyber-light hover:bg-cyber-cyan/10"
+                  }`}
+                >
+                  <Settings className="w-5 h-5" />
+                  Settings
+                </Link>
                 <button
                   onClick={handleSignOut}
-                  className="flex items-center gap-3 w-full p-3 text-cyber-primary border border-cyber-primary hover:bg-cyber-primary/10 rounded-lg transition-colors font-mono min-h-[44px]"
+                  className="flex items-center gap-3 w-full p-3 text-red-400 border border-red-500/50 hover:bg-red-500/10 rounded-lg transition-colors font-mono min-h-[44px]"
                 >
                   <LogOut className="w-5 h-5" />
                   Sign Out
