@@ -67,9 +67,20 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cyber-black scanlines flex items-center justify-center p-4">
+    <div className="min-h-screen bg-cyber-black scanlines flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Local Background Image */}
+      <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-cyber-black/80 z-10" />
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-30 blur-sm grayscale-[30%]"
+            style={{
+              backgroundImage: `url('https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?q=80&w=2670&auto=format&fit=crop')`,
+            }}
+          />
+      </div>
+
       {/* Background grid */}
-      <div className="absolute inset-0 opacity-5">
+      <div className="absolute inset-0 opacity-5 z-10 pointer-events-none">
         <div
           className="absolute inset-0"
           style={{
@@ -82,7 +93,7 @@ export default function LoginPage() {
         />
       </div>
 
-      <div className="relative w-full max-w-md">
+      <div className="relative w-full max-w-md z-20">
         {/* Logo */}
         <Link href="/" className="flex items-center justify-center gap-2 mb-8 glitch-hover">
           <div className="w-10 h-10 bg-cyber-primary cyber-clip-sm flex items-center justify-center shadow-[0_0_15px_var(--color-cyber-primary)]">

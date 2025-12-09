@@ -10,6 +10,7 @@ import { MapView } from "@/components/map-view"
 import { HotspotList } from "@/components/hotspot-list"
 import { ActivityFeed } from "@/components/activity-feed"
 import { UnifiedMenuDrawer } from "@/components/unified-menu-drawer"
+import { OnboardingFlow } from "@/components/onboarding-flow"
 import { sanitizeInput, checkRateLimit } from "@/lib/security"
 import type { Hotspot, ActivityFeedItem } from "@/lib/types"
 import type { User } from "@supabase/supabase-js"
@@ -364,6 +365,7 @@ export function DashboardClient({
 
   return (
     <div className="h-screen flex flex-col bg-cyber-black overflow-hidden">
+      <OnboardingFlow />
       <Navbar user={user} onMenuClick={() => setIsMenuOpen(true)} />
 
       {isOffline && (
