@@ -5,7 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { formatDistanceToNow } from "date-fns"
-import { User, MapPin, Calendar, Star, ArrowLeft, Edit2, Camera, X, MessageSquare, Heart } from "lucide-react"
+import { User, MapPin, Calendar, Star, ArrowLeft, Edit2, Camera, X, MessageSquare, Heart, Instagram, Twitter } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { Navbar } from "@/components/navbar"
 import { CyberCard } from "@/components/ui/cyber-card"
@@ -91,6 +91,40 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                 </Link>
               </div>
               <p className="text-[#CCCCCC] text-sm mb-4">{user.email}</p>
+
+              <div className="flex flex-col gap-2 mb-4">
+                {profile?.city && (
+                  <div className="flex items-center gap-2 text-cyber-cyan text-sm font-mono">
+                    <MapPin className="w-4 h-4" />
+                    <span>{profile.city}</span>
+                  </div>
+                )}
+                {profile?.bio && (
+                  <p className="text-[#CCCCCC] text-sm italic max-w-lg">{profile.bio}</p>
+                )}
+                <div className="flex gap-3 mt-1">
+                  {profile?.instagram_username && (
+                    <a
+                      href={`https://instagram.com/${profile.instagram_username}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-pink-500 hover:text-pink-400"
+                    >
+                      <Instagram className="w-5 h-5" />
+                    </a>
+                  )}
+                  {profile?.twitter_username && (
+                    <a
+                      href={`https://twitter.com/${profile.twitter_username}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300"
+                    >
+                      <Twitter className="w-5 h-5" />
+                    </a>
+                  )}
+                </div>
+              </div>
 
               {/* Stats */}
               <div className="flex justify-center sm:justify-start gap-6 sm:gap-8">
