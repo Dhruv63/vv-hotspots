@@ -21,6 +21,8 @@ interface HotspotListProps {
   isLoading?: boolean
   viewMode?: "list" | "grid"
   userLocation?: [number, number] | null
+  savedHotspotIds?: string[]
+  onToggleSave?: (id: string) => void
 }
 
 export function HotspotList({
@@ -37,6 +39,8 @@ export function HotspotList({
   isLoading,
   viewMode = "list",
   userLocation,
+  savedHotspotIds = [],
+  onToggleSave,
 }: HotspotListProps) {
   const [search, setSearch] = useState("")
   const inputRef = useRef<HTMLInputElement>(null)
@@ -214,6 +218,8 @@ export function HotspotList({
                   onClick={() => onHotspotSelect(hotspot)}
                   isSelected={selectedHotspot?.id === hotspot.id}
                   distance={distance}
+                  isSaved={savedHotspotIds.includes(hotspot.id)}
+                  onToggleSave={onToggleSave}
                 >
                   <div className="flex justify-between w-full gap-2 mt-2">
                     {onCheckIn && (
