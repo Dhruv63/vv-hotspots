@@ -13,6 +13,7 @@ interface MapViewProps {
   userCurrentCheckin?: string | null
   onCheckIn?: (hotspot: Hotspot) => void
   isLoading?: boolean
+  onLocationUpdate?: (location: [number, number]) => void
 }
 
 // Vasai-Virar center coordinates
@@ -70,6 +71,7 @@ export function MapView({
   userCurrentCheckin,
   onCheckIn,
   isLoading,
+  onLocationUpdate,
 }: MapViewProps) {
   const { resolvedTheme } = useTheme()
   const theme = (resolvedTheme === "light" ? "light" : "dark") as keyof typeof THEME_COLORS
@@ -155,7 +157,7 @@ export function MapView({
       // We are in render scope, so colors is current.
       // But dependencies must include colors.
 
-      const colorInfo = colors[hotspot.category as keyof typeof colors] || colors.other
+      const colorInfo = (colors as any)[hotspot.category] || (colors as any).other
       const activeCount = activeCheckins[hotspot.id] || 0
       const isCheckedInHere = userCurrentCheckin === hotspot.id
       const hasActiveUsers = activeCount > 0
@@ -270,6 +272,9 @@ export function MapView({
       (position) => {
         const { latitude, longitude } = position.coords
         setUserLocation([latitude, longitude])
+        if (onLocationUpdate) {
+          onLocationUpdate([latitude, longitude])
+        }
 
         if (mapRef.current) {
           mapRef.current.setView([latitude, longitude], 15, { animate: true })
@@ -340,7 +345,7 @@ export function MapView({
     (hotspot: Hotspot) => {
       const activeCount = activeCheckins[hotspot.id] || 0
       const isCheckedInHere = userCurrentCheckin === hotspot.id
-      const colorInfo = colors[hotspot.category as keyof typeof colors] || colors.other
+      const colorInfo = (colors as any)[hotspot.category] || (colors as any).other
 
       return `
       <div style="

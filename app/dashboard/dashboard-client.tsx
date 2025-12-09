@@ -62,6 +62,7 @@ export function DashboardClient({
   const [userRatings, setUserRatings] = useState(initialUserRatings)
   const [userReviews, setUserReviews] = useState(initialUserReviews)
   const [isMobile, setIsMobile] = useState(false)
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null)
 
   // Sync state with props
   useEffect(() => { setActiveCheckins(initialActiveCheckins) }, [initialActiveCheckins])
@@ -454,6 +455,7 @@ export function DashboardClient({
                 userReviews={userReviews}
                 isLoading={isLoading}
                 viewMode={listComponentViewMode}
+                userLocation={userLocation}
             />
             </div>
         )}
@@ -467,6 +469,7 @@ export function DashboardClient({
             userCurrentCheckin={userCurrentCheckin}
             onCheckIn={handleCheckIn}
             isLoading={isLoading}
+            onLocationUpdate={setUserLocation}
           />
         </div>
 
@@ -485,11 +488,6 @@ export function DashboardClient({
               selectedHotspot={selectedHotspot}
               onHotspotSelect={(h) => {
                 handleHotspotSelect(h)
-                // Optionally close list on mobile after selection?
-                // Currently original code closed it. Let's keep it open or close it?
-                // Original: setDrawerOpen(null)
-                // New: setViewMode('map')? Or 'all'?
-                // If I set 'map', it closes the list drawer.
                 setViewMode('map')
               }}
               activeCheckins={activeCheckins}
@@ -501,6 +499,7 @@ export function DashboardClient({
               userReviews={userReviews}
               isLoading={isLoading}
               viewMode={listComponentViewMode}
+              userLocation={userLocation}
             />
           </div>
         </div>

@@ -9,6 +9,7 @@ interface HotspotCardProps {
   hotspot: Hotspot
   activeCheckins?: number
   averageRating?: number
+  distance?: number | null
   onClick?: () => void
   isSelected?: boolean
   children?: ReactNode
@@ -66,6 +67,7 @@ export function HotspotCard({
   hotspot,
   activeCheckins = 0,
   averageRating = 0,
+  distance,
   onClick,
   isSelected = false,
   children,
@@ -75,15 +77,15 @@ export function HotspotCard({
   return (
     <div
       onClick={onClick}
-      className={`relative overflow-hidden rounded-lg cursor-pointer transition-all duration-300 bg-cyber-dark border flex flex-col h-full active:scale-[0.98] ${
+      className={`relative overflow-hidden rounded-lg cursor-pointer transition-all duration-300 bg-cyber-navy border flex flex-col h-full active:scale-[0.98] ${
         isSelected
           ? "border-cyber-primary shadow-[0_0_20px_var(--color-cyber-primary)]"
-          : "border-cyber-gray hover:border-cyber-primary/50"
+          : "border-white/10 hover:border-cyber-primary/50"
       }`}
       style={{ width: "100%" }}
     >
-      {/* Image section */}
-      <div className="relative h-[120px] w-full shrink-0 bg-cyber-dark/50">
+      {/* Image section - Increased height to 150px */}
+      <div className="relative h-[150px] w-full shrink-0 bg-cyber-dark/50">
         <Image
           src={imageUrl || "/placeholder.svg"}
           alt={hotspot.name}
@@ -113,9 +115,16 @@ export function HotspotCard({
 
       {/* Content section */}
       <div className="p-3 flex flex-col flex-1 overflow-hidden">
-        <h3 className="font-mono text-[16px] font-bold text-cyber-light mb-1 leading-tight line-clamp-2 text-ellipsis">
-          {hotspot.name}
-        </h3>
+        <div className="flex justify-between items-start mb-1 gap-2">
+            <h3 className="font-mono text-[16px] font-bold text-cyber-light leading-tight line-clamp-2 text-ellipsis">
+            {hotspot.name}
+            </h3>
+            {distance !== undefined && distance !== null && (
+                <span className="text-[10px] font-mono font-bold text-cyber-primary whitespace-nowrap bg-cyber-primary/10 px-1.5 py-0.5 rounded border border-cyber-primary/20">
+                    {distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)} km`}
+                </span>
+            )}
+        </div>
 
         <div className="flex items-center gap-1 text-cyber-gray text-[12px] mb-2">
           <MapPin className="w-3 h-3 flex-shrink-0" />
@@ -123,7 +132,7 @@ export function HotspotCard({
         </div>
 
         {/* Rating display */}
-        <div className="flex items-center gap-1 mt-auto text-[14px]">
+        <div className="flex items-center gap-1 mt-auto text-[14px] mb-3">
           {averageRating > 0 ? (
             <>
               <span className="text-cyber-primary font-mono font-bold">{averageRating.toFixed(1)}</span>
@@ -134,8 +143,8 @@ export function HotspotCard({
           )}
         </div>
 
-        {/* Buttons (Children) */}
-        {children && <div className="mt-2 pt-1 w-full">{children}</div>}
+        {/* Buttons (Children) - Ensure full width and spacing handled by parent or flex here if needed */}
+        {children && <div className="mt-auto w-full">{children}</div>}
       </div>
     </div>
   )
