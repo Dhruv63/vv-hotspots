@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { DashboardClient } from "./dashboard-client"
+import { ErrorBoundary } from "@/components/error-boundary"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -127,16 +128,18 @@ export default async function DashboardPage() {
   const initError = errors.length > 0 ? "Failed to load some data. Please refresh the page." : null
 
   return (
-    <DashboardClient
-      user={user}
-      hotspots={hotspots || []}
-      activeCheckins={activeCheckinCounts}
-      averageRatings={averageRatings}
-      activityFeed={activityFeed}
-      userCurrentCheckin={userCheckin?.hotspot_id || null}
-      userRatings={userRatingsMap}
-      userReviews={userReviewsMap}
-      initError={initError}
-    />
+    <ErrorBoundary>
+      <DashboardClient
+        user={user}
+        hotspots={hotspots || []}
+        activeCheckins={activeCheckinCounts}
+        averageRatings={averageRatings}
+        activityFeed={activityFeed}
+        userCurrentCheckin={userCheckin?.hotspot_id || null}
+        userRatings={userRatingsMap}
+        userReviews={userReviewsMap}
+        initError={initError}
+      />
+    </ErrorBoundary>
   )
 }

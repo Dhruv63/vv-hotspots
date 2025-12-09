@@ -523,7 +523,7 @@ export function DashboardClient({
             onClose={handleCloseDetail}
             onCheckIn={() => handleCheckIn(selectedHotspot)}
             onCheckOut={handleCheckOut}
-            onRate={handleRate}
+            onRate={handleRateDetail}
             isLoading={isLoading || processingAction !== null}
           />
         )}
