@@ -31,6 +31,9 @@ export const viewport: Viewport = {
   initialScale: 1,
 }
 
+import { ServiceWorkerRegistration } from "@/components/service-worker-registration"
+import { NotificationPermissionModal } from "@/components/notification-permission-modal"
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -39,6 +42,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${firaCode.variable} font-sans antialiased`}>
+        <ServiceWorkerRegistration />
+        <NotificationPermissionModal />
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

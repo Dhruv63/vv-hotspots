@@ -48,6 +48,23 @@ export async function sendFriendRequest(receiverId: string) {
     data: { sender_id: user.id }
   })
 
+  // Send Push Notification
+  try {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    await fetch(`${siteUrl}/api/notifications/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: receiverId,
+        title: 'New Friend Request',
+        body: 'You have a new friend request!',
+        url: '/profile/friends'
+      })
+    })
+  } catch (e) {
+    console.error('Failed to send push:', e)
+  }
+
   revalidatePath(`/users`)
   revalidatePath(`/profile/friends`)
   return { success: true }
@@ -81,6 +98,23 @@ export async function acceptFriendRequest(requestId: string) {
     type: 'friend_accept',
     data: { accepter_id: user.id }
   })
+
+  // Send Push Notification
+  try {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    await fetch(`${siteUrl}/api/notifications/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: request.sender_id,
+        title: 'Friend Request Accepted',
+        body: 'Your friend request was accepted!',
+        url: '/profile/friends'
+      })
+    })
+  } catch (e) {
+    console.error('Failed to send push:', e)
+  }
 
   revalidatePath(`/users`)
   revalidatePath(`/profile/friends`)
@@ -211,8 +245,8 @@ export async function getMutualFriends(userId1: string, userId2: string) {
   const supabase = await createClient()
 
   const { data, error } = await supabase.rpc('get_mutual_friends', {
-     user_id_1: userId1,
-     user_id_2: userId2
+    user_id_1: userId1,
+    user_id_2: userId2
   })
 
   if (error) {

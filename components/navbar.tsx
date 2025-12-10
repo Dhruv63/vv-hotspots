@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client"
 import { CyberButton } from "@/components/ui/cyber-button"
 import { ThemeToggle } from "@/components/theme-toggle"
 import type { User as SupabaseUser } from "@supabase/supabase-js"
+import { NotificationsDropdown } from "@/components/notifications-dropdown"
 
 interface NavbarProps {
   user: SupabaseUser | null
@@ -65,31 +66,28 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
           <div className="hidden md:flex items-center gap-8">
             <Link
               href="/dashboard"
-              className={`font-mono text-sm tracking-wider transition-all py-1 border-b-2 ${
-                isActive("/dashboard")
+              className={`font-mono text-sm tracking-wider transition-all py-1 border-b-2 ${isActive("/dashboard")
                   ? "border-[#FFFF00] text-[#FFFF00] shadow-[0_2px_10px_rgba(255,255,0,0.3)]"
                   : "border-transparent text-cyber-light hover:text-cyber-cyan hover:border-cyber-cyan/50"
-              }`}
+                }`}
             >
               EXPLORE
             </Link>
             <Link
               href="/profile"
-              className={`font-mono text-sm tracking-wider transition-all py-1 border-b-2 ${
-                isActive("/profile")
+              className={`font-mono text-sm tracking-wider transition-all py-1 border-b-2 ${isActive("/profile")
                   ? "border-[#FFFF00] text-[#FFFF00] shadow-[0_2px_10px_rgba(255,255,0,0.3)]"
                   : "border-transparent text-cyber-light hover:text-cyber-cyan hover:border-cyber-cyan/50"
-              }`}
+                }`}
             >
               PROFILE
             </Link>
             <Link
               href="/profile/friends"
-              className={`font-mono text-sm tracking-wider transition-all py-1 border-b-2 ${
-                isActive("/profile/friends")
+              className={`font-mono text-sm tracking-wider transition-all py-1 border-b-2 ${isActive("/profile/friends")
                   ? "border-[#FFFF00] text-[#FFFF00] shadow-[0_2px_10px_rgba(255,255,0,0.3)]"
                   : "border-transparent text-cyber-light hover:text-cyber-cyan hover:border-cyber-cyan/50"
-              }`}
+                }`}
             >
               FRIENDS
             </Link>
@@ -102,6 +100,9 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
           <div className="hidden md:block w-px h-6 bg-cyber-gray/30" />
 
           <ThemeToggle />
+
+          {/* Notifications Dropdown */}
+          {user && <NotificationsDropdown userId={user.id} />}
 
           {/* Unified Menu Button (Mobile Only usually) */}
           {onMenuClick && (
@@ -166,21 +167,21 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
             </div>
           ) : (
             <div className="hidden md:flex items-center gap-2">
-               <Link href="/auth/login">
-                  <CyberButton variant="ghost" size="sm">
-                    Login
-                  </CyberButton>
-                </Link>
-                <Link href="/auth/sign-up">
-                  <CyberButton variant="cyan" size="sm">
-                    Sign Up
-                  </CyberButton>
-                </Link>
+              <Link href="/auth/login">
+                <CyberButton variant="ghost" size="sm">
+                  Login
+                </CyberButton>
+              </Link>
+              <Link href="/auth/sign-up">
+                <CyberButton variant="cyan" size="sm">
+                  Sign Up
+                </CyberButton>
+              </Link>
             </div>
           )}
 
           {/* Mobile Hamburger (Always visible on mobile) */}
-           <button
+          <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden min-h-[44px] min-w-[44px] flex items-center justify-center text-cyber-light hover:text-cyber-cyan transition-colors"
             aria-label="Toggle menu"
@@ -198,9 +199,8 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
                 <Link
                   href="/dashboard"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors font-mono min-h-[44px] ${
-                      isActive("/dashboard") ? "bg-cyber-primary/10 text-cyber-primary border border-cyber-primary" : "text-cyber-light hover:bg-cyber-cyan/10"
-                  }`}
+                  className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors font-mono min-h-[44px] ${isActive("/dashboard") ? "bg-cyber-primary/10 text-cyber-primary border border-cyber-primary" : "text-cyber-light hover:bg-cyber-cyan/10"
+                    }`}
                 >
                   <MapPin className="w-5 h-5" />
                   Explore
@@ -208,9 +208,8 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
                 <Link
                   href="/profile"
                   onClick={() => setMobileMenuOpen(false)}
-                   className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors font-mono min-h-[44px] ${
-                      isActive("/profile") ? "bg-cyber-primary/10 text-cyber-primary border border-cyber-primary" : "text-cyber-light hover:bg-cyber-cyan/10"
-                  }`}
+                  className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors font-mono min-h-[44px] ${isActive("/profile") ? "bg-cyber-primary/10 text-cyber-primary border border-cyber-primary" : "text-cyber-light hover:bg-cyber-cyan/10"
+                    }`}
                 >
                   <User className="w-5 h-5" />
                   Profile
@@ -218,9 +217,8 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
                 <Link
                   href="/profile/friends"
                   onClick={() => setMobileMenuOpen(false)}
-                   className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors font-mono min-h-[44px] ${
-                      isActive("/profile/friends") ? "bg-cyber-primary/10 text-cyber-primary border border-cyber-primary" : "text-cyber-light hover:bg-cyber-cyan/10"
-                  }`}
+                  className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors font-mono min-h-[44px] ${isActive("/profile/friends") ? "bg-cyber-primary/10 text-cyber-primary border border-cyber-primary" : "text-cyber-light hover:bg-cyber-cyan/10"
+                    }`}
                 >
                   <Users className="w-5 h-5" />
                   Friends
@@ -228,9 +226,8 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
                 <Link
                   href="/settings"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors font-mono min-h-[44px] ${
-                      isActive("/settings") ? "bg-cyber-primary/10 text-cyber-primary border border-cyber-primary" : "text-cyber-light hover:bg-cyber-cyan/10"
-                  }`}
+                  className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors font-mono min-h-[44px] ${isActive("/settings") ? "bg-cyber-primary/10 text-cyber-primary border border-cyber-primary" : "text-cyber-light hover:bg-cyber-cyan/10"
+                    }`}
                 >
                   <Settings className="w-5 h-5" />
                   Settings
