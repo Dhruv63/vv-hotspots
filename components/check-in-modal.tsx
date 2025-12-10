@@ -1,40 +1,106 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Modal } from "@/components/ui/modal"
 import { Hotspot } from "@/lib/types"
 import { Loader2, Check, MapPin, Globe, Lock } from "lucide-react"
 import { toast } from "sonner"
+import { createClient } from "@/lib/supabase/client"
+import { sanitizeInput, checkRateLimit } from "@/lib/security"
 
 interface CheckInModalProps {
   isOpen: boolean
   onClose: () => void
   hotspot: Hotspot | null
-  onCheckIn: (hotspot: Hotspot, note: string, isPublic: boolean) => Promise<void>
+  onCheckInSuccess: (hotspotId: string) => void
 }
 
-export function CheckInModal({ isOpen, onClose, hotspot, onCheckIn }: CheckInModalProps) {
+export function CheckInModal({ isOpen, onClose, hotspot, onCheckInSuccess }: CheckInModalProps) {
   const [note, setNote] = useState("")
   const [isPublic, setIsPublic] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
+
+  // Reset state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setIsSuccess(false)
+      setIsLoading(false)
+    }
+  }, [isOpen])
 
   if (!hotspot) return null
 
   const handleSubmit = async () => {
+    if (isLoading) return
     setIsLoading(true)
+    const supabase = createClient()
+
     try {
-      await onCheckIn(hotspot, note, isPublic)
+      // 1. Get User
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+      console.log("Check-in Debug: User ID", user?.id)
+      console.log("Check-in Debug: Hotspot ID", hotspot.id)
+
+      if (authError || !user) {
+        throw new Error("Authentication required")
+      }
+
+      // 2. Rate Limit
+      const rateCheck = checkRateLimit("checkIn", user.id)
+      if (!rateCheck.allowed && rateCheck.waitTime) {
+        throw new Error(`Please wait ${rateCheck.waitTime} seconds before checking in again`)
+      }
+
+      // 3. Deactivate old check-ins
+      const { error: updateError } = await supabase
+        .from("check_ins")
+        .update({ is_active: false })
+        .eq("user_id", user.id)
+        .eq("is_active", true)
+
+      if (updateError) {
+         console.error("Error deactivating old check-ins:", updateError)
+         throw updateError
+      }
+
+      // 4. Insert new check-in
+      const sanitizedNote = note ? sanitizeInput(note) : null
+      const { data: insertData, error: insertError } = await supabase
+        .from("check_ins")
+        .insert({
+          user_id: user.id,
+          hotspot_id: hotspot.id,
+          is_active: true,
+          checked_in_at: new Date().toISOString(),
+          note: sanitizedNote,
+          is_public: isPublic
+        })
+        .select()
+        .single()
+
+      console.log("Check-in Debug: Insert Response", { data: insertData, error: insertError })
+
+      if (insertError) throw insertError
+
+      // Success
+      setIsSuccess(true)
       toast.success(`Checked in at ${hotspot.name}!`)
-      // Reset form handled by closing
+
+      // Delay closing to show success state and trigger refresh
       setTimeout(() => {
+        onCheckInSuccess(hotspot.id)
         setNote("")
         setIsPublic(true)
+        setIsSuccess(false)
         onClose()
-      }, 500) // Small delay to show loading state or transition
-    } catch (error) {
-      // Error handled by parent mostly
-    } finally {
-      setIsLoading(false)
+      }, 1000)
+
+    } catch (error: any) {
+      console.error("Check-in error:", error)
+      toast.error(error.message || "Failed to check in")
+      setIsLoading(false) // Only stop loading on error, on success we keep showing success state until close
     }
   }
 
@@ -91,21 +157,35 @@ export function CheckInModal({ isOpen, onClose, hotspot, onCheckIn }: CheckInMod
             <button
                 onClick={onClose}
                 className="flex-1 py-3 px-4 rounded-lg border border-gray-600 text-gray-300 font-mono text-sm hover:bg-gray-800 transition-colors"
-                disabled={isLoading}
+                disabled={isLoading || isSuccess}
             >
                 Cancel
             </button>
             <button
                 onClick={handleSubmit}
-                disabled={isLoading}
-                className="flex-1 py-3 px-4 rounded-lg bg-[#E8FF00] text-black font-mono font-bold text-sm hover:bg-[#D4E600] transition-colors flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(232,255,0,0.3)]"
+                disabled={isLoading || isSuccess}
+                className={`flex-1 py-3 px-4 rounded-lg font-mono font-bold text-sm transition-colors flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(232,255,0,0.3)] ${
+                    isSuccess
+                        ? "bg-green-500 text-white hover:bg-green-600"
+                        : "bg-[#E8FF00] text-black hover:bg-[#D4E600]"
+                }`}
             >
                 {isLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Checking in...
+                    </>
+                ) : isSuccess ? (
+                    <>
+                        <Check className="w-4 h-4" />
+                        CHECKED IN
+                    </>
                 ) : (
-                    <Check className="w-4 h-4" />
+                    <>
+                        <Check className="w-4 h-4" />
+                        CHECK IN
+                    </>
                 )}
-                CHECK IN
             </button>
         </div>
 
