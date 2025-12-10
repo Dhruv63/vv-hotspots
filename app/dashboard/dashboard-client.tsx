@@ -429,6 +429,8 @@ export function DashboardClient({
                 userLocation={userLocation}
                 savedHotspotIds={Array.from(localSavedIds)}
                 onToggleSave={handleToggleSave}
+                onOpenFilter={() => setIsMenuOpen(true)}
+                activeFilterCount={filterCategories.length}
             />
             </div>
         )}
@@ -475,6 +477,8 @@ export function DashboardClient({
               userLocation={userLocation}
               savedHotspotIds={Array.from(localSavedIds)}
               onToggleSave={handleToggleSave}
+              onOpenFilter={() => setIsMenuOpen(true)}
+              activeFilterCount={filterCategories.length}
             />
           </div>
         </div>
