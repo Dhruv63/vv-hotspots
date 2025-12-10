@@ -1,7 +1,8 @@
 "use client"
 
-import { ReactNode, useEffect, useState } from "react"
+import { ReactNode, useEffect, useState, useId } from "react"
 import { X } from "lucide-react"
+import { modalStack } from "@/lib/modal-stack"
 
 interface ModalProps {
   isOpen: boolean
@@ -14,13 +15,26 @@ interface ModalProps {
 export function Modal({ isOpen, onClose, children, className = "", title }: ModalProps) {
   const [isClosing, setIsClosing] = useState(false)
 
+  const modalId = useId()
+
+  useEffect(() => {
+    if (isOpen) {
+      modalStack.push(modalId)
+    }
+    return () => {
+      modalStack.pop(modalId)
+    }
+  }, [isOpen, modalId])
+
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") handleClose()
+      if (e.key === "Escape" && modalStack.isTop(modalId)) {
+        handleClose()
+      }
     }
     window.addEventListener("keydown", handleEsc)
     return () => window.removeEventListener("keydown", handleEsc)
-  }, [onClose])
+  }, [onClose, modalId])
 
   useEffect(() => {
     if (isOpen) setIsClosing(false)
