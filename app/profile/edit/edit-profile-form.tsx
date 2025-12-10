@@ -23,8 +23,8 @@ export function EditProfileForm({ user, profile }: EditProfileFormProps) {
   const [username, setUsername] = useState(profile.username || "")
   const [bio, setBio] = useState(profile.bio || "")
   const [city, setCity] = useState(profile.city || "Vasai-Virar")
-  const [instagram, setInstagram] = useState(profile.instagram_username || "")
-  const [twitter, setTwitter] = useState(profile.twitter_username || "")
+  const [instagramUsername, setInstagramUsername] = useState(profile.instagram_username || "")
+  const [twitterUsername, setTwitterUsername] = useState(profile.twitter_username || "")
 
   const handleSave = async () => {
     // Validation
@@ -51,8 +51,8 @@ export function EditProfileForm({ user, profile }: EditProfileFormProps) {
                 username: sanitizeInput(username),
                 bio: sanitizeInput(bio),
                 city: sanitizeInput(city),
-                instagram_username: sanitizeInput(instagram),
-                twitter_username: sanitizeInput(twitter),
+                instagram_username: sanitizeInput(instagramUsername),
+                twitter_username: sanitizeInput(twitterUsername),
                 avatar_url: avatarUrl,
                 updated_at: new Date().toISOString()
             })
@@ -183,8 +183,8 @@ export function EditProfileForm({ user, profile }: EditProfileFormProps) {
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">@</span>
                             <input
                                 type="text"
-                                value={instagram}
-                                onChange={(e) => setInstagram(e.target.value)}
+                                value={instagramUsername}
+                                onChange={(e) => setInstagramUsername(e.target.value)}
                                 className="w-full bg-[#0A0E27] border border-gray-700 rounded-lg p-3 pl-8 text-white placeholder-gray-600 focus:outline-none focus:border-[#E8FF00] focus:ring-1 focus:ring-[#E8FF00] transition-all font-mono"
                                 placeholder="username"
                             />
@@ -198,8 +198,8 @@ export function EditProfileForm({ user, profile }: EditProfileFormProps) {
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">@</span>
                             <input
                                 type="text"
-                                value={twitter}
-                                onChange={(e) => setTwitter(e.target.value)}
+                                value={twitterUsername}
+                                onChange={(e) => setTwitterUsername(e.target.value)}
                                 className="w-full bg-[#0A0E27] border border-gray-700 rounded-lg p-3 pl-8 text-white placeholder-gray-600 focus:outline-none focus:border-[#E8FF00] focus:ring-1 focus:ring-[#E8FF00] transition-all font-mono"
                                 placeholder="username"
                             />
