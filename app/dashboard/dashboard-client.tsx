@@ -194,79 +194,17 @@ export function DashboardClient({
     // We can keep viewMode as is.
   }, [])
 
-  const performCheckIn = useCallback(
-    async (hotspot: Hotspot, note: string, isPublic: boolean) => {
-      if (isOffline) {
-        showMessage("error", "You are offline. Please check your internet connection.")
-        return
-      }
-      if (processingAction === `checkin-${hotspot.id}`) return
-
-      const rateCheck = checkRateLimit("checkIn", user.id)
-      if (!rateCheck.allowed && rateCheck.waitTime) {
-        setRateLimitCooldown(rateCheck.waitTime * 1000)
-        showMessage("error", `Too many check-ins. Please wait ${rateCheck.waitTime} seconds.`)
-        return
-      }
-
-      setIsLoading(true)
-      setProcessingAction(`checkin-${hotspot.id}`)
-      setError(null)
-      const supabase = createClient()
-
-      try {
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
-        if (sessionError || !sessionData?.session) {
-          showMessage("error", "Authentication required. Please sign in again.")
-          router.push("/auth/login")
-          return
-        }
-
-        const { error: updateError } = await supabase
-          .from("check_ins")
-          .update({ is_active: false })
-          .eq("user_id", user.id)
-          .eq("is_active", true)
-
-        if (updateError) throw updateError
-
-        const sanitizedNote = note ? sanitizeInput(note) : null
-
-        const { error: insertError } = await supabase
-          .from("check_ins")
-          .insert({
-            user_id: user.id,
-            hotspot_id: hotspot.id,
-            is_active: true,
-            checked_in_at: new Date().toISOString(),
-            note: sanitizedNote,
-            is_public: isPublic
-          })
-          .select()
-          .single()
-
-        if (insertError) throw new Error(insertError.message)
-
-        setUserCurrentCheckin(hotspot.id)
-        setActiveCheckins((prev) => ({
-          ...prev,
-          [hotspot.id]: (prev[hotspot.id] || 0) + 1,
-          ...(userCurrentCheckin && userCurrentCheckin !== hotspot.id
-            ? { [userCurrentCheckin]: Math.max(0, (prev[userCurrentCheckin] || 1) - 1) }
-            : {}),
-        }))
-
-        router.refresh()
-      } catch (err: any) {
-        showMessage("error", err.message || "Check-in failed. Please try again.")
-        throw err // Re-throw for modal
-      } finally {
-        setIsLoading(false)
-        setProcessingAction(null)
-      }
-    },
-    [user.id, userCurrentCheckin, router, isOffline, processingAction],
-  )
+  const handleCheckInSuccess = useCallback((hotspotId: string) => {
+    setUserCurrentCheckin(hotspotId)
+    setActiveCheckins((prev) => ({
+      ...prev,
+      [hotspotId]: (prev[hotspotId] || 0) + 1,
+      ...(userCurrentCheckin && userCurrentCheckin !== hotspotId
+        ? { [userCurrentCheckin]: Math.max(0, (prev[userCurrentCheckin] || 1) - 1) }
+        : {}),
+    }))
+    router.refresh()
+  }, [userCurrentCheckin, router])
 
   const handleCheckIn = useCallback((hotspot?: Hotspot) => {
       const targetHotspot = hotspot || selectedHotspot
@@ -588,7 +526,7 @@ export function DashboardClient({
         isOpen={checkInModalOpen}
         onClose={() => setCheckInModalOpen(false)}
         hotspot={actionHotspot}
-        onCheckIn={(hotspot, note, isPublic) => performCheckIn(hotspot, note, isPublic)}
+        onCheckInSuccess={handleCheckInSuccess}
       />
 
       <RateReviewModal
