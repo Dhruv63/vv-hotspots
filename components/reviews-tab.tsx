@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
 import { Star, MessageSquare, User, Loader2 } from "lucide-react"
 import Image from "next/image"
@@ -98,24 +99,26 @@ export function ReviewsTab({ hotspotId, onWriteReview, currentUserReview }: Revi
             <div key={review.id} className="bg-cyber-dark p-4 rounded-lg border border-cyber-gray/20 hover:border-cyber-cyan/30 transition-colors">
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-cyber-gray/20 overflow-hidden relative border border-cyber-gray shrink-0">
-                    {review.profiles?.avatar_url ? (
-                      <Image
-                        src={review.profiles.avatar_url}
-                        alt={review.profiles.username || "User"}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <User className="w-5 h-5 text-cyber-gray" />
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <div className="font-mono font-bold text-cyber-light text-sm">
-                      {review.profiles?.username || "Anonymous"}
+                  <Link href={review.profiles?.username ? `/users/${review.profiles.username}` : '#'}>
+                    <div className="w-10 h-10 rounded-full bg-cyber-gray/20 overflow-hidden relative border border-cyber-gray shrink-0 hover:border-cyber-cyan transition-colors">
+                      {review.profiles?.avatar_url ? (
+                        <Image
+                          src={review.profiles.avatar_url}
+                          alt={review.profiles.username || "User"}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <User className="w-5 h-5 text-cyber-gray" />
+                        </div>
+                      )}
                     </div>
+                  </Link>
+                  <div>
+                    <Link href={review.profiles?.username ? `/users/${review.profiles.username}` : '#'} className="font-mono font-bold text-cyber-light text-sm hover:underline hover:text-cyber-cyan transition-colors">
+                      {review.profiles?.username || "Anonymous"}
+                    </Link>
                     <div className="text-[10px] text-cyber-gray font-mono">
                       {formatDistanceToNow(new Date(review.created_at), { addSuffix: true })}
                     </div>
