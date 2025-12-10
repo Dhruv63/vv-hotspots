@@ -1,16 +1,24 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import { CyberCard } from "@/components/ui/cyber-card"
 import { CyberButton } from "@/components/ui/cyber-button"
-import { ArrowLeft, UserMinus, Check, X, UserX, Clock, User } from "lucide-react"
+import { ArrowLeft, UserMinus, Check, X, MapPin, User, Loader2 } from "lucide-react"
 import { toast } from "sonner"
-import { removeFriend, acceptFriendRequest, rejectFriendRequest, cancelFriendRequest } from "@/app/actions/friends"
+import { removeFriend, acceptFriendRequest, rejectFriendRequest, cancelFriendRequest, fetchFriends } from "@/app/actions/friends"
 import { formatDistanceToNow } from "date-fns"
+
+interface Friend {
+  id: string
+  username: string
+  avatar_url: string | null
+  city?: string
+  bio?: string
+}
 
 interface FriendsClientProps {
   initialFriends: any[]
@@ -24,6 +32,28 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
   const router = useRouter()
   const tab = searchParams.get('tab') || 'friends'
   const [loadingId, setLoadingId] = useState<string | null>(null)
+
+  // New state for friends fetched client-side
+  const [friends, setFriends] = useState<Friend[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    // Only fetch friends if on friends tab or just once on mount
+    const loadFriends = async () => {
+      setIsLoading(true)
+      try {
+        const data = await fetchFriends(userId)
+        setFriends(data)
+      } catch (error) {
+        console.error("Failed to fetch friends:", error)
+        toast.error("Failed to load friends")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadFriends()
+  }, [userId])
 
   const handleTabChange = (t: string) => {
     const params = new URLSearchParams(searchParams)
@@ -40,6 +70,10 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
       } else {
         toast.success(successMsg)
         router.refresh()
+        // If the action was removing a friend, update the local state too
+        if (action === removeFriend) {
+           setFriends(prev => prev.filter(f => f.id !== id))
+        }
       }
     } catch (e) {
       toast.error("An error occurred")
@@ -48,11 +82,17 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
     }
   }
 
+  const handleRemoveFriend = async (friendId: string) => {
+    if (window.confirm("Are you sure you want to remove this friend?")) {
+      await handleAction(removeFriend, friendId, "Friend removed", friendId)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-cyber-black scanlines">
       <Navbar />
 
-      <main className="pt-20 pb-12 px-4 max-w-4xl mx-auto">
+      <main className="pt-20 pb-12 px-4 max-w-6xl mx-auto">
         <Link href="/profile" className="inline-flex items-center gap-2 text-cyber-cyan hover:underline mb-6">
           <ArrowLeft className="w-4 h-4" />
           <span className="font-mono text-sm">Back to Profile</span>
@@ -70,7 +110,7 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
                   : 'text-cyber-gray hover:text-cyber-light'
               }`}
             >
-              Friends ({initialFriends.length})
+              Friends ({friends.length})
             </button>
             <button
               onClick={() => handleTabChange('requests')}
@@ -97,49 +137,99 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
 
         <div className="space-y-4">
           {tab === 'friends' && (
-            initialFriends.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {initialFriends.map((friend) => (
-                  <CyberCard key={friend.id} className="p-4 flex items-center gap-4">
-                    <Link href={`/users/${friend.username}`} className="block flex-shrink-0">
-                      <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-cyber-cyan bg-cyber-dark relative">
-                        {friend.avatar_url ? (
-                          <Image src={friend.avatar_url} alt={friend.username} fill className="object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <User className="w-6 h-6 text-cyber-cyan" />
-                          </div>
-                        )}
-                      </div>
-                    </Link>
-                    <div className="flex-1 min-w-0">
-                      <Link href={`/users/${friend.username}`} className="hover:underline">
-                        <h3 className="font-bold text-cyber-light truncate">@{friend.username}</h3>
-                      </Link>
-                      <p className="text-xs text-cyber-gray flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {friend.city || 'Vasai-Virar'}
-                      </p>
-                    </div>
-                    <CyberButton
-                      variant="ghost"
-                      size="sm"
-                      className="text-red-500 hover:text-red-400 hover:bg-red-500/10"
-                      onClick={() => handleAction(removeFriend, friend.id, "Friend removed", friend.id)}
-                      disabled={loadingId === friend.id}
-                    >
-                      <UserMinus className="w-4 h-4" />
-                    </CyberButton>
-                  </CyberCard>
-                ))}
+            isLoading ? (
+              <div className="flex justify-center py-20">
+                <Loader2 className="w-8 h-8 text-cyber-cyan animate-spin" />
               </div>
             ) : (
-              <div className="text-center py-12 border border-dashed border-cyber-gray/30 rounded-lg">
-                <p className="text-cyber-gray font-mono mb-4">You haven't added any friends yet.</p>
-                <Link href="/dashboard">
-                  <CyberButton>Explore Hotspots</CyberButton>
-                </Link>
-              </div>
+              friends.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {friends.map((friend) => (
+                    <div
+                      key={friend.id}
+                      className="flex flex-col items-center p-6 rounded-xl relative overflow-hidden group transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(232,255,0,0.2)]"
+                      style={{
+                        backgroundColor: '#0A0E27',
+                        borderColor: '#E8FF00',
+                        borderWidth: '1px'
+                      }}
+                    >
+                      {/* Avatar */}
+                      <Link href={`/users/${friend.username}`} className="mb-4 relative">
+                        <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[#00D9FF] bg-cyber-dark relative z-10">
+                          {friend.avatar_url ? (
+                            <Image src={friend.avatar_url} alt={friend.username} fill className="object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-[#0A0E27]">
+                              <User className="w-8 h-8 text-[#00D9FF]" />
+                            </div>
+                          )}
+                        </div>
+                      </Link>
+
+                      {/* Info */}
+                      <div className="text-center w-full mb-6">
+                        <Link href={`/users/${friend.username}`} className="hover:underline block mb-1">
+                          <h3 className="font-bold text-lg truncate" style={{ color: '#00D9FF' }}>@{friend.username}</h3>
+                        </Link>
+
+                        <div className="flex items-center justify-center gap-1 text-sm text-gray-400 mb-2">
+                          <MapPin className="w-3 h-3" />
+                          <span className="truncate max-w-[150px]">{friend.city || 'Vasai-Virar'}</span>
+                        </div>
+
+                        {friend.bio && (
+                          <p className="text-xs text-gray-500 line-clamp-2 min-h-[2.5em] px-2">
+                            {friend.bio}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex gap-3 w-full mt-auto">
+                        {/*
+                          Using /users/${friend.username} as the public profile route.
+                          Note: The user request mentioned /profile/{friendId}, but strictly using that
+                          would likely result in 404s as the app uses username-based routes.
+                          Proceeding with the existing username pattern for stability.
+                        */}
+                        <Link href={`/users/${friend.username}`} className="flex-1">
+                          <button
+                            className="w-full py-2 px-3 text-sm font-bold rounded transition-colors uppercase tracking-wider hover:brightness-110 flex items-center justify-center gap-2"
+                            style={{
+                              backgroundColor: '#FF006E',
+                              color: 'white'
+                            }}
+                          >
+                            View Profile
+                          </button>
+                        </Link>
+
+                        <button
+                          onClick={() => handleRemoveFriend(friend.id)}
+                          disabled={loadingId === friend.id}
+                          className="p-2 rounded border border-red-500/50 text-red-500 hover:bg-red-500/10 hover:border-red-500 transition-colors"
+                          title="Remove Friend"
+                        >
+                          {loadingId === friend.id ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                          ) : (
+                            <UserMinus className="w-5 h-5" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-20 border border-dashed border-[#E8FF00]/30 rounded-lg bg-[#0A0E27]/50">
+                  <p className="text-[#00D9FF] font-mono text-lg mb-4">No friends yet</p>
+                  <p className="text-gray-400 max-w-md mx-auto mb-6">Start connecting with other explorers in Vasai-Virar to see their activity and discoveries!</p>
+                  <Link href="/dashboard">
+                    <CyberButton>Explore Hotspots</CyberButton>
+                  </Link>
+                </div>
+              )
             )
           )}
 

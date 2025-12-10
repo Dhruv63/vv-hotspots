@@ -211,6 +211,10 @@ export async function getFriends(userId: string) {
   })
 }
 
+export async function fetchFriends(userId: string) {
+  return getFriends(userId)
+}
+
 export async function getFriendRequests(userId: string) {
   const supabase = await createClient()
 
