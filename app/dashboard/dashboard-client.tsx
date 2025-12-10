@@ -33,6 +33,8 @@ interface DashboardClientProps {
   savedHotspotIds: string[]
   todayCheckinCount: number
   initError?: string | null
+  friendIds: string[]
+  friendVisitedHotspotIds: string[]
 }
 
 export function DashboardClient({
@@ -47,6 +49,8 @@ export function DashboardClient({
   savedHotspotIds,
   todayCheckinCount,
   initError,
+  friendIds,
+  friendVisitedHotspotIds
 }: DashboardClientProps) {
   const router = useRouter()
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null)
@@ -90,6 +94,7 @@ export function DashboardClient({
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [viewMode, setViewMode] = useState<string>("all")
   const [filterCategories, setFilterCategories] = useState<string[]>([])
+  const [showFriendsOnly, setShowFriendsOnly] = useState(false)
 
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(initError || null)
@@ -320,8 +325,13 @@ export function DashboardClient({
 
   // Filter Logic
   const filteredHotspots = hotspots.filter((h) => {
-      if (filterCategories.length === 0) return true
-      return filterCategories.includes(h.category)
+      if (filterCategories.length > 0 && !filterCategories.includes(h.category)) return false
+
+      if (showFriendsOnly) {
+          return friendVisitedHotspotIds.includes(h.id)
+      }
+
+      return true
   })
 
   // View Logic
@@ -404,6 +414,8 @@ export function DashboardClient({
             onClose={() => setIsMenuOpen(false)}
             currentView={viewMode}
             currentCategories={filterCategories}
+            showFriendsOnly={showFriendsOnly}
+            onToggleFriendsOnly={setShowFriendsOnly}
             onApply={(view, cats) => {
                 setViewMode(view)
                 setFilterCategories(cats)
@@ -497,6 +509,8 @@ export function DashboardClient({
               initialActivities={initialActivityFeed}
               todayCount={todayCheckinCount}
               currentUserId={user.id}
+              friendIds={friendIds}
+              showFriendsOnly={showFriendsOnly}
             />
           </div>
         </div>
@@ -522,6 +536,8 @@ export function DashboardClient({
             initialActivities={initialActivityFeed}
             todayCount={todayCheckinCount}
             currentUserId={user.id}
+            friendIds={friendIds}
+            showFriendsOnly={showFriendsOnly}
           />
         </div>
       </div>

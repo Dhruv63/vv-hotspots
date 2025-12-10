@@ -15,9 +15,17 @@ interface ActivityFeedProps {
   initialActivities: ActivityFeedItem[]
   todayCount?: number
   currentUserId?: string
+  friendIds?: string[]
+  showFriendsOnly?: boolean
 }
 
-export function ActivityFeed({ initialActivities, todayCount = 0, currentUserId }: ActivityFeedProps) {
+export function ActivityFeed({
+  initialActivities,
+  todayCount = 0,
+  currentUserId,
+  friendIds = [],
+  showFriendsOnly = false
+}: ActivityFeedProps) {
   const [activities, setActivities] = useState<ActivityFeedItem[]>(initialActivities)
   const [dailyCount, setDailyCount] = useState(todayCount)
   const [isConnected, setIsConnected] = useState(false)
@@ -220,7 +228,14 @@ export function ActivityFeed({ initialActivities, todayCount = 0, currentUserId 
     return colors[Math.abs(hash) % colors.length]
   }
 
-  const visibleActivities = isExpanded ? activities : activities.slice(0, 10)
+  const displayActivities = activities.filter(a => {
+     if (showFriendsOnly) {
+        return friendIds.includes(a.user_id)
+     }
+     return true
+  })
+
+  const visibleActivities = isExpanded ? displayActivities : displayActivities.slice(0, 10)
 
   return (
     <div className="h-full flex flex-col">
@@ -271,6 +286,12 @@ export function ActivityFeed({ initialActivities, todayCount = 0, currentUserId 
                 <div className="absolute -top-1 -right-1 flex items-center gap-1 px-2 py-0.5 bg-cyber-primary text-cyber-black text-[10px] font-mono font-bold rounded">
                   <Zap className="w-3 h-3" />
                   NEW
+                </div>
+              )}
+
+              {friendIds.includes(activity.user_id) && (
+                <div className={`absolute ${activity.id === newActivityId ? '-top-1 right-12' : '-top-1 -right-1'} flex items-center gap-1 px-2 py-0.5 bg-cyber-cyan/20 border border-cyber-cyan text-cyber-cyan text-[10px] font-mono font-bold rounded shadow-[0_0_10px_rgba(0,255,255,0.3)]`}>
+                  YOUR FRIEND
                 </div>
               )}
 

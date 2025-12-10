@@ -85,3 +85,23 @@ export interface SavedHotspot {
   hotspot_id: string
   created_at: string
 }
+
+export interface FriendRequest {
+  id: string
+  sender_id: string
+  receiver_id: string
+  status: 'pending' | 'accepted' | 'rejected'
+  created_at: string
+  updated_at: string
+  sender?: Profile
+  receiver?: Profile
+}
+
+export interface Notification {
+  id: string
+  user_id: string
+  type: 'friend_request' | 'friend_accept'
+  data: any
+  read: boolean
+  created_at: string
+}

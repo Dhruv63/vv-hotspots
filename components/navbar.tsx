@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
-import { User, LogOut, MapPin, Menu, X, List, Settings, ChevronDown } from "lucide-react"
+import { User, LogOut, MapPin, Menu, X, List, Settings, ChevronDown, Users } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { CyberButton } from "@/components/ui/cyber-button"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -83,6 +83,16 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
             >
               PROFILE
             </Link>
+            <Link
+              href="/profile/friends"
+              className={`font-mono text-sm tracking-wider transition-all py-1 border-b-2 ${
+                isActive("/profile/friends")
+                  ? "border-[#FFFF00] text-[#FFFF00] shadow-[0_2px_10px_rgba(255,255,0,0.3)]"
+                  : "border-transparent text-cyber-light hover:text-cyber-cyan hover:border-cyber-cyan/50"
+              }`}
+            >
+              FRIENDS
+            </Link>
           </div>
         )}
 
@@ -125,6 +135,14 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
                     >
                       <User className="w-4 h-4" />
                       Profile
+                    </Link>
+                    <Link
+                      href="/profile/friends"
+                      onClick={() => setUserDropdownOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-cyber-light hover:bg-cyber-cyan/10 hover:text-cyber-cyan transition-colors"
+                    >
+                      <Users className="w-4 h-4" />
+                      Friends
                     </Link>
                     <Link
                       href="/settings"
@@ -196,6 +214,16 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
                 >
                   <User className="w-5 h-5" />
                   Profile
+                </Link>
+                <Link
+                  href="/profile/friends"
+                  onClick={() => setMobileMenuOpen(false)}
+                   className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors font-mono min-h-[44px] ${
+                      isActive("/profile/friends") ? "bg-cyber-primary/10 text-cyber-primary border border-cyber-primary" : "text-cyber-light hover:bg-cyber-cyan/10"
+                  }`}
+                >
+                  <Users className="w-5 h-5" />
+                  Friends
                 </Link>
                 <Link
                   href="/settings"
