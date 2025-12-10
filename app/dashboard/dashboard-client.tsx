@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react"
 import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
-import { WifiOff, RefreshCw, AlertTriangle, Clock } from "lucide-react"
+import { WifiOff, RefreshCw, AlertTriangle, Clock, List } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { Navbar } from "@/components/navbar"
 import { MapView } from "@/components/map-view"
@@ -326,8 +326,21 @@ export function DashboardClient({
 
   // View Logic
   const showDesktopSidebar = ['all', 'list', 'grid'].includes(viewMode)
+  const showDesktopFeed = ['all', 'feed'].includes(viewMode)
   const showMobileList = ['list', 'grid'].includes(viewMode)
   const showMobileFeed = viewMode === 'feed'
+
+  // Dynamic Map Container Classes
+  let mapContainerClasses = ""
+  if (showDesktopSidebar && showDesktopFeed) {
+    mapContainerClasses = "with-sidebar with-feed"
+  } else if (!showDesktopSidebar && !showDesktopFeed) {
+    mapContainerClasses = "map-only"
+  } else if (!showDesktopSidebar && showDesktopFeed) {
+    mapContainerClasses = "with-feed-only"
+  } else if (showDesktopSidebar && !showDesktopFeed) {
+    mapContainerClasses = "with-sidebar-only"
+  }
 
   // List View Mode (List vs Grid in the sidebar/drawer)
   const listComponentViewMode = viewMode === 'grid' ? 'grid' : 'list'
@@ -411,8 +424,11 @@ export function DashboardClient({
             onClear={() => setFilterCategories([])}
         />
 
-        {showDesktopSidebar && (
-            <div className="hidden md:block md:w-[280px] lg:w-1/4 h-full bg-cyber-dark border-r border-cyber-gray transition-all duration-300">
+        <div
+          className={`hidden md:block h-full bg-cyber-dark border-r border-cyber-gray transition-all duration-300 ease-out overflow-hidden ${
+            showDesktopSidebar ? "md:w-[280px] lg:w-1/4 opacity-100 visible" : "w-0 opacity-0 border-none invisible"
+          }`}
+        >
             <HotspotList
                 hotspots={filteredHotspots}
                 selectedHotspot={selectedHotspot}
@@ -432,10 +448,9 @@ export function DashboardClient({
                 onOpenFilter={() => setIsMenuOpen(true)}
                 activeFilterCount={filterCategories.length}
             />
-            </div>
-        )}
+        </div>
 
-        <div className="flex-1 relative z-0">
+        <div className={`flex-1 relative z-0 ${mapContainerClasses} transition-all duration-300 ease-out`}>
           <MapView
             hotspots={filteredHotspots}
             selectedHotspot={selectedHotspot}
@@ -445,7 +460,17 @@ export function DashboardClient({
             onCheckIn={handleCheckIn}
             isLoading={isLoading}
             onLocationUpdate={setUserLocation}
+            viewMode={viewMode}
           />
+          {!showDesktopSidebar && (
+            <button
+              onClick={() => setIsMenuOpen(true)}
+              className="absolute top-4 left-4 z-[400] p-2 bg-cyber-navy border border-cyber-cyan text-cyber-cyan rounded-lg shadow-[0_0_15px_rgba(0,217,255,0.3)] hover:bg-cyber-dark transition-all"
+              aria-label="Open Menu"
+            >
+              <List className="w-6 h-6" />
+            </button>
+          )}
         </div>
 
         <div
@@ -517,7 +542,11 @@ export function DashboardClient({
           />
         )}
 
-        <div className="hidden md:block md:w-[280px] lg:w-1/4 h-full bg-cyber-dark border-l border-cyber-gray p-4 overflow-hidden transition-all duration-300">
+        <div
+          className={`hidden md:block h-full bg-cyber-dark border-l border-cyber-gray overflow-hidden transition-all duration-300 ease-out ${
+            showDesktopFeed ? "md:w-[280px] lg:w-1/4 opacity-100 p-4 visible" : "w-0 opacity-0 border-none p-0 invisible"
+          }`}
+        >
           <ActivityFeed
             initialActivities={initialActivityFeed}
             todayCount={todayCheckinCount}
