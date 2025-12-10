@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useId } from "react"
 import Image from "next/image"
 import { X, MapPin, Users, Navigation, Clock, Zap, Star, MessageSquare, Loader2, Camera, Check, Heart, Share2, Copy, Instagram } from "lucide-react"
 import { toast } from "sonner"
@@ -9,6 +9,7 @@ import { StarRating } from "@/components/ui/star-rating"
 import { ActiveUsersList } from "@/components/active-users-list"
 import { PhotoGallery } from "@/components/photo-gallery"
 import { ReviewsTab } from "@/components/reviews-tab"
+import { modalStack } from "@/lib/modal-stack"
 import type { Hotspot } from "@/lib/types"
 
 interface HotspotDetailProps {
@@ -102,13 +103,22 @@ export function HotspotDetail({
   }, [isLoading, isCheckInLoading])
 
 
+  const modalId = useId()
+
+  useEffect(() => {
+    modalStack.push(modalId)
+    return () => modalStack.pop(modalId)
+  }, [modalId])
+
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose()
+      if (e.key === "Escape" && modalStack.isTop(modalId)) {
+        onClose()
+      }
     }
     window.addEventListener("keydown", handleEsc)
     return () => window.removeEventListener("keydown", handleEsc)
-  }, [onClose])
+  }, [onClose, modalId])
 
   useEffect(() => {
     const checkSaved = async () => {
