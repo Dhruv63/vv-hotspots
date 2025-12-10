@@ -16,6 +16,7 @@ interface MapViewProps {
   onCheckIn?: (hotspot: Hotspot) => void
   isLoading?: boolean
   onLocationUpdate?: (location: [number, number]) => void
+  viewMode?: string
 }
 
 // Vasai-Virar center coordinates
@@ -74,6 +75,7 @@ export function MapView({
   onCheckIn,
   isLoading,
   onLocationUpdate,
+  viewMode,
 }: MapViewProps) {
   const { resolvedTheme } = useTheme()
   const theme = (resolvedTheme === "light" ? "light" : "dark") as keyof typeof THEME_COLORS
@@ -553,6 +555,21 @@ export function MapView({
       }
     }
   }, [selectedHotspot])
+
+  // Handle layout changes
+  useEffect(() => {
+    if (mapRef.current) {
+      // Use a small timeout to allow CSS transitions to complete or start
+      const timeoutId = setTimeout(() => {
+        mapRef.current?.invalidateSize({ animate: true })
+      }, 300)
+
+      // Also invalidate immediately to start animation
+      mapRef.current.invalidateSize({ animate: true })
+
+      return () => clearTimeout(timeoutId)
+    }
+  }, [viewMode])
 
   return (
     <div className="relative w-full h-full">
