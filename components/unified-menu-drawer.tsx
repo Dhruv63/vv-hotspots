@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import { X, Check, Grid, List, Map as MapIcon, Activity, Layers, ArrowLeft } from "lucide-react"
+import { X, Check, Grid, List, Map as MapIcon, Activity, Layers, ArrowLeft, Users } from "lucide-react"
 import { useTheme } from "next-themes"
 import { THEME_COLORS } from "@/components/map-view"
 
@@ -10,6 +10,8 @@ interface UnifiedMenuDrawerProps {
   onClose: () => void
   currentView: string // 'all', 'map', 'list', 'grid', 'feed'
   currentCategories: string[]
+  showFriendsOnly: boolean
+  onToggleFriendsOnly: (value: boolean) => void
   onApply: (view: string, categories: string[]) => void
   onClear: () => void
 }
@@ -19,6 +21,8 @@ export function UnifiedMenuDrawer({
   onClose,
   currentView,
   currentCategories,
+  showFriendsOnly,
+  onToggleFriendsOnly,
   onApply,
   onClear
 }: UnifiedMenuDrawerProps) {
@@ -181,6 +185,34 @@ export function UnifiedMenuDrawer({
                         )
                     })}
                 </div>
+            </section>
+
+            {/* Social Filters */}
+            <section>
+                 <h3 className="text-cyber-light/70 font-mono text-xs font-bold mb-3 uppercase tracking-wider">Social</h3>
+                 <button
+                    onClick={() => onToggleFriendsOnly(!showFriendsOnly)}
+                    className={`flex items-center justify-between w-full p-3 rounded-lg border transition-all duration-200
+                        ${showFriendsOnly
+                            ? `${activeBorder} ${activeBg}`
+                            : "border-cyber-gray/30 bg-cyber-black/30 hover:border-cyber-gray"
+                        }
+                    `}
+                >
+                     <div className="flex items-center gap-3">
+                          <Users className={`w-4 h-4 ${showFriendsOnly ? activeColor : 'text-cyber-gray'}`} />
+                          <span className={`font-mono text-sm transition-colors ${showFriendsOnly ? "text-cyber-light font-bold" : "text-cyber-gray"}`}>
+                                Friends Only
+                          </span>
+                     </div>
+                     <div className={`w-10 h-5 rounded-full border relative transition-colors duration-300
+                          ${showFriendsOnly ? `${activeBorder} ${activeBg}` : "border-cyber-gray bg-transparent"}
+                     `}>
+                          <div className={`absolute top-0.5 bottom-0.5 w-3.5 h-3.5 rounded-full transition-all duration-300
+                               ${showFriendsOnly ? `right-0.5 ${activeColor.replace('text-', 'bg-')}` : "left-0.5 bg-cyber-gray"}
+                          `} style={{ right: showFriendsOnly ? '2px' : 'auto', left: showFriendsOnly ? 'auto' : '2px' }} />
+                     </div>
+                </button>
             </section>
 
             {/* Filter Categories */}

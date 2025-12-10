@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { UserProfileClient } from "./user-profile-client"
 import { Metadata } from "next"
+import { getMutualFriends, getFriends } from "@/app/actions/friends"
 
 interface PageProps {
   params: Promise<{ username: string }>
@@ -106,17 +107,53 @@ export default async function PublicProfilePage({ params }: PageProps) {
 
   const totalReviews = ratings?.length || 0
 
+  // 4. Friend Stats
+  const { data: { user: currentUser } } = await supabase.auth.getUser()
+
+  let friendStatus = 'none'
+  let mutualFriendsCount = 0
+  let friendCount = 0
+  let requestId = null
+
+  // Get friend count
+  const friends = await getFriends(profile.id)
+  friendCount = friends.length
+
+  if (currentUser && currentUser.id !== profile.id) {
+     const { data: request } = await supabase
+        .from('friend_requests')
+        .select('*')
+        .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${profile.id}),and(sender_id.eq.${profile.id},receiver_id.eq.${currentUser.id})`)
+        .maybeSingle()
+
+     if (request) {
+        requestId = request.id
+        if (request.status === 'accepted') friendStatus = 'friends'
+        else if (request.status === 'pending') {
+           friendStatus = request.sender_id === currentUser.id ? 'sent' : 'received'
+        }
+     }
+
+     const mutuals = await getMutualFriends(currentUser.id, profile.id)
+     mutualFriendsCount = mutuals.length
+  }
+
   return (
     <UserProfileClient
       profile={profile}
       stats={{
         checkIns: totalCheckIns,
         spotsVisited: uniqueSpotsVisited,
-        reviews: totalReviews
+        reviews: totalReviews,
+        friends: friendCount
       }}
       recentActivity={recentActivity}
       topSpots={topSpots}
       reviews={ratings || []}
+      friendStatus={friendStatus}
+      mutualFriendsCount={mutualFriendsCount}
+      currentUser={currentUser}
+      requestId={requestId}
     />
   )
 }

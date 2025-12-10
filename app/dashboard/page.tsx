@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { DashboardClient } from "./dashboard-client"
 import { ErrorBoundary } from "@/components/error-boundary"
+import { getFriends } from "@/app/actions/friends"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -143,6 +144,18 @@ export default async function DashboardPage() {
   const errors = [hotspotsError, checkinsError, ratingsError].filter(Boolean)
   const initError = errors.length > 0 ? "Failed to load some data. Please refresh the page." : null
 
+  // Fetch Friends Data
+  const friends = await getFriends(user.id)
+  const friendIds = friends.map((f: any) => f.id)
+
+  // Fetch hotspots visited by friends
+  const { data: friendVisits } = await supabase
+     .from('check_ins')
+     .select('hotspot_id')
+     .in('user_id', friendIds)
+
+  const friendVisitedHotspotIds = Array.from(new Set(friendVisits?.map(v => v.hotspot_id) || []))
+
   return (
     <ErrorBoundary>
       <DashboardClient
@@ -157,6 +170,8 @@ export default async function DashboardPage() {
         savedHotspotIds={savedHotspotIds}
         todayCheckinCount={todayCount || 0}
         initError={initError}
+        friendIds={friendIds}
+        friendVisitedHotspotIds={friendVisitedHotspotIds}
       />
     </ErrorBoundary>
   )

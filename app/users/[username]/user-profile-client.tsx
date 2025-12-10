@@ -15,21 +15,16 @@ import {
   MessageSquare,
   Instagram,
   Twitter,
-  ArrowLeft
+  ArrowLeft,
+  Check
 } from "lucide-react"
 import { toast } from "sonner"
-import { Navbar } from "@/components/navbar" // We might need to pass the current user to Navbar?
-// Actually Navbar usually fetches user itself or accepts it as prop.
-// In ProfileClient it accepted user.
-// Here, we are in a public page. The Navbar might need the current logged in user.
-// But this page is public, so user might not be logged in.
-// I'll check Navbar component.
+import { Navbar } from "@/components/navbar"
 import { CyberCard } from "@/components/ui/cyber-card"
 import { CyberButton } from "@/components/ui/cyber-button"
 import { CategoryBadge } from "@/components/ui/category-badge"
-import { createClient } from "@/lib/supabase/client"
-import { useEffect } from "react"
-import { usePathname } from "next/navigation"
+import { sendFriendRequest, acceptFriendRequest } from "@/app/actions/friends"
+import { useRouter } from "next/navigation"
 
 interface UserProfileClientProps {
   profile: any
@@ -37,10 +32,15 @@ interface UserProfileClientProps {
     checkIns: number
     spotsVisited: number
     reviews: number
+    friends: number
   }
   recentActivity: any[]
   topSpots: any[]
   reviews: any[]
+  friendStatus: string
+  mutualFriendsCount: number
+  currentUser: any
+  requestId: string | null
 }
 
 export function UserProfileClient({
@@ -48,28 +48,52 @@ export function UserProfileClient({
   stats,
   recentActivity,
   topSpots,
-  reviews
+  reviews,
+  friendStatus,
+  mutualFriendsCount,
+  currentUser,
+  requestId
 }: UserProfileClientProps) {
   const [activeTab, setActiveTab] = useState<'activity' | 'top_spots' | 'reviews'>('activity')
-  const [currentUser, setCurrentUser] = useState<any>(null)
-
-  // Fetch current user for Navbar
-  useEffect(() => {
-    const fetchUser = async () => {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      setCurrentUser(user)
-    }
-    fetchUser()
-  }, [])
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href)
     toast.success("Profile link copied to clipboard!")
   }
 
-  const handleAddFriend = () => {
-    toast.success("Friend request sent!")
+  const handleAddFriend = async () => {
+    if (!currentUser) {
+       toast.error("Please login to add friends")
+       return
+    }
+    setIsLoading(true)
+    try {
+       const res = await sendFriendRequest(profile.id)
+       if (res.error) toast.error(res.error)
+       else toast.success("Friend request sent!")
+    } catch (e) {
+       toast.error("Failed to send request")
+    } finally {
+       setIsLoading(false)
+       router.refresh()
+    }
+  }
+
+  const handleAcceptRequest = async () => {
+     if (!requestId) return
+     setIsLoading(true)
+     try {
+        const res = await acceptFriendRequest(requestId)
+        if (res.error) toast.error(res.error)
+        else toast.success("Friend request accepted!")
+     } catch (e) {
+        toast.error("Failed to accept request")
+     } finally {
+        setIsLoading(false)
+        router.refresh()
+     }
   }
 
   return (
@@ -122,10 +146,33 @@ export function UserProfileClient({
                 </div>
 
                 <div className="flex gap-3 justify-center md:justify-start">
-                  <CyberButton onClick={handleAddFriend} variant="outline" size="sm" className="gap-2">
-                    <UserPlus className="w-4 h-4" />
-                    Add Friend
-                  </CyberButton>
+                  {currentUser && currentUser.id !== profile.id && (
+                     <>
+                        {friendStatus === 'none' && (
+                           <CyberButton onClick={handleAddFriend} disabled={isLoading} variant="outline" size="sm" className="gap-2 border-lime-500 text-lime-500 hover:bg-lime-500/10 hover:text-lime-400">
+                             <UserPlus className="w-4 h-4" />
+                             Add Friend
+                           </CyberButton>
+                        )}
+                        {friendStatus === 'sent' && (
+                           <CyberButton disabled variant="outline" size="sm" className="gap-2 opacity-70 cursor-not-allowed">
+                             <Check className="w-4 h-4" />
+                             Request Sent
+                           </CyberButton>
+                        )}
+                        {friendStatus === 'received' && (
+                           <CyberButton onClick={handleAcceptRequest} disabled={isLoading} variant="default" size="sm" className="gap-2 bg-lime-500 text-black hover:bg-lime-400">
+                             Accept Request
+                           </CyberButton>
+                        )}
+                        {friendStatus === 'friends' && (
+                           <CyberButton disabled variant="outline" size="sm" className="gap-2 border-cyber-cyan text-cyber-cyan opacity-100">
+                             <Check className="w-4 h-4" />
+                             Friends ✓
+                           </CyberButton>
+                        )}
+                     </>
+                  )}
                   <CyberButton onClick={handleShare} variant="ghost" size="sm" className="px-2">
                     <Share2 className="w-5 h-5" />
                   </CyberButton>
@@ -140,9 +187,8 @@ export function UserProfileClient({
 
               <div className="flex items-center justify-center md:justify-start gap-6 text-sm text-cyber-gray mb-6">
                 <div className="flex items-center gap-2">
-                   {/* Mock mutual friends */}
-                   {/* <Users className="w-4 h-4" />
-                   <span>0 Mutual Friends</span> */}
+                   <Users className="w-4 h-4 text-cyber-cyan" />
+                   <span className="text-cyber-cyan">{mutualFriendsCount} Mutual Friends</span>
                 </div>
                 <div className="flex gap-4">
                    {profile.instagram_username && (
@@ -172,29 +218,37 @@ export function UserProfileClient({
         </CyberCard>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <CyberCard className="p-6 text-center hover:scale-105 transition-transform duration-300 group cursor-default">
-            <div className="w-12 h-12 rounded-full bg-cyber-cyan/10 flex items-center justify-center mx-auto mb-3 group-hover:bg-cyber-cyan/20 transition-colors">
-               <MapPin className="w-6 h-6 text-cyber-cyan" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <CyberCard className="p-4 md:p-6 text-center hover:scale-105 transition-transform duration-300 group cursor-default">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-cyber-cyan/10 flex items-center justify-center mx-auto mb-3 group-hover:bg-cyber-cyan/20 transition-colors">
+               <MapPin className="w-5 h-5 md:w-6 md:h-6 text-cyber-cyan" />
             </div>
-            <p className="font-mono text-4xl font-bold text-cyber-light mb-1">{stats.checkIns}</p>
-            <p className="text-cyber-gray font-mono text-xs uppercase tracking-widest">Check-ins</p>
+            <p className="font-mono text-2xl md:text-4xl font-bold text-cyber-light mb-1">{stats.checkIns}</p>
+            <p className="text-cyber-gray font-mono text-[10px] md:text-xs uppercase tracking-widest">Check-ins</p>
           </CyberCard>
 
-          <CyberCard className="p-6 text-center hover:scale-105 transition-transform duration-300 group cursor-default">
-            <div className="w-12 h-12 rounded-full bg-[#E8FF00]/10 flex items-center justify-center mx-auto mb-3 group-hover:bg-[#E8FF00]/20 transition-colors">
-               <Users className="w-6 h-6 text-[#E8FF00]" />
+          <CyberCard className="p-4 md:p-6 text-center hover:scale-105 transition-transform duration-300 group cursor-default">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#E8FF00]/10 flex items-center justify-center mx-auto mb-3 group-hover:bg-[#E8FF00]/20 transition-colors">
+               <Users className="w-5 h-5 md:w-6 md:h-6 text-[#E8FF00]" />
             </div>
-            <p className="font-mono text-4xl font-bold text-cyber-light mb-1">{stats.spotsVisited}</p>
-            <p className="text-cyber-gray font-mono text-xs uppercase tracking-widest">Spots Visited</p>
+            <p className="font-mono text-2xl md:text-4xl font-bold text-cyber-light mb-1">{stats.spotsVisited}</p>
+            <p className="text-cyber-gray font-mono text-[10px] md:text-xs uppercase tracking-widest">Spots Visited</p>
           </CyberCard>
 
-          <CyberCard className="p-6 text-center hover:scale-105 transition-transform duration-300 group cursor-default">
-            <div className="w-12 h-12 rounded-full bg-pink-500/10 flex items-center justify-center mx-auto mb-3 group-hover:bg-pink-500/20 transition-colors">
-               <Star className="w-6 h-6 text-pink-500" />
+          <CyberCard className="p-4 md:p-6 text-center hover:scale-105 transition-transform duration-300 group cursor-default">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-pink-500/10 flex items-center justify-center mx-auto mb-3 group-hover:bg-pink-500/20 transition-colors">
+               <Star className="w-5 h-5 md:w-6 md:h-6 text-pink-500" />
             </div>
-            <p className="font-mono text-4xl font-bold text-cyber-light mb-1">{stats.reviews}</p>
-            <p className="text-cyber-gray font-mono text-xs uppercase tracking-widest">Reviews Given</p>
+            <p className="font-mono text-2xl md:text-4xl font-bold text-cyber-light mb-1">{stats.reviews}</p>
+            <p className="text-cyber-gray font-mono text-[10px] md:text-xs uppercase tracking-widest">Reviews Given</p>
+          </CyberCard>
+
+          <CyberCard className="p-4 md:p-6 text-center hover:scale-105 transition-transform duration-300 group cursor-default">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-lime-500/10 flex items-center justify-center mx-auto mb-3 group-hover:bg-lime-500/20 transition-colors">
+               <Users className="w-5 h-5 md:w-6 md:h-6 text-lime-500" />
+            </div>
+            <p className="font-mono text-2xl md:text-4xl font-bold text-cyber-light mb-1">{stats.friends}</p>
+            <p className="text-cyber-gray font-mono text-[10px] md:text-xs uppercase tracking-widest">Friends</p>
           </CyberCard>
         </div>
 
