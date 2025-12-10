@@ -23,6 +23,8 @@ interface HotspotListProps {
   userLocation?: [number, number] | null
   savedHotspotIds?: string[]
   onToggleSave?: (id: string) => void
+  onOpenFilter?: () => void
+  activeFilterCount?: number
 }
 
 export function HotspotList({
@@ -41,6 +43,8 @@ export function HotspotList({
   userLocation,
   savedHotspotIds = [],
   onToggleSave,
+  onOpenFilter,
+  activeFilterCount = 0,
 }: HotspotListProps) {
   const [search, setSearch] = useState("")
   const inputRef = useRef<HTMLInputElement>(null)
@@ -119,70 +123,96 @@ export function HotspotList({
           </h2>
         </div>
 
-        <div className="relative group z-20">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-cyber-gray group-focus-within:scale-110 group-focus-within:text-cyber-primary transition-all duration-200 pointer-events-none" />
-          <Input
-            ref={inputRef}
-            placeholder="Search cafes, beaches, parks..."
-            value={search}
-            onChange={(e) => {
-                setSearch(e.target.value)
-                setShowSuggestions(true)
-            }}
-            onFocus={() => setShowSuggestions(true)}
-            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-            className="pl-12 pr-12 h-14 text-lg rounded-xl bg-cyber-navy border-cyber-gray text-cyber-light placeholder:text-cyber-gray/50 transition-all duration-200 focus:border-cyber-primary focus:ring-cyber-primary/20 focus:shadow-[0_0_12px_rgba(232,255,0,0.3)] shadow-inner"
-          />
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
-             <kbd className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded bg-cyber-black border border-cyber-gray text-[10px] font-mono text-cyber-gray">
-               <span className="text-xs">⌘</span>K
-             </kbd>
+        <div className="flex gap-2">
+          <div className="relative group z-20 flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-cyber-gray group-focus-within:scale-110 group-focus-within:text-cyber-primary transition-all duration-200 pointer-events-none" />
+            <Input
+              ref={inputRef}
+              placeholder="Search cafes, beaches, parks..."
+              value={search}
+              onChange={(e) => {
+                  setSearch(e.target.value)
+                  setShowSuggestions(true)
+              }}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+              className="pl-12 pr-12 h-14 text-lg rounded-xl bg-cyber-navy border-cyber-gray text-cyber-light placeholder:text-cyber-gray/50 transition-all duration-200 focus:border-cyber-primary focus:ring-cyber-primary/20 focus:shadow-[0_0_12px_rgba(232,255,0,0.3)] shadow-inner"
+            />
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
+              <kbd className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded bg-cyber-black border border-cyber-gray text-[10px] font-mono text-cyber-gray">
+                <span className="text-xs">⌘</span>K
+              </kbd>
+            </div>
+
+            {/* Autocomplete / Recent Searches Dropdown */}
+            {showSuggestions && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-cyber-navy border border-cyber-primary/30 rounded-lg shadow-[0_0_20px_rgba(0,0,0,0.5)] overflow-hidden animate-in fade-in zoom-in-95 duration-100 max-h-[300px] overflow-y-auto z-50">
+                {search.trim() === '' ? (
+                  recentSearches.length > 0 && (
+                    <div className="p-2">
+                      <p className="text-xs font-mono text-cyber-gray px-2 py-1">RECENT SEARCHES</p>
+                      {recentSearches.map(term => (
+                        <button
+                          key={term}
+                          onClick={() => { setSearch(term); }}
+                          className="w-full text-left px-3 py-2 hover:bg-cyber-gray/10 rounded flex items-center gap-2 text-cyber-light transition-colors"
+                        >
+                          <Clock className="w-4 h-4 text-cyber-gray" />
+                          <span className="font-mono text-sm">{term}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )
+                ) : (
+                  <div className="p-2">
+                    {filteredHotspots.slice(0, 5).map(hotspot => (
+                        <button
+                          key={hotspot.id}
+                          onClick={() => handleSuggestionClick(hotspot)}
+                          className="w-full text-left px-3 py-2 hover:bg-cyber-gray/10 rounded flex items-center gap-3 text-cyber-light group/item transition-colors"
+                        >
+                          <div className={`p-1.5 rounded-full bg-cyber-black border border-cyber-gray group-hover/item:border-cyber-primary transition-colors`}>
+                              {getCategoryIcon(hotspot.category)}
+                          </div>
+                          <div className="flex-1 overflow-hidden">
+                              <p className="font-bold font-mono text-sm truncate">{hotspot.name}</p>
+                              <p className="text-xs text-cyber-gray truncate">{hotspot.address}</p>
+                          </div>
+                        </button>
+                    ))}
+                    {filteredHotspots.length === 0 && (
+                        <div className="p-4 text-center text-cyber-gray text-sm font-mono">
+                          No matches found
+                        </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Autocomplete / Recent Searches Dropdown */}
-          {showSuggestions && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-cyber-navy border border-cyber-primary/30 rounded-lg shadow-[0_0_20px_rgba(0,0,0,0.5)] overflow-hidden animate-in fade-in zoom-in-95 duration-100 max-h-[300px] overflow-y-auto">
-               {search.trim() === '' ? (
-                 recentSearches.length > 0 && (
-                   <div className="p-2">
-                     <p className="text-xs font-mono text-cyber-gray px-2 py-1">RECENT SEARCHES</p>
-                     {recentSearches.map(term => (
-                       <button
-                         key={term}
-                         onClick={() => { setSearch(term); }}
-                         className="w-full text-left px-3 py-2 hover:bg-cyber-gray/10 rounded flex items-center gap-2 text-cyber-light transition-colors"
-                       >
-                         <Clock className="w-4 h-4 text-cyber-gray" />
-                         <span className="font-mono text-sm">{term}</span>
-                       </button>
-                     ))}
-                   </div>
-                 )
-               ) : (
-                 <div className="p-2">
-                   {filteredHotspots.slice(0, 5).map(hotspot => (
-                      <button
-                        key={hotspot.id}
-                        onClick={() => handleSuggestionClick(hotspot)}
-                        className="w-full text-left px-3 py-2 hover:bg-cyber-gray/10 rounded flex items-center gap-3 text-cyber-light group/item transition-colors"
-                      >
-                         <div className={`p-1.5 rounded-full bg-cyber-black border border-cyber-gray group-hover/item:border-cyber-primary transition-colors`}>
-                            {getCategoryIcon(hotspot.category)}
-                         </div>
-                         <div className="flex-1 overflow-hidden">
-                            <p className="font-bold font-mono text-sm truncate">{hotspot.name}</p>
-                            <p className="text-xs text-cyber-gray truncate">{hotspot.address}</p>
-                         </div>
-                      </button>
-                   ))}
-                   {filteredHotspots.length === 0 && (
-                      <div className="p-4 text-center text-cyber-gray text-sm font-mono">
-                        No matches found
-                      </div>
-                   )}
-                 </div>
-               )}
-            </div>
+          {onOpenFilter && (
+            <button
+              onClick={onOpenFilter}
+              className={`
+                h-14 px-4 rounded-xl border border-cyber-gray
+                flex items-center gap-2 transition-all duration-200
+                ${activeFilterCount > 0
+                  ? "bg-cyber-primary/10 text-cyber-primary border-cyber-primary shadow-[0_0_10px_rgba(255,255,0,0.2)]"
+                  : "bg-cyber-navy text-cyber-gray hover:text-cyber-light hover:border-cyber-light"
+                }
+              `}
+            >
+              <Filter className="w-5 h-5" />
+              <span className="hidden md:inline font-mono text-sm font-bold">
+                {activeFilterCount > 0 ? `Filters (${activeFilterCount})` : 'Filters'}
+              </span>
+              {activeFilterCount > 0 && (
+                <span className="md:hidden w-5 h-5 flex items-center justify-center bg-cyber-primary text-black text-[10px] font-bold rounded-full">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
           )}
         </div>
       </div>
