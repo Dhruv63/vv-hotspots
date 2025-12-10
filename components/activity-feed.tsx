@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
 import {
   Activity, MapPin, Zap, Radio, Clock, Heart,
@@ -275,24 +276,32 @@ export function ActivityFeed({ initialActivities, todayCount = 0, currentUserId 
 
               <div className="flex items-start gap-3">
                 <div className="relative flex-shrink-0">
-                  {activity.avatar_url ? (
-                    <img
-                      src={activity.avatar_url || "/placeholder.svg"}
-                      alt={activity.username || "User"}
-                      className="w-12 h-12 border-2 border-cyber-primary object-cover rounded-full shadow-[0_0_10px_var(--color-cyber-primary)]"
-                    />
-                  ) : (
-                    <div className={`w-12 h-12 border-2 border-cyber-primary flex items-center justify-center rounded-full shadow-[0_0_10px_var(--color-cyber-primary)] ${getUserColor(activity.username || "Anonymous")} text-white`}>
-                      <span className="font-mono font-bold text-lg">{getInitials(activity.username || "AN")}</span>
-                    </div>
-                  )}
-                  <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-400 border-2 border-cyber-black rounded-full" />
+                  <Link href={activity.username ? `/users/${activity.username}` : '#'}>
+                    {activity.avatar_url ? (
+                      <img
+                        src={activity.avatar_url || "/placeholder.svg"}
+                        alt={activity.username || "User"}
+                        className="w-12 h-12 border-2 border-cyber-primary object-cover rounded-full shadow-[0_0_10px_var(--color-cyber-primary)]"
+                      />
+                    ) : (
+                      <div className={`w-12 h-12 border-2 border-cyber-primary flex items-center justify-center rounded-full shadow-[0_0_10px_var(--color-cyber-primary)] ${getUserColor(activity.username || "Anonymous")} text-white`}>
+                        <span className="font-mono font-bold text-lg">{getInitials(activity.username || "AN")}</span>
+                      </div>
+                    )}
+                    <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-400 border-2 border-cyber-black rounded-full" />
+                  </Link>
                 </div>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-col gap-1">
                     <p className="text-sm text-cyber-gray font-mono">
-                      <span className="text-cyber-light font-bold">{activity.username || "Anonymous"}</span>
+                      {activity.username ? (
+                        <Link href={`/users/${activity.username}`} className="hover:underline">
+                          <span className="text-cyber-light font-bold">{activity.username}</span>
+                        </Link>
+                      ) : (
+                         <span className="text-cyber-light font-bold">Anonymous</span>
+                      )}
                       <span className="mx-1">@</span>
                       <span className="text-cyber-cyan truncate">{activity.hotspot_name}</span>
                       <span className="ml-2 inline-flex align-middle">{getCategoryIcon(activity.hotspot_category)}</span>

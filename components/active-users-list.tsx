@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
+import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { formatDistanceToNow } from "date-fns"
 import { User, Loader2 } from "lucide-react"
@@ -118,34 +119,36 @@ export function ActiveUsersList({ hotspotId }: ActiveUsersListProps) {
 
       <div className="flex flex-wrap gap-4">
         {users.map((user) => (
-          <div key={user.user_id} className="flex flex-col items-center gap-2 group w-16 relative">
-            <div className="relative">
-              {user.avatar_url ? (
-                <img
-                  src={user.avatar_url}
-                  alt={user.username}
-                  className="w-12 h-12 rounded-full border-2 border-cyber-primary/50 group-hover:border-cyber-primary transition-colors object-cover bg-cyber-black"
-                />
-              ) : (
-                <div className="w-12 h-12 rounded-full border-2 border-cyber-primary/50 group-hover:border-cyber-primary transition-colors bg-cyber-dark flex items-center justify-center">
-                  <User className="w-6 h-6 text-cyber-primary/70" />
+          <Link key={user.user_id} href={`/users/${user.username}`}>
+            <div className="flex flex-col items-center gap-2 group w-16 relative">
+              <div className="relative">
+                {user.avatar_url ? (
+                  <img
+                    src={user.avatar_url}
+                    alt={user.username}
+                    className="w-12 h-12 rounded-full border-2 border-cyber-primary/50 group-hover:border-cyber-primary transition-colors object-cover bg-cyber-black"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full border-2 border-cyber-primary/50 group-hover:border-cyber-primary transition-colors bg-cyber-dark flex items-center justify-center">
+                    <User className="w-6 h-6 text-cyber-primary/70" />
+                  </div>
+                )}
+                <div className="absolute inset-0 rounded-full shadow-[0_0_10px_var(--color-cyber-primary)] group-hover:shadow-[0_0_15px_var(--color-cyber-primary)] transition-all pointer-events-none" />
+              </div>
+
+              <span className="text-[10px] font-mono text-cyber-gray group-hover:text-cyber-primary truncate w-full text-center transition-colors">
+                {user.username}
+              </span>
+
+              {/* Tooltip */}
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-cyber-black border border-cyber-primary text-cyber-light text-xs font-mono rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-[0_0_10px_var(--color-cyber-primary)]">
+                <div className="font-bold text-cyber-primary mb-0.5">{user.username}</div>
+                <div className="text-cyber-gray text-[10px]">
+                  {user.checked_in_at ? formatDistanceToNow(new Date(user.checked_in_at), { addSuffix: true }) : 'Just now'}
                 </div>
-              )}
-              <div className="absolute inset-0 rounded-full shadow-[0_0_10px_var(--color-cyber-primary)] group-hover:shadow-[0_0_15px_var(--color-cyber-primary)] transition-all pointer-events-none" />
-            </div>
-
-            <span className="text-[10px] font-mono text-cyber-gray group-hover:text-cyber-primary truncate w-full text-center transition-colors">
-              {user.username}
-            </span>
-
-            {/* Tooltip */}
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-cyber-black border border-cyber-primary text-cyber-light text-xs font-mono rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-[0_0_10px_var(--color-cyber-primary)]">
-              <div className="font-bold text-cyber-primary mb-0.5">{user.username}</div>
-              <div className="text-cyber-gray text-[10px]">
-                {user.checked_in_at ? formatDistanceToNow(new Date(user.checked_in_at), { addSuffix: true }) : 'Just now'}
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>
