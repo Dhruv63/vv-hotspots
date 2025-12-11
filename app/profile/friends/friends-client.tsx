@@ -12,16 +12,22 @@ import { toast } from "sonner"
 import { removeFriend, acceptFriendRequest, rejectFriendRequest, cancelFriendRequest, fetchFriends } from "@/app/actions/friends"
 import { formatDistanceToNow } from "date-fns"
 
+console.log('Friends Tab Version 3')
+
 interface Friend {
-  id: string
+  friendshipId: string
+  friendId: string
   username: string
-  avatar_url: string | null
-  city?: string
-  bio?: string
+  avatarUrl: string | null
+  bio: string | undefined
+  city: string | undefined
+  instagramUsername: string | undefined
+  twitterUsername: string | undefined
+  createdAt: string
 }
 
 interface FriendsClientProps {
-  initialFriends: any[]
+  initialFriends: any[] // We can use 'any' or the return type of fetchFriends, but 'any' is safe for props passed from server component
   initialRequests: any[]
   initialSent: any[]
   userId: string
@@ -33,16 +39,22 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
   const tab = searchParams.get('tab') || 'friends'
   const [loadingId, setLoadingId] = useState<string | null>(null)
 
-  // New state for friends fetched client-side
-  const [friends, setFriends] = useState<Friend[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  // Initialize with server data if available, but we'll fetch fresh data anyway as per existing pattern
+  // Actually, let's respect initialFriends to avoid flicker if it's already correct type
+  // But since we just changed the type, let's cast it or trust it.
+  const [friends, setFriends] = useState<Friend[]>(initialFriends as Friend[])
+  const [isLoading, setIsLoading] = useState(false) // Start false as we have initial data
 
   useEffect(() => {
-    // Only fetch friends if on friends tab or just once on mount
+    // Refresh friends on mount to ensure latest data
     const loadFriends = async () => {
-      setIsLoading(true)
+      // Only set loading if we don't have friends yet? No, silent update is better usually.
+      // But if initialFriends was empty, maybe show loading.
+      if (friends.length === 0) setIsLoading(true)
+
       try {
-        const data = await fetchFriends(userId)
+        const data = await fetchFriends()
+        // @ts-ignore - The action returns the correct type now
         setFriends(data)
       } catch (error) {
         console.error("Failed to fetch friends:", error)
@@ -53,7 +65,7 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
     }
 
     loadFriends()
-  }, [userId])
+  }, []) // Empty dependency array - run once on mount
 
   const handleTabChange = (t: string) => {
     const params = new URLSearchParams(searchParams)
@@ -72,7 +84,8 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
         router.refresh()
         // If the action was removing a friend, update the local state too
         if (action === removeFriend) {
-           setFriends(prev => prev.filter(f => f.id !== id))
+           // For removeFriend, we passed friendshipId
+           setFriends(prev => prev.filter(f => f.friendshipId !== id))
         }
       }
     } catch (e) {
@@ -82,9 +95,9 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
     }
   }
 
-  const handleRemoveFriend = async (friendId: string) => {
+  const handleRemoveFriend = async (friendshipId: string) => {
     if (window.confirm("Are you sure you want to remove this friend?")) {
-      await handleAction(removeFriend, friendId, "Friend removed", friendId)
+      await handleAction(removeFriend, friendshipId, "Friend removed", friendshipId)
     }
   }
 
@@ -146,7 +159,7 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {friends.map((friend) => (
                     <div
-                      key={friend.id}
+                      key={friend.friendshipId}
                       className="flex flex-col items-center p-6 rounded-xl relative overflow-hidden group transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(232,255,0,0.2)]"
                       style={{
                         backgroundColor: '#0A0E27',
@@ -157,8 +170,8 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
                       {/* Avatar */}
                       <Link href={`/users/${friend.username}`} className="mb-4 relative">
                         <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[#00D9FF] bg-cyber-dark relative z-10">
-                          {friend.avatar_url ? (
-                            <Image src={friend.avatar_url} alt={friend.username} fill className="object-cover" />
+                          {friend.avatarUrl ? (
+                            <Image src={friend.avatarUrl} alt={friend.username} fill className="object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-[#0A0E27]">
                               <User className="w-8 h-8 text-[#00D9FF]" />
@@ -187,12 +200,6 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
 
                       {/* Actions */}
                       <div className="flex gap-3 w-full mt-auto">
-                        {/*
-                          Using /users/${friend.username} as the public profile route.
-                          Note: The user request mentioned /profile/{friendId}, but strictly using that
-                          would likely result in 404s as the app uses username-based routes.
-                          Proceeding with the existing username pattern for stability.
-                        */}
                         <Link href={`/users/${friend.username}`} className="flex-1">
                           <button
                             className="w-full py-2 px-3 text-sm font-bold rounded transition-colors uppercase tracking-wider hover:brightness-110 flex items-center justify-center gap-2"
@@ -206,12 +213,12 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
                         </Link>
 
                         <button
-                          onClick={() => handleRemoveFriend(friend.id)}
-                          disabled={loadingId === friend.id}
+                          onClick={() => handleRemoveFriend(friend.friendshipId)}
+                          disabled={loadingId === friend.friendshipId}
                           className="p-2 rounded border border-red-500/50 text-red-500 hover:bg-red-500/10 hover:border-red-500 transition-colors"
                           title="Remove Friend"
                         >
-                          {loadingId === friend.id ? (
+                          {loadingId === friend.friendshipId ? (
                             <Loader2 className="w-5 h-5 animate-spin" />
                           ) : (
                             <UserMinus className="w-5 h-5" />

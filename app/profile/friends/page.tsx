@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { getFriends, getFriendRequests, getSentRequests } from "@/app/actions/friends"
+import { fetchFriends, getFriendRequests, getSentRequests } from "@/app/actions/friends"
 import { FriendsClient } from "./friends-client"
 import { redirect } from "next/navigation"
 
@@ -11,7 +11,8 @@ export default async function FriendsPage() {
     redirect("/auth/login")
   }
 
-  const friends = await getFriends(user.id)
+  // Use fetchFriends directly (no args)
+  const friends = await fetchFriends()
   const requests = await getFriendRequests(user.id)
   const sent = await getSentRequests(user.id)
 
