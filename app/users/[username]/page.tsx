@@ -4,6 +4,9 @@ import { UserProfileClient } from "./user-profile-client"
 import { Metadata } from "next"
 import { getMutualFriends, getFriends } from "@/app/actions/friends"
 
+// Force dynamic rendering to ensure fresh friendship status on every load
+export const dynamic = 'force-dynamic'
+
 interface PageProps {
   params: Promise<{ username: string }>
 }
