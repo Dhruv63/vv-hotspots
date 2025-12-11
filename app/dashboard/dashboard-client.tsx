@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation"
 import { WifiOff, RefreshCw, AlertTriangle, Clock, List } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { Navbar } from "@/components/navbar"
-import { MapView } from "@/components/map-view"
 import { HotspotList } from "@/components/hotspot-list"
 import { ActivityFeed } from "@/components/activity-feed"
 import { UnifiedMenuDrawer } from "@/components/unified-menu-drawer"
@@ -16,6 +15,15 @@ import { RateReviewModal } from "@/components/rate-review-modal"
 import { sanitizeInput, checkRateLimit } from "@/lib/security"
 import type { Hotspot, ActivityFeedItem } from "@/lib/types"
 import type { User } from "@supabase/supabase-js"
+
+const MapView = dynamic(() => import("@/components/map-view").then((mod) => mod.MapView), {
+  ssr: false,
+  loading: () => (
+    <div className="h-full w-full flex items-center justify-center bg-cyber-dark text-cyber-cyan font-mono animate-pulse">
+      Loading Map...
+    </div>
+  ),
+})
 
 const HotspotDetail = dynamic(() => import("@/components/hotspot-detail").then((mod) => mod.HotspotDetail), {
   loading: () => null,
