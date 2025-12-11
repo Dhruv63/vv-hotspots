@@ -115,9 +115,10 @@ export function FriendsClient({ initialFriends, incoming, sent, userId, user, di
     }
   }
 
-  const handleRemoveFriend = async (friendshipId: string) => {
+  const handleRemoveFriend = async (friendshipId: string, friendUserId: string) => {
     if (window.confirm("Are you sure you want to remove this friend?")) {
-      await handleAction(removeFriend, friendshipId, "Friend removed", 'friend')
+      // Wrap removeFriend to pass the extra argument
+      await handleAction((id: string) => removeFriend(id, friendUserId), friendshipId, "Friend removed", 'friend')
     }
   }
 
@@ -242,7 +243,7 @@ export function FriendsClient({ initialFriends, incoming, sent, userId, user, di
                           </Link>
 
                           <button
-                            onClick={() => handleRemoveFriend(item.friendshipId)}
+                            onClick={() => handleRemoveFriend(item.friendshipId, friend.id)}
                             disabled={loadingId === item.friendshipId}
                             className="p-2 rounded border border-red-500/50 text-red-500 hover:bg-red-500/10 hover:border-red-500 transition-colors"
                             title="Remove Friend"

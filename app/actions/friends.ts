@@ -69,6 +69,11 @@ export async function acceptFriendRequest(requestId: string) {
 
   revalidatePath('/profile/friends');
   revalidatePath('/users');
+
+  // Revalidate specific profile pages
+  revalidatePath(`/profile/${request.sender_id}`);
+  revalidatePath(`/profile/${request.receiver_id}`);
+
   return { success: true };
 }
 
@@ -85,42 +90,33 @@ export async function rejectFriendRequest(requestId: string) {
   return { success: !error };
 }
 
-export async function removeFriend(friendshipId: string) {
+export async function removeFriend(friendshipId: string, friendUserId: string) {
   const supabase = await createClient();
-
-  // Get friendship details first to know which users to revalidate
-  const { data: friendship } = await supabase
-    .from('friendships')
-    .select('user_id_1, user_id_2')
-    .eq('id', friendshipId)
-    .single();
+  const { data: { user } } = await supabase.auth.getUser();
 
   const { error } = await supabase
     .from('friendships')
     .delete()
     .eq('id', friendshipId);
 
-  if (error) return { success: false };
+  if (error) return { success: false, error: error.message };
 
+  // Also delete the associated friend_request to prevent "Already friends" state and UI glitches
+  // The public profile page relies on friend_requests status, so this must be cleaned up
+  if (user && friendUserId) {
+      await supabase.from('friend_requests')
+        .delete()
+        .or(`and(sender_id.eq.${user.id},receiver_id.eq.${friendUserId}),and(sender_id.eq.${friendUserId},receiver_id.eq.${user.id})`);
+  }
+
+  revalidatePath('/friends');
+  revalidatePath('/profile');
+  revalidatePath(`/profile/${friendUserId}`);
+  revalidatePath(`/users/[username]`);
+
+  // Also revalidate the legacy paths just in case
   revalidatePath('/profile/friends');
   revalidatePath('/users');
-
-  // Attempt to revalidate specific profile pages if we can identify the friend
-  if (friendship) {
-      const { data: { user } } = await supabase.auth.getUser();
-      const friendId = friendship.user_id_1 === user?.id ? friendship.user_id_2 : friendship.user_id_1;
-      // Note: Revalidating by ID might not work if the path uses username, but we revalidated /users which should cover list.
-      // Ideally we would look up the username to revalidate /users/[username] specifically.
-      if (friendId) {
-          revalidatePath(`/profile/${friendId}`); // As requested by user
-
-          // Also try to find username to revalidate public profile properly
-          const { data: profile } = await supabase.from('profiles').select('username').eq('id', friendId).single();
-          if (profile?.username) {
-              revalidatePath(`/users/${profile.username}`);
-          }
-      }
-  }
 
   return { success: true };
 }
