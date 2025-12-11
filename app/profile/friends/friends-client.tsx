@@ -9,24 +9,26 @@ import { CyberCard } from "@/components/ui/cyber-card"
 import { CyberButton } from "@/components/ui/cyber-button"
 import { ArrowLeft, UserMinus, Check, X, MapPin, User, Loader2 } from "lucide-react"
 import { toast } from "sonner"
-import { removeFriend, acceptFriendRequest, rejectFriendRequest, cancelFriendRequest, fetchFriends } from "@/app/actions/friends"
+import { removeFriend, acceptFriendRequest, rejectFriendRequest, cancelFriendRequest, getFriends, getRequests } from "@/app/actions/friends"
 import { formatDistanceToNow } from "date-fns"
 import type { User as SupabaseUser } from "@supabase/supabase-js"
 
 interface Friend {
   friendshipId: string
-  friendId: string
-  username: string
-  avatarUrl: string | null
-  bio: string | undefined
-  city: string | undefined
-  instagramUsername: string | undefined
-  twitterUsername: string | undefined
-  createdAt: string
+  friend: {
+    id: string
+    username: string
+    avatar_url: string | null
+    bio: string | null
+    city: string | null
+    instagram_username: string | null
+    twitter_username: string | null
+    [key: string]: any
+  }
 }
 
 interface FriendsClientProps {
-  initialFriends: any[] // We can use 'any' or the return type of fetchFriends, but 'any' is safe for props passed from server component
+  initialFriends: any[]
   initialRequests: any[]
   initialSent: any[]
   userId: string
@@ -40,35 +42,39 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
   const tab = searchParams.get('tab') || 'friends'
   const [loadingId, setLoadingId] = useState<string | null>(null)
 
-  // Initialize with server data if available, but we'll fetch fresh data anyway as per existing pattern
-  // Actually, let's respect initialFriends to avoid flicker if it's already correct type
-  // But since we just changed the type, let's cast it or trust it.
   const [friends, setFriends] = useState<Friend[]>(initialFriends as Friend[])
-  const [isLoading, setIsLoading] = useState(false) // Start false as we have initial data
+  const [requests, setRequests] = useState(initialRequests)
+  const [sent, setSent] = useState(initialSent)
+  const [isLoading, setIsLoading] = useState(false)
 
+  // Explicitly fetch data on client mount/update to ensure synchronization, unless disabled
   useEffect(() => {
-    if (disableAutoFetch) return
+    if (disableAutoFetch) return;
 
-    // Refresh friends on mount to ensure latest data
-    const loadFriends = async () => {
-      // Only set loading if we don't have friends yet? No, silent update is better usually.
-      // But if initialFriends was empty, maybe show loading.
-      if (friends.length === 0) setIsLoading(true)
+    const refreshData = async () => {
+       // Only show loading spinner if we don't have data, otherwise do silent update
+       if (friends.length === 0 && requests.length === 0 && sent.length === 0) {
+           setIsLoading(true);
+       }
 
-      try {
-        const data = await fetchFriends()
-        // @ts-ignore - The action returns the correct type now
-        setFriends(data)
-      } catch (error) {
-        console.error("Failed to fetch friends:", error)
-        toast.error("Failed to load friends")
-      } finally {
-        setIsLoading(false)
-      }
+       try {
+           const [freshFriends, freshRequests] = await Promise.all([
+               getFriends(),
+               getRequests()
+           ]);
+           setFriends(freshFriends as Friend[]);
+           setRequests(freshRequests.incoming);
+           setSent(freshRequests.sent);
+       } catch (error) {
+           console.error("Failed to refresh friend data:", error);
+       } finally {
+           setIsLoading(false);
+       }
     }
 
-    loadFriends()
-  }, []) // Empty dependency array - run once on mount
+    refreshData();
+  }, [disableAutoFetch]);
+
 
   const handleTabChange = (t: string) => {
     const params = new URLSearchParams(searchParams)
@@ -76,19 +82,30 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
     router.push(`?${params.toString()}`)
   }
 
-  const handleAction = async (action: Function, id: string, successMsg: string, arg?: string) => {
+  const handleAction = async (action: Function, id: string, successMsg: string, context?: 'friend' | 'request' | 'sent') => {
     setLoadingId(id)
     try {
-      const res = await action(arg || id)
+      const res = await action(id)
       if (res.error) {
         toast.error(res.error)
       } else {
         toast.success(successMsg)
-        router.refresh()
-        // If the action was removing a friend, update the local state too
-        if (action === removeFriend) {
-           // For removeFriend, we passed friendshipId
-           setFriends(prev => prev.filter(f => f.friendshipId !== id))
+
+        // Optimistic Update
+        if (context === 'friend') {
+            setFriends(prev => prev.filter(f => f.friendshipId !== id));
+        } else if (context === 'request') {
+            // If accepting, we move it to friends? Or just remove from requests
+            // Since we don't have the full friend object easily, just removing it is safer until refresh
+            setRequests(prev => prev.filter(r => r.id !== id));
+            if (action === acceptFriendRequest) {
+                 // Trigger full refresh to update friends list properly
+                 router.refresh();
+            }
+        } else if (context === 'sent') {
+            setSent(prev => prev.filter(s => s.id !== id));
+        } else {
+            router.refresh();
         }
       }
     } catch (e) {
@@ -100,7 +117,7 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
 
   const handleRemoveFriend = async (friendshipId: string) => {
     if (window.confirm("Are you sure you want to remove this friend?")) {
-      await handleAction(removeFriend, friendshipId, "Friend removed", friendshipId)
+      await handleAction(removeFriend, friendshipId, "Friend removed", 'friend')
     }
   }
 
@@ -136,7 +153,7 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
                   : 'text-cyber-gray hover:text-cyber-light'
               }`}
             >
-              Requests ({initialRequests.length})
+              Requests ({requests.length})
             </button>
             <button
               onClick={() => handleTabChange('sent')}
@@ -146,90 +163,94 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
                   : 'text-cyber-gray hover:text-cyber-light'
               }`}
             >
-              Sent ({initialSent.length})
+              Sent ({sent.length})
             </button>
           </div>
         </div>
 
         <div className="space-y-4">
           {tab === 'friends' && (
-            isLoading ? (
+            isLoading && friends.length === 0 ? (
               <div className="flex justify-center py-20">
                 <Loader2 className="w-8 h-8 text-cyber-cyan animate-spin" />
               </div>
             ) : (
               friends.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {friends.map((friend) => (
-                    <div
-                      key={friend.friendshipId}
-                      className="flex flex-col items-center p-6 rounded-xl relative overflow-hidden group transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(232,255,0,0.2)]"
-                      style={{
-                        backgroundColor: '#0A0E27',
-                        borderColor: '#E8FF00',
-                        borderWidth: '1px'
-                      }}
-                    >
-                      {/* Avatar */}
-                      <Link href={`/users/${friend.username}`} className="mb-4 relative">
-                        <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[#00D9FF] bg-cyber-dark relative z-10">
-                          {friend.avatarUrl ? (
-                            <Image src={friend.avatarUrl} alt={friend.username} fill className="object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-[#0A0E27]">
-                              <User className="w-8 h-8 text-[#00D9FF]" />
-                            </div>
-                          )}
-                        </div>
-                      </Link>
-
-                      {/* Info */}
-                      <div className="text-center w-full mb-6">
-                        <Link href={`/users/${friend.username}`} className="hover:underline block mb-1">
-                          <h3 className="font-bold text-lg truncate" style={{ color: '#00D9FF' }}>@{friend.username}</h3>
+                  {friends.map((item) => {
+                    const friend = item.friend;
+                    if (!friend) return null; // Safety check
+                    return (
+                      <div
+                        key={item.friendshipId}
+                        className="flex flex-col items-center p-6 rounded-xl relative overflow-hidden group transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(232,255,0,0.2)]"
+                        style={{
+                          backgroundColor: '#0A0E27',
+                          borderColor: '#E8FF00',
+                          borderWidth: '1px'
+                        }}
+                      >
+                        {/* Avatar */}
+                        <Link href={`/users/${friend.username}`} className="mb-4 relative">
+                          <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[#00D9FF] bg-cyber-dark relative z-10">
+                            {friend.avatar_url ? (
+                              <Image src={friend.avatar_url} alt={friend.username} fill className="object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-[#0A0E27]">
+                                <User className="w-8 h-8 text-[#00D9FF]" />
+                              </div>
+                            )}
+                          </div>
                         </Link>
 
-                        <div className="flex items-center justify-center gap-1 text-sm text-gray-400 mb-2">
-                          <MapPin className="w-3 h-3" />
-                          <span className="truncate max-w-[150px]">{friend.city || 'Vasai-Virar'}</span>
+                        {/* Info */}
+                        <div className="text-center w-full mb-6">
+                          <Link href={`/users/${friend.username}`} className="hover:underline block mb-1">
+                            <h3 className="font-bold text-lg truncate" style={{ color: '#00D9FF' }}>@{friend.username}</h3>
+                          </Link>
+
+                          <div className="flex items-center justify-center gap-1 text-sm text-gray-400 mb-2">
+                            <MapPin className="w-3 h-3" />
+                            <span className="truncate max-w-[150px]">{friend.city || 'Vasai-Virar'}</span>
+                          </div>
+
+                          {friend.bio && (
+                            <p className="text-xs text-gray-500 line-clamp-2 min-h-[2.5em] px-2">
+                              {friend.bio}
+                            </p>
+                          )}
                         </div>
 
-                        {friend.bio && (
-                          <p className="text-xs text-gray-500 line-clamp-2 min-h-[2.5em] px-2">
-                            {friend.bio}
-                          </p>
-                        )}
-                      </div>
+                        {/* Actions */}
+                        <div className="flex gap-3 w-full mt-auto">
+                          <Link href={`/users/${friend.username}`} className="flex-1">
+                            <button
+                              className="w-full py-2 px-3 text-sm font-bold rounded transition-colors uppercase tracking-wider hover:brightness-110 flex items-center justify-center gap-2"
+                              style={{
+                                backgroundColor: '#FF006E',
+                                color: 'white'
+                              }}
+                            >
+                              View Profile
+                            </button>
+                          </Link>
 
-                      {/* Actions */}
-                      <div className="flex gap-3 w-full mt-auto">
-                        <Link href={`/users/${friend.username}`} className="flex-1">
                           <button
-                            className="w-full py-2 px-3 text-sm font-bold rounded transition-colors uppercase tracking-wider hover:brightness-110 flex items-center justify-center gap-2"
-                            style={{
-                              backgroundColor: '#FF006E',
-                              color: 'white'
-                            }}
+                            onClick={() => handleRemoveFriend(item.friendshipId)}
+                            disabled={loadingId === item.friendshipId}
+                            className="p-2 rounded border border-red-500/50 text-red-500 hover:bg-red-500/10 hover:border-red-500 transition-colors"
+                            title="Remove Friend"
                           >
-                            View Profile
+                            {loadingId === item.friendshipId ? (
+                              <Loader2 className="w-5 h-5 animate-spin" />
+                            ) : (
+                              <UserMinus className="w-5 h-5" />
+                            )}
                           </button>
-                        </Link>
-
-                        <button
-                          onClick={() => handleRemoveFriend(friend.friendshipId)}
-                          disabled={loadingId === friend.friendshipId}
-                          className="p-2 rounded border border-red-500/50 text-red-500 hover:bg-red-500/10 hover:border-red-500 transition-colors"
-                          title="Remove Friend"
-                        >
-                          {loadingId === friend.friendshipId ? (
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                          ) : (
-                            <UserMinus className="w-5 h-5" />
-                          )}
-                        </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-20 border border-dashed border-[#E8FF00]/30 rounded-lg bg-[#0A0E27]/50">
@@ -244,9 +265,9 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
           )}
 
           {tab === 'requests' && (
-            initialRequests.length > 0 ? (
+            requests.length > 0 ? (
               <div className="space-y-4">
-                {initialRequests.map((req) => (
+                {requests.map((req: any) => (
                   <CyberCard key={req.id} className="p-4 flex items-center gap-4 border-l-4 border-l-lime-500">
                     <Link href={`/users/${req.sender.username}`} className="block flex-shrink-0">
                       <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-lime-500 bg-cyber-dark relative">
@@ -273,7 +294,7 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
                         variant="ghost"
                         size="sm"
                         className="bg-lime-500 text-black hover:bg-lime-400"
-                        onClick={() => handleAction(acceptFriendRequest, req.id, "Friend request accepted")}
+                        onClick={() => handleAction(acceptFriendRequest, req.id, "Friend request accepted", 'request')}
                         disabled={loadingId === req.id}
                       >
                         <Check className="w-4 h-4 mr-1" /> Accept
@@ -282,7 +303,7 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
                         variant="ghost"
                         size="sm"
                         className="text-red-500 hover:text-red-400 hover:bg-red-500/10"
-                        onClick={() => handleAction(rejectFriendRequest, req.id, "Friend request rejected")}
+                        onClick={() => handleAction(rejectFriendRequest, req.id, "Friend request rejected", 'request')}
                         disabled={loadingId === req.id}
                       >
                         <X className="w-4 h-4" />
@@ -299,9 +320,9 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
           )}
 
           {tab === 'sent' && (
-            initialSent.length > 0 ? (
+            sent.length > 0 ? (
               <div className="space-y-4">
-                {initialSent.map((req) => (
+                {sent.map((req: any) => (
                   <CyberCard key={req.id} className="p-4 flex items-center gap-4 opacity-80">
                     <Link href={`/users/${req.receiver.username}`} className="block flex-shrink-0">
                       <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-cyber-gray bg-cyber-dark relative">
@@ -327,7 +348,7 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
                       variant="outline"
                       size="sm"
                       className="text-cyber-gray hover:text-red-400 hover:border-red-400"
-                      onClick={() => handleAction(cancelFriendRequest, req.id, "Request cancelled")}
+                      onClick={() => handleAction(cancelFriendRequest, req.id, "Request cancelled", 'sent')}
                       disabled={loadingId === req.id}
                     >
                       Cancel
