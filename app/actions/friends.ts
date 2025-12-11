@@ -133,19 +133,41 @@ export async function getRequests() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) return { incoming: [], sent: [] };
+  if (!user) {
+    console.log('getRequests: No user found');
+    return { incoming: [], sent: [] };
+  }
 
-  const { data: incoming } = await supabase
+  console.log('getRequests: Fetching for user', user.id);
+
+  const { data: incoming, error: incomingError } = await supabase
     .from('friend_requests')
     .select('*, sender:profiles!sender_id(*)')
     .eq('receiver_id', user.id)
     .eq('status', 'pending');
 
-  const { data: sent } = await supabase
+  if (incomingError) {
+    console.error('getRequests: Error fetching incoming:', incomingError);
+  } else {
+    console.log('getRequests: Incoming result count:', incoming?.length);
+    if (incoming?.length === 0) {
+      console.log('getRequests: Incoming result is empty array');
+    } else {
+      console.log('getRequests: Incoming result first item:', incoming?.[0]);
+    }
+  }
+
+  const { data: sent, error: sentError } = await supabase
     .from('friend_requests')
     .select('*, receiver:profiles!receiver_id(*)')
     .eq('sender_id', user.id)
     .eq('status', 'pending');
+
+  if (sentError) {
+    console.error('getRequests: Error fetching sent:', sentError);
+  } else {
+    console.log('getRequests: Sent result count:', sent?.length);
+  }
 
   return { incoming: incoming || [], sent: sent || [] };
 }
