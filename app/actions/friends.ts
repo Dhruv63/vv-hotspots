@@ -88,14 +88,41 @@ export async function rejectFriendRequest(requestId: string) {
 export async function removeFriend(friendshipId: string) {
   const supabase = await createClient();
 
+  // Get friendship details first to know which users to revalidate
+  const { data: friendship } = await supabase
+    .from('friendships')
+    .select('user_id_1, user_id_2')
+    .eq('id', friendshipId)
+    .single();
+
   const { error } = await supabase
     .from('friendships')
     .delete()
     .eq('id', friendshipId);
 
+  if (error) return { success: false };
+
   revalidatePath('/profile/friends');
   revalidatePath('/users');
-  return { success: !error };
+
+  // Attempt to revalidate specific profile pages if we can identify the friend
+  if (friendship) {
+      const { data: { user } } = await supabase.auth.getUser();
+      const friendId = friendship.user_id_1 === user?.id ? friendship.user_id_2 : friendship.user_id_1;
+      // Note: Revalidating by ID might not work if the path uses username, but we revalidated /users which should cover list.
+      // Ideally we would look up the username to revalidate /users/[username] specifically.
+      if (friendId) {
+          revalidatePath(`/profile/${friendId}`); // As requested by user
+
+          // Also try to find username to revalidate public profile properly
+          const { data: profile } = await supabase.from('profiles').select('username').eq('id', friendId).single();
+          if (profile?.username) {
+              revalidatePath(`/users/${profile.username}`);
+          }
+      }
+  }
+
+  return { success: true };
 }
 
 // Adapted to support optional userId for public profile compatibility
