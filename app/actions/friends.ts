@@ -137,13 +137,13 @@ export async function getRequests() {
 
   const { data: incoming } = await supabase
     .from('friend_requests')
-    .select('*, sender:profiles!friend_requests_sender_id_fkey(*)')
+    .select('*, sender:profiles!sender_id(*)')
     .eq('receiver_id', user.id)
     .eq('status', 'pending');
 
   const { data: sent } = await supabase
     .from('friend_requests')
-    .select('*, receiver:profiles!friend_requests_receiver_id_fkey(*)')
+    .select('*, receiver:profiles!receiver_id(*)')
     .eq('sender_id', user.id)
     .eq('status', 'pending');
 
