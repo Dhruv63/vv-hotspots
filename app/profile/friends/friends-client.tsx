@@ -46,6 +46,7 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
   const [requests, setRequests] = useState(initialRequests)
   const [sent, setSent] = useState(initialSent)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   // Explicitly fetch data on client mount/update to ensure synchronization, unless disabled
   useEffect(() => {
@@ -65,8 +66,11 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
            setFriends(freshFriends as Friend[]);
            setRequests(freshRequests.incoming);
            setSent(freshRequests.sent);
+           setError(null);
        } catch (error) {
            console.error("Failed to refresh friend data:", error);
+           setError("Failed to load latest data. Please refresh.");
+           toast.error("Failed to refresh friend data. Please try again.");
        } finally {
            setIsLoading(false);
        }
@@ -168,6 +172,12 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
           </div>
         </div>
 
+        {error && (
+            <div className="mb-4 p-3 bg-red-500/10 border border-red-500 rounded text-red-500 text-sm text-center">
+                {error}
+            </div>
+        )}
+
         <div className="space-y-4">
           {tab === 'friends' && (
             isLoading && friends.length === 0 ? (
@@ -265,7 +275,11 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
           )}
 
           {tab === 'requests' && (
-            requests.length > 0 ? (
+            isLoading && requests.length === 0 ? (
+              <div className="flex justify-center py-20">
+                <Loader2 className="w-8 h-8 text-cyber-cyan animate-spin" />
+              </div>
+            ) : requests.length > 0 ? (
               <div className="space-y-4">
                 {requests.map((req: any) => (
                   <CyberCard key={req.id} className="p-4 flex items-center gap-4 border-l-4 border-l-lime-500">
