@@ -37,6 +37,9 @@ interface FriendsClientProps {
 }
 
 export function FriendsClient({ initialFriends, incoming, sent, userId, user, disableAutoFetch = false }: FriendsClientProps) {
+  // Debug props
+  console.log('Props received:', { incoming, sent })
+
   const searchParams = useSearchParams()
   const router = useRouter()
   const tab = searchParams.get('tab') || 'friends'
@@ -94,20 +97,15 @@ export function FriendsClient({ initialFriends, incoming, sent, userId, user, di
         toast.error(res.error)
       } else {
         toast.success(successMsg)
+        router.refresh() // Ensure server state is refreshed
 
         // Optimistic Update
         if (context === 'friend') {
             setFriendsList(prev => prev.filter(f => f.friendshipId !== id));
         } else if (context === 'request') {
             setRequestsList(prev => prev.filter(r => r.id !== id));
-            if (action === acceptFriendRequest) {
-                 // Trigger full refresh to update friends list properly
-                 router.refresh();
-            }
         } else if (context === 'sent') {
             setSentList(prev => prev.filter(s => s.id !== id));
-        } else {
-            router.refresh();
         }
       }
     } catch (e) {
@@ -155,7 +153,7 @@ export function FriendsClient({ initialFriends, incoming, sent, userId, user, di
                   : 'text-cyber-gray hover:text-cyber-light'
               }`}
             >
-              Requests ({requestsList.length})
+              Requests ({incoming?.length || 0})
             </button>
             <button
               onClick={() => handleTabChange('sent')}
@@ -165,7 +163,7 @@ export function FriendsClient({ initialFriends, incoming, sent, userId, user, di
                   : 'text-cyber-gray hover:text-cyber-light'
               }`}
             >
-              Sent ({sentList.length})
+              Sent ({sent?.length || 0})
             </button>
           </div>
         </div>
@@ -273,13 +271,9 @@ export function FriendsClient({ initialFriends, incoming, sent, userId, user, di
           )}
 
           {tab === 'requests' && (
-            isLoading && requestsList.length === 0 ? (
-              <div className="flex justify-center py-20">
-                <Loader2 className="w-8 h-8 text-cyber-cyan animate-spin" />
-              </div>
-            ) : requestsList.length > 0 ? (
+            incoming?.length > 0 ? (
               <div className="space-y-4">
-                {requestsList.map((req: any) => (
+                {incoming?.map((req: any) => (
                   <CyberCard key={req.id} className="p-4 flex items-center gap-4 border-l-4 border-l-lime-500">
                     <Link href={`/users/${req.sender.username}`} className="block flex-shrink-0">
                       <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-lime-500 bg-cyber-dark relative">
@@ -332,9 +326,9 @@ export function FriendsClient({ initialFriends, incoming, sent, userId, user, di
           )}
 
           {tab === 'sent' && (
-            sentList.length > 0 ? (
+            sent?.length > 0 ? (
               <div className="space-y-4">
-                {sentList.map((req: any) => (
+                {sent?.map((req: any) => (
                   <CyberCard key={req.id} className="p-4 flex items-center gap-4 opacity-80">
                     <Link href={`/users/${req.receiver.username}`} className="block flex-shrink-0">
                       <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-cyber-gray bg-cyber-dark relative">
