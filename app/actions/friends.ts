@@ -227,27 +227,28 @@ export async function getMutualFriends(userId1: string, userId2: string) {
 }
 
 // Legacy support for user profile page button state
-export async function getFriendStatus(currentUserId: string, targetUserId: string) {
+export async function getFriendStatus(userId1: string, userId2: string) {
   const supabase = await createClient();
 
+  // Check friendships table first (Source of Truth)
   const { data: friendship } = await supabase
     .from('friendships')
-    .select('id')
-    .or(`and(user_id_1.eq.${currentUserId},user_id_2.eq.${targetUserId}),and(user_id_1.eq.${targetUserId},user_id_2.eq.${currentUserId})`)
+    .select('*')
+    .or(`and(user_id_1.eq.${userId1},user_id_2.eq.${userId2}),and(user_id_1.eq.${userId2},user_id_2.eq.${userId1})`)
     .maybeSingle();
 
   if (friendship) return 'friends';
 
+  // Then check friend_requests
   const { data: request } = await supabase
     .from('friend_requests')
     .select('*')
-    .or(`and(sender_id.eq.${currentUserId},receiver_id.eq.${targetUserId}),and(sender_id.eq.${targetUserId},receiver_id.eq.${currentUserId})`)
+    .or(`and(sender_id.eq.${userId1},receiver_id.eq.${userId2}),and(sender_id.eq.${userId2},receiver_id.eq.${userId1})`)
+    .eq('status', 'pending')
     .maybeSingle();
 
   if (!request) return 'none';
-  if (request.status === 'accepted') return 'friends';
-  if (request.status === 'pending') {
-    return request.sender_id === currentUserId ? 'sent' : 'received';
-  }
-  return 'none';
+
+  if (request.sender_id === userId1) return 'pending_sent';
+  return 'pending_received';
 }

@@ -2,10 +2,11 @@ import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { UserProfileClient } from "./user-profile-client"
 import { Metadata } from "next"
-import { getMutualFriends, getFriends } from "@/app/actions/friends"
+import { getMutualFriends, getFriends, getFriendStatus } from "@/app/actions/friends"
 
 // Force dynamic rendering to ensure fresh friendship status on every load
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 interface PageProps {
   params: Promise<{ username: string }>
@@ -123,18 +124,20 @@ export default async function PublicProfilePage({ params }: PageProps) {
   friendCount = friends.length
 
   if (currentUser && currentUser.id !== profile.id) {
-     const { data: request } = await supabase
-        .from('friend_requests')
-        .select('*')
-        .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${profile.id}),and(sender_id.eq.${profile.id},receiver_id.eq.${currentUser.id})`)
-        .maybeSingle()
+     friendStatus = await getFriendStatus(currentUser.id, profile.id)
 
-     if (request) {
-        requestId = request.id
-        if (request.status === 'accepted') friendStatus = 'friends'
-        else if (request.status === 'pending') {
-           friendStatus = request.sender_id === currentUser.id ? 'sent' : 'received'
-        }
+     // We still need the request ID for accepting requests
+     if (friendStatus === 'pending_received') {
+         const { data: request } = await supabase
+            .from('friend_requests')
+            .select('*')
+            .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${profile.id}),and(sender_id.eq.${profile.id},receiver_id.eq.${currentUser.id})`)
+            .eq('status', 'pending')
+            .maybeSingle()
+
+         if (request) {
+             requestId = request.id
+         }
      }
 
      const mutuals = await getMutualFriends(currentUser.id, profile.id)

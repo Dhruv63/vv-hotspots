@@ -119,6 +119,7 @@ export function FriendsClient({ initialFriends, incoming, sent, userId, user, di
     if (window.confirm("Are you sure you want to remove this friend?")) {
       // Wrap removeFriend to pass the extra argument
       await handleAction((id: string) => removeFriend(id, friendUserId), friendshipId, "Friend removed", 'friend')
+      window.location.reload() // Force full page refresh
     }
   }
 
