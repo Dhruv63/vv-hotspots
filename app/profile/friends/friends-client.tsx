@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, memo, useCallback } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useSearchParams, useRouter } from "next/navigation"
@@ -36,7 +36,93 @@ interface FriendsClientProps {
   disableAutoFetch?: boolean
 }
 
-export function FriendsClient({ initialFriends, incoming, sent, userId, user, disableAutoFetch = false }: FriendsClientProps) {
+// Extracted and memoized FriendCard component
+const FriendCard = memo(function FriendCard({
+  item,
+  loadingId,
+  onRemove
+}: {
+  item: Friend
+  loadingId: string | null
+  onRemove: (friendshipId: string, friendUserId: string) => void
+}) {
+  const friend = item.friend;
+  if (!friend) return null;
+
+  const isLoading = loadingId === item.friendshipId;
+
+  return (
+    <div
+      className="flex flex-col items-center p-6 rounded-xl relative overflow-hidden group transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(232,255,0,0.2)]"
+      style={{
+        backgroundColor: '#0A0E27',
+        borderColor: '#E8FF00',
+        borderWidth: '1px'
+      }}
+    >
+      {/* Avatar */}
+      <Link href={`/users/${friend.username}`} className="mb-4 relative">
+        <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[#00D9FF] bg-cyber-dark relative z-10">
+          {friend.avatar_url ? (
+            <Image src={friend.avatar_url} alt={friend.username} fill className="object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-[#0A0E27]">
+              <User className="w-8 h-8 text-[#00D9FF]" />
+            </div>
+          )}
+        </div>
+      </Link>
+
+      {/* Info */}
+      <div className="text-center w-full mb-6">
+        <Link href={`/users/${friend.username}`} className="hover:underline block mb-1">
+          <h3 className="font-bold text-lg truncate" style={{ color: '#00D9FF' }}>@{friend.username}</h3>
+        </Link>
+
+        <div className="flex items-center justify-center gap-1 text-sm text-gray-400 mb-2">
+          <MapPin className="w-3 h-3" />
+          <span className="truncate max-w-[150px]">{friend.city || 'Vasai-Virar'}</span>
+        </div>
+
+        {friend.bio && (
+          <p className="text-xs text-gray-500 line-clamp-2 min-h-[2.5em] px-2">
+            {friend.bio}
+          </p>
+        )}
+      </div>
+
+      {/* Actions */}
+      <div className="flex gap-3 w-full mt-auto">
+        <Link href={`/users/${friend.username}`} className="flex-1">
+          <button
+            className="w-full py-2 px-3 text-sm font-bold rounded transition-colors uppercase tracking-wider hover:brightness-110 flex items-center justify-center gap-2"
+            style={{
+              backgroundColor: '#FF006E',
+              color: 'white'
+            }}
+          >
+            View Profile
+          </button>
+        </Link>
+
+        <button
+          onClick={() => onRemove(item.friendshipId, friend.id)}
+          disabled={isLoading}
+          className="p-2 rounded border border-red-500/50 text-red-500 hover:bg-red-500/10 hover:border-red-500 transition-colors"
+          title="Remove Friend"
+        >
+          {isLoading ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            <UserMinus className="w-5 h-5" />
+          )}
+        </button>
+      </div>
+    </div>
+  )
+})
+
+export const FriendsClient = memo(function FriendsClient({ initialFriends, incoming, sent, userId, user, disableAutoFetch = false }: FriendsClientProps) {
   // Debug props
   console.log('Props received:', { incoming, sent })
 
@@ -115,13 +201,33 @@ export function FriendsClient({ initialFriends, incoming, sent, userId, user, di
     }
   }
 
-  const handleRemoveFriend = async (friendshipId: string, friendUserId: string) => {
+  // Memoized handler for removing friends to ensure FriendCard stability
+  const handleRemoveFriend = useCallback(async (friendshipId: string, friendUserId: string) => {
     if (window.confirm("Are you sure you want to remove this friend?")) {
-      // Wrap removeFriend to pass the extra argument
-      await handleAction((id: string) => removeFriend(id, friendUserId), friendshipId, "Friend removed", 'friend')
-      window.location.reload() // Force full page refresh
+      // Inline the logic of handleAction to avoid dependency complexity or just call it if stable
+      // But handleAction depends on state setters, so we need to be careful.
+      // Easiest is to just replicate logic or use a ref for handleAction?
+      // Actually, since handleAction is defined in render, it changes every render.
+      // Let's redefine handleRemoveFriend to be self-contained or use a memoized handleAction.
+      // For simplicity here, I'll inline the core logic or use refs if needed.
+      // But actually, since we reload the page, state updates matter less, but for consistency:
+
+      setLoadingId(friendshipId)
+      try {
+        const res = await removeFriend(friendshipId, friendUserId)
+        if (res.error) {
+          toast.error(res.error)
+        } else {
+          toast.success("Friend removed")
+          window.location.reload() // Force full page refresh
+        }
+      } catch (e) {
+        toast.error("An error occurred")
+      } finally {
+        setLoadingId(null)
+      }
     }
-  }
+  }, [])
 
   return (
     <div className="min-h-screen bg-cyber-black scanlines">
@@ -185,80 +291,14 @@ export function FriendsClient({ initialFriends, incoming, sent, userId, user, di
             ) : (
               friendsList.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {friendsList.map((item) => {
-                    const friend = item.friend;
-                    if (!friend) return null; // Safety check
-                    return (
-                      <div
-                        key={item.friendshipId}
-                        className="flex flex-col items-center p-6 rounded-xl relative overflow-hidden group transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(232,255,0,0.2)]"
-                        style={{
-                          backgroundColor: '#0A0E27',
-                          borderColor: '#E8FF00',
-                          borderWidth: '1px'
-                        }}
-                      >
-                        {/* Avatar */}
-                        <Link href={`/users/${friend.username}`} className="mb-4 relative">
-                          <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[#00D9FF] bg-cyber-dark relative z-10">
-                            {friend.avatar_url ? (
-                              <Image src={friend.avatar_url} alt={friend.username} fill className="object-cover" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-[#0A0E27]">
-                                <User className="w-8 h-8 text-[#00D9FF]" />
-                              </div>
-                            )}
-                          </div>
-                        </Link>
-
-                        {/* Info */}
-                        <div className="text-center w-full mb-6">
-                          <Link href={`/users/${friend.username}`} className="hover:underline block mb-1">
-                            <h3 className="font-bold text-lg truncate" style={{ color: '#00D9FF' }}>@{friend.username}</h3>
-                          </Link>
-
-                          <div className="flex items-center justify-center gap-1 text-sm text-gray-400 mb-2">
-                            <MapPin className="w-3 h-3" />
-                            <span className="truncate max-w-[150px]">{friend.city || 'Vasai-Virar'}</span>
-                          </div>
-
-                          {friend.bio && (
-                            <p className="text-xs text-gray-500 line-clamp-2 min-h-[2.5em] px-2">
-                              {friend.bio}
-                            </p>
-                          )}
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex gap-3 w-full mt-auto">
-                          <Link href={`/users/${friend.username}`} className="flex-1">
-                            <button
-                              className="w-full py-2 px-3 text-sm font-bold rounded transition-colors uppercase tracking-wider hover:brightness-110 flex items-center justify-center gap-2"
-                              style={{
-                                backgroundColor: '#FF006E',
-                                color: 'white'
-                              }}
-                            >
-                              View Profile
-                            </button>
-                          </Link>
-
-                          <button
-                            onClick={() => handleRemoveFriend(item.friendshipId, friend.id)}
-                            disabled={loadingId === item.friendshipId}
-                            className="p-2 rounded border border-red-500/50 text-red-500 hover:bg-red-500/10 hover:border-red-500 transition-colors"
-                            title="Remove Friend"
-                          >
-                            {loadingId === item.friendshipId ? (
-                              <Loader2 className="w-5 h-5 animate-spin" />
-                            ) : (
-                              <UserMinus className="w-5 h-5" />
-                            )}
-                          </button>
-                        </div>
-                      </div>
-                    )
-                  })}
+                  {friendsList.map((item) => (
+                    <FriendCard
+                      key={item.friendshipId}
+                      item={item}
+                      loadingId={loadingId}
+                      onRemove={handleRemoveFriend}
+                    />
+                  ))}
                 </div>
               ) : (
                 <div className="text-center py-20 border border-dashed border-[#E8FF00]/30 rounded-lg bg-[#0A0E27]/50">
@@ -374,4 +414,4 @@ export function FriendsClient({ initialFriends, incoming, sent, userId, user, di
       </main>
     </div>
   )
-}
+})
