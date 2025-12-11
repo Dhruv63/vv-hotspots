@@ -159,6 +159,7 @@ export async function getRequests() {
 
   const { data: sent, error: sentError } = await supabase
     .from('friend_requests')
+    // Use column name for FK relationship to avoid PGRST200
     .select('*, receiver:profiles!receiver_id(*)')
     .eq('sender_id', user.id)
     .eq('status', 'pending');
