@@ -17,8 +17,8 @@ export default async function FriendsPage() {
   return (
     <FriendsClient
       initialFriends={friends}
-      initialRequests={incoming}
-      initialSent={sent}
+      incoming={incoming}
+      sent={sent}
       userId={user.id}
       user={user}
     />

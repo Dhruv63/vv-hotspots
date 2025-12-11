@@ -29,22 +29,22 @@ interface Friend {
 
 interface FriendsClientProps {
   initialFriends: any[]
-  initialRequests: any[]
-  initialSent: any[]
+  incoming: any[]
+  sent: any[]
   userId: string
   user: SupabaseUser
   disableAutoFetch?: boolean
 }
 
-export function FriendsClient({ initialFriends, initialRequests, initialSent, userId, user, disableAutoFetch = false }: FriendsClientProps) {
+export function FriendsClient({ initialFriends, incoming, sent, userId, user, disableAutoFetch = false }: FriendsClientProps) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const tab = searchParams.get('tab') || 'friends'
   const [loadingId, setLoadingId] = useState<string | null>(null)
 
-  const [friends, setFriends] = useState<Friend[]>(initialFriends as Friend[])
-  const [requests, setRequests] = useState(initialRequests)
-  const [sent, setSent] = useState(initialSent)
+  const [friendsList, setFriendsList] = useState<Friend[]>(initialFriends as Friend[])
+  const [requestsList, setRequestsList] = useState(incoming)
+  const [sentList, setSentList] = useState(sent)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -54,7 +54,7 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
 
     const refreshData = async () => {
        // Only show loading spinner if we don't have data, otherwise do silent update
-       if (friends.length === 0 && requests.length === 0 && sent.length === 0) {
+       if (friendsList.length === 0 && requestsList.length === 0 && sentList.length === 0) {
            setIsLoading(true);
        }
 
@@ -63,9 +63,9 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
                getFriends(),
                getRequests()
            ]);
-           setFriends(freshFriends as Friend[]);
-           setRequests(freshRequests.incoming);
-           setSent(freshRequests.sent);
+           setFriendsList(freshFriends as Friend[]);
+           setRequestsList(freshRequests.incoming);
+           setSentList(freshRequests.sent);
            setError(null);
        } catch (error) {
            console.error("Failed to refresh friend data:", error);
@@ -97,17 +97,15 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
 
         // Optimistic Update
         if (context === 'friend') {
-            setFriends(prev => prev.filter(f => f.friendshipId !== id));
+            setFriendsList(prev => prev.filter(f => f.friendshipId !== id));
         } else if (context === 'request') {
-            // If accepting, we move it to friends? Or just remove from requests
-            // Since we don't have the full friend object easily, just removing it is safer until refresh
-            setRequests(prev => prev.filter(r => r.id !== id));
+            setRequestsList(prev => prev.filter(r => r.id !== id));
             if (action === acceptFriendRequest) {
                  // Trigger full refresh to update friends list properly
                  router.refresh();
             }
         } else if (context === 'sent') {
-            setSent(prev => prev.filter(s => s.id !== id));
+            setSentList(prev => prev.filter(s => s.id !== id));
         } else {
             router.refresh();
         }
@@ -147,7 +145,7 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
                   : 'text-cyber-gray hover:text-cyber-light'
               }`}
             >
-              Friends ({friends.length})
+              Friends ({friendsList.length})
             </button>
             <button
               onClick={() => handleTabChange('requests')}
@@ -157,7 +155,7 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
                   : 'text-cyber-gray hover:text-cyber-light'
               }`}
             >
-              Requests ({requests.length})
+              Requests ({requestsList.length})
             </button>
             <button
               onClick={() => handleTabChange('sent')}
@@ -167,7 +165,7 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
                   : 'text-cyber-gray hover:text-cyber-light'
               }`}
             >
-              Sent ({sent.length})
+              Sent ({sentList.length})
             </button>
           </div>
         </div>
@@ -180,14 +178,14 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
 
         <div className="space-y-4">
           {tab === 'friends' && (
-            isLoading && friends.length === 0 ? (
+            isLoading && friendsList.length === 0 ? (
               <div className="flex justify-center py-20">
                 <Loader2 className="w-8 h-8 text-cyber-cyan animate-spin" />
               </div>
             ) : (
-              friends.length > 0 ? (
+              friendsList.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {friends.map((item) => {
+                  {friendsList.map((item) => {
                     const friend = item.friend;
                     if (!friend) return null; // Safety check
                     return (
@@ -275,13 +273,13 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
           )}
 
           {tab === 'requests' && (
-            isLoading && requests.length === 0 ? (
+            isLoading && requestsList.length === 0 ? (
               <div className="flex justify-center py-20">
                 <Loader2 className="w-8 h-8 text-cyber-cyan animate-spin" />
               </div>
-            ) : requests.length > 0 ? (
+            ) : requestsList.length > 0 ? (
               <div className="space-y-4">
-                {requests.map((req: any) => (
+                {requestsList.map((req: any) => (
                   <CyberCard key={req.id} className="p-4 flex items-center gap-4 border-l-4 border-l-lime-500">
                     <Link href={`/users/${req.sender.username}`} className="block flex-shrink-0">
                       <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-lime-500 bg-cyber-dark relative">
@@ -334,9 +332,9 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
           )}
 
           {tab === 'sent' && (
-            sent.length > 0 ? (
+            sentList.length > 0 ? (
               <div className="space-y-4">
-                {sent.map((req: any) => (
+                {sentList.map((req: any) => (
                   <CyberCard key={req.id} className="p-4 flex items-center gap-4 opacity-80">
                     <Link href={`/users/${req.receiver.username}`} className="block flex-shrink-0">
                       <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-cyber-gray bg-cyber-dark relative">
