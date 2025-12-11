@@ -24,3 +24,5 @@ export default async function FriendsPage() {
     />
   )
 }
+
+// Force rebuild v2
