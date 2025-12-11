@@ -22,6 +22,7 @@ export default async function FriendsPage() {
       initialRequests={requests}
       initialSent={sent}
       userId={user.id}
+      user={user}
     />
   )
 }

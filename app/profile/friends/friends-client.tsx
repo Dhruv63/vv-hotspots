@@ -11,8 +11,7 @@ import { ArrowLeft, UserMinus, Check, X, MapPin, User, Loader2 } from "lucide-re
 import { toast } from "sonner"
 import { removeFriend, acceptFriendRequest, rejectFriendRequest, cancelFriendRequest, fetchFriends } from "@/app/actions/friends"
 import { formatDistanceToNow } from "date-fns"
-
-console.log('Friends Tab Version 3')
+import type { User as SupabaseUser } from "@supabase/supabase-js"
 
 interface Friend {
   friendshipId: string
@@ -31,9 +30,11 @@ interface FriendsClientProps {
   initialRequests: any[]
   initialSent: any[]
   userId: string
+  user: SupabaseUser
+  disableAutoFetch?: boolean
 }
 
-export function FriendsClient({ initialFriends, initialRequests, initialSent, userId }: FriendsClientProps) {
+export function FriendsClient({ initialFriends, initialRequests, initialSent, userId, user, disableAutoFetch = false }: FriendsClientProps) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const tab = searchParams.get('tab') || 'friends'
@@ -46,6 +47,8 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
   const [isLoading, setIsLoading] = useState(false) // Start false as we have initial data
 
   useEffect(() => {
+    if (disableAutoFetch) return
+
     // Refresh friends on mount to ensure latest data
     const loadFriends = async () => {
       // Only set loading if we don't have friends yet? No, silent update is better usually.
@@ -103,7 +106,7 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
 
   return (
     <div className="min-h-screen bg-cyber-black scanlines">
-      <Navbar />
+      <Navbar user={user} />
 
       <main className="pt-20 pb-12 px-4 max-w-6xl mx-auto">
         <Link href="/profile" className="inline-flex items-center gap-2 text-cyber-cyan hover:underline mb-6">
@@ -267,7 +270,7 @@ export function FriendsClient({ initialFriends, initialRequests, initialSent, us
                     </div>
                     <div className="flex gap-2">
                       <CyberButton
-                        variant="default"
+                        variant="ghost"
                         size="sm"
                         className="bg-lime-500 text-black hover:bg-lime-400"
                         onClick={() => handleAction(acceptFriendRequest, req.id, "Friend request accepted")}
