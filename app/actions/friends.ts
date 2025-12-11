@@ -169,7 +169,7 @@ export async function getRequests() {
 
   const { data: incoming, error: incomingError } = await supabase
     .from('friend_requests')
-    .select('*, sender:profiles!sender_id(*)')
+    .select('*, sender:sender_id(id, username, avatar_url, bio, city)')
     .eq('receiver_id', user.id)
     .eq('status', 'pending');
 
@@ -187,7 +187,7 @@ export async function getRequests() {
   const { data: sent, error: sentError } = await supabase
     .from('friend_requests')
     // Use column name for FK relationship to avoid PGRST200
-    .select('*, receiver:profiles!receiver_id(*)')
+    .select('*, receiver:receiver_id(id, username, avatar_url, bio, city)')
     .eq('sender_id', user.id)
     .eq('status', 'pending');
 
