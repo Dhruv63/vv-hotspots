@@ -201,12 +201,6 @@ importers:
       '@types/react-dom':
         specifier: ^19
         version: 19.2.3(@types/react@19.2.7)
-      '@types/web-push':
-        specifier: ^3.6.4
-        version: 3.6.4
-      jest:
-        specifier: ^30.2.0
-        version: 30.2.0(@types/node@22.19.1)
       postcss:
         specifier: ^8.5
         version: 8.5.6
@@ -1624,9 +1618,6 @@ packages:
 
   '@types/stack-utils@2.0.3':
     resolution: {integrity: sha512-9aEbYZ3TbYMznPdcdr3SmIrLXwC/AKZXQeCf9Pgao5CKb8CyHuEX5jzWPTkvregvhRJHcpRO6BFoGW9ycaOkYw==}
-
-  '@types/web-push@3.6.4':
-    resolution: {integrity: sha512-GnJmSr40H3RAnj0s34FNTcJi1hmWFV5KXugE0mYWnYhgTAHLJ/dJKAwDmvPJYMke0RplY2XE9LnM4hqSqKIjhQ==}
 
   '@types/ws@8.18.1':
     resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
@@ -4688,10 +4679,6 @@ snapshots:
       csstype: 3.2.3
 
   '@types/stack-utils@2.0.3': {}
-
-  '@types/web-push@3.6.4':
-    dependencies:
-      '@types/node': 22.19.1
 
   '@types/ws@8.18.1':
     dependencies:

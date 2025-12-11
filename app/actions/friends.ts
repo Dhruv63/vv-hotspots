@@ -167,34 +167,15 @@ export async function cancelFriendRequest(requestId: string) {
   return { success: true }
 }
 
-export async function removeFriend(friendId: string) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error("Not authenticated")
+export async function removeFriend(friendshipId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from('friendships').delete().eq('id', friendshipId);
 
-  // Delete from friendships
-  const { error: friendshipError } = await supabase
-    .from('friendships')
-    .delete()
-    .or(`and(user_id_1.eq.${user.id},user_id_2.eq.${friendId}),and(user_id_1.eq.${friendId},user_id_2.eq.${user.id})`)
+  if (error) return { success: false, error: error.message };
 
-  if (friendshipError) {
-      console.error('Error removing friendship:', friendshipError)
-      return { error: friendshipError.message }
-  }
-
-  // Find the request (could be sender or receiver) and delete it too
-  const { error } = await supabase
-    .from('friend_requests')
-    .delete()
-    .or(`and(sender_id.eq.${user.id},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${user.id})`)
-    .eq('status', 'accepted')
-
-  if (error) return { error: error.message }
-
-  revalidatePath(`/users`)
-  revalidatePath(`/profile/friends`)
-  return { success: true }
+  revalidatePath('/profile/friends')
+  revalidatePath('/users')
+  return { success: true, error: undefined };
 }
 
 export async function getFriendStatus(currentUserId: string, targetUserId: string) {
@@ -217,68 +198,69 @@ export async function getFriendStatus(currentUserId: string, targetUserId: strin
     .maybeSingle()
 
   if (!data) return 'none'
-  if (data.status === 'accepted') return 'friends' // Should ideally be covered by friendships check, but for legacy compatibility
+  if (data.status === 'accepted') return 'friends'
   if (data.status === 'pending') {
     return data.sender_id === currentUserId ? 'sent' : 'received'
   }
-  return 'none' // rejected
+  return 'none'
 }
 
-export async function fetchFriends(userId: string) {
-  console.log('[fetchFriends] Starting for userId:', userId)
-  const supabase = await createClient()
+export async function fetchFriends() {
+  const supabase = await createClient();
 
-  // 1. Query friendships
-  // Verify the query uses: .from('friendships').select('id, user_id_1, user_id_2, created_at').or(`user_id_1.eq.${userId},user_id_2.eq.${userId}`)
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  // Step 1: Get friendships where user is EITHER user_id_1 OR user_id_2
   const { data: friendships, error: friendshipsError } = await supabase
     .from('friendships')
     .select('id, user_id_1, user_id_2, created_at')
-    .or(`user_id_1.eq.${userId},user_id_2.eq.${userId}`)
+    .or(`user_id_1.eq.${user.id},user_id_2.eq.${user.id}`)
+    .order('created_at', { ascending: false });
 
-  if (friendshipsError) {
-    console.error('[fetchFriends] Error fetching friendships:', friendshipsError)
-    return []
+  console.log('Friendships fetched:', friendships, friendshipsError);
+
+  if (friendshipsError || !friendships || friendships.length === 0) {
+    return [];
   }
 
-  console.log('[fetchFriends] Friendships found:', friendships)
-
-  if (!friendships || friendships.length === 0) {
-    console.log('[fetchFriends] No friendships found.')
-    return []
-  }
-
-  // 2. Extract friend IDs
-  // Log the friendIds array after mapping
+  // Step 2: Get friend IDs (the OTHER user)
   const friendIds = friendships.map(f =>
-    f.user_id_1 === userId ? f.user_id_2 : f.user_id_1
-  )
+    f.user_id_1 === user.id ? f.user_id_2 : f.user_id_1
+  );
 
-  console.log('[fetchFriends] Friend IDs extracted:', friendIds)
-
-  if (friendIds.length === 0) {
-    return []
-  }
-
-  // 3. Fetch profiles
-  // Log the profiles query results
+  // Step 3: Fetch profiles
   const { data: profiles, error: profilesError } = await supabase
     .from('profiles')
-    .select('*')
-    .in('id', friendIds)
+    .select('id, username, avatar_url, bio, city, instagram_username, twitter_username')
+    .in('id', friendIds);
 
-  if (profilesError) {
-    console.error('[fetchFriends] Error fetching friend profiles:', profilesError)
-    return []
-  }
+  console.log('Profiles fetched:', profiles, profilesError);
 
-  console.log('[fetchFriends] Profiles found:', profiles)
+  if (profilesError) return [];
 
-  return profiles
+  // Step 4: Combine data
+  return friendships.map(friendship => {
+    const friendId = friendship.user_id_1 === user.id ? friendship.user_id_2 : friendship.user_id_1;
+    const profile = profiles?.find(p => p.id === friendId);
+
+    return {
+      friendshipId: friendship.id,
+      friendId,
+      username: profile?.username || 'Unknown',
+      avatarUrl: profile?.avatar_url,
+      bio: profile?.bio,
+      city: profile?.city,
+      instagramUsername: profile?.instagram_username,
+      twitterUsername: profile?.twitter_username,
+      createdAt: friendship.created_at
+    };
+  });
 }
 
 // Redirect legacy getFriends to the new implementation
 export async function getFriends(userId: string) {
-  return fetchFriends(userId)
+  return fetchFriends()
 }
 
 export async function getFriendRequests(userId: string) {
