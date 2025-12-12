@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { formatDistanceToNow } from "date-fns"
 import { Star, MessageSquare, User, Loader2 } from "lucide-react"
 import Image from "next/image"
@@ -15,6 +16,7 @@ interface ReviewsTabProps {
 }
 
 export function ReviewsTab({ hotspotId, onWriteReview, currentUserReview }: ReviewsTabProps) {
+  const router = useRouter()
   const [reviews, setReviews] = useState<any[]>([])
   const [distribution, setDistribution] = useState<Record<number, number>>({ 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 })
   const [totalRatings, setTotalRatings] = useState(0)
@@ -99,7 +101,11 @@ export function ReviewsTab({ hotspotId, onWriteReview, currentUserReview }: Revi
             <div key={review.id} className="bg-cyber-dark p-4 rounded-lg border border-cyber-gray/20 hover:border-cyber-cyan/30 transition-colors">
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-3">
-                  <Link href={review.profiles?.username ? `/users/${review.profiles.username}` : '#'}>
+                  <div
+                    onMouseEnter={() => review.profiles?.username && router.prefetch(`/users/${review.profiles.username}`)}
+                    onClick={() => review.profiles?.username && router.push(`/users/${review.profiles.username}`)}
+                    className="cursor-pointer"
+                  >
                     <div className="w-10 h-10 rounded-full bg-cyber-gray/20 overflow-hidden relative border border-cyber-gray shrink-0 hover:border-cyber-cyan transition-colors">
                       {review.profiles?.avatar_url ? (
                         <Image
@@ -114,11 +120,15 @@ export function ReviewsTab({ hotspotId, onWriteReview, currentUserReview }: Revi
                         </div>
                       )}
                     </div>
-                  </Link>
+                  </div>
                   <div>
-                    <Link href={review.profiles?.username ? `/users/${review.profiles.username}` : '#'} className="font-mono font-bold text-cyber-light text-sm hover:underline hover:text-cyber-cyan transition-colors">
+                    <div
+                        onMouseEnter={() => review.profiles?.username && router.prefetch(`/users/${review.profiles.username}`)}
+                        onClick={() => review.profiles?.username && router.push(`/users/${review.profiles.username}`)}
+                        className="font-mono font-bold text-cyber-light text-sm hover:underline hover:text-cyber-cyan transition-colors cursor-pointer"
+                    >
                       {review.profiles?.username || "Anonymous"}
-                    </Link>
+                    </div>
                     <div className="text-[10px] text-cyber-gray font-mono">
                       {formatDistanceToNow(new Date(review.created_at), { addSuffix: true })}
                     </div>
