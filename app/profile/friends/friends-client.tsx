@@ -4,14 +4,12 @@ import { useState, useEffect, memo, useCallback } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useSearchParams, useRouter } from "next/navigation"
-import { Navbar } from "@/components/navbar"
 import { CyberCard } from "@/components/ui/cyber-card"
 import { CyberButton } from "@/components/ui/cyber-button"
-import { ArrowLeft, UserMinus, Check, X, MapPin, User, Loader2 } from "lucide-react"
+import { UserMinus, Check, X, MapPin, User, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { removeFriend, acceptFriendRequest, rejectFriendRequest, cancelFriendRequest, getFriends, getRequests } from "@/app/actions/friends"
 import { formatDistanceToNow } from "date-fns"
-import type { User as SupabaseUser } from "@supabase/supabase-js"
 
 interface Friend {
   friendshipId: string
@@ -31,8 +29,6 @@ interface FriendsClientProps {
   initialFriends: any[]
   incoming: any[]
   sent: any[]
-  userId: string
-  user: SupabaseUser
   disableAutoFetch?: boolean
 }
 
@@ -136,10 +132,7 @@ const FriendCard = memo(function FriendCard({
   )
 })
 
-export const FriendsClient = memo(function FriendsClient({ initialFriends, incoming, sent, userId, user, disableAutoFetch = false }: FriendsClientProps) {
-  // Debug props
-  console.log('Props received:', { incoming, sent })
-
+export const FriendsClient = memo(function FriendsClient({ initialFriends, incoming, sent, disableAutoFetch = false }: FriendsClientProps) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const tab = searchParams.get('tab') || 'friends'
@@ -244,18 +237,8 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
   }, [])
 
   return (
-    <div className="min-h-screen bg-cyber-black scanlines">
-      <Navbar user={user} />
-
-      <main className="pt-20 pb-12 px-4 max-w-6xl mx-auto">
-        <Link href="/profile" className="inline-flex items-center gap-2 text-cyber-cyan hover:underline mb-6">
-          <ArrowLeft className="w-4 h-4" />
-          <span className="font-mono text-sm">Back to Profile</span>
-        </Link>
-
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-          <h1 className="text-3xl font-bold font-mono text-cyber-light">Friends & Requests</h1>
-
+    <>
+      <div className="flex flex-col md:flex-row justify-end items-start md:items-center mb-8 gap-4">
           <div className="flex bg-cyber-dark/50 p-1 rounded-lg border border-cyber-gray/30">
             <button
               onClick={() => handleTabChange('friends')}
@@ -473,7 +456,6 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
             )
           )}
         </div>
-      </main>
-    </div>
+    </>
   )
 })
