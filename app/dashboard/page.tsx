@@ -4,9 +4,6 @@ import { DashboardClient } from "./dashboard-client"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { getFriends } from "@/app/actions/friends"
 
-export const dynamic = "force-dynamic"
-export const revalidate = 0
-
 export default async function DashboardPage() {
   const supabase = await createClient()
 
