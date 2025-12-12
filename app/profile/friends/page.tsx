@@ -5,6 +5,9 @@ import { redirect } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
+import dynamic from 'next/dynamic'
+
+const FriendsClient = dynamic(() => import('./friends-client').then(mod => ({ default: mod.FriendsClient })))
 
 export default async function FriendsPage() {
   const supabase = await createClient()
