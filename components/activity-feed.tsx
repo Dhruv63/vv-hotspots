@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import Link from "next/link"
+import Image from "next/image"
 import { formatDistanceToNow } from "date-fns"
 import {
   Activity, MapPin, Zap, Radio, Clock, Heart,
@@ -304,10 +305,13 @@ export function ActivityFeed({
                     className="cursor-pointer"
                   >
                     {activity.avatar_url ? (
-                      <img
-                        src={activity.avatar_url || "/placeholder.svg"}
+                      <Image
+                        src={activity.avatar_url || "/default-avatar.png"}
                         alt={activity.username || "User"}
+                        width={48}
+                        height={48}
                         className="w-12 h-12 border-2 border-cyber-primary object-cover rounded-full shadow-[0_0_10px_var(--color-cyber-primary)]"
+                        priority={false}
                       />
                     ) : (
                       <div className={`w-12 h-12 border-2 border-cyber-primary flex items-center justify-center rounded-full shadow-[0_0_10px_var(--color-cyber-primary)] ${getUserColor(activity.username || "Anonymous")} text-white`}>

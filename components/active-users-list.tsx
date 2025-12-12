@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import Link from "next/link"
+import Image from "next/image"
 import { createClient } from "@/lib/supabase/client"
 import { formatDistanceToNow } from "date-fns"
 import { User, Loader2 } from "lucide-react"
@@ -129,10 +130,13 @@ export function ActiveUsersList({ hotspotId }: ActiveUsersListProps) {
             <div className="flex flex-col items-center gap-2 group w-16 relative">
               <div className="relative">
                 {user.avatar_url ? (
-                  <img
-                    src={user.avatar_url}
+                  <Image
+                    src={user.avatar_url || '/default-avatar.png'}
                     alt={user.username}
+                    width={48}
+                    height={48}
                     className="w-12 h-12 rounded-full border-2 border-cyber-primary/50 group-hover:border-cyber-primary transition-colors object-cover bg-cyber-black"
+                    priority={false}
                   />
                 ) : (
                   <div className="w-12 h-12 rounded-full border-2 border-cyber-primary/50 group-hover:border-cyber-primary transition-colors bg-cyber-dark flex items-center justify-center">
