@@ -91,15 +91,6 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
             >
               FRIENDS
             </Link>
-            <Link
-              href="/debug-friends"
-              className={`font-mono text-sm tracking-wider transition-all py-1 border-b-2 ${isActive("/debug-friends")
-                  ? "border-[#FFFF00] text-[#FFFF00] shadow-[0_2px_10px_rgba(255,255,0,0.3)]"
-                  : "border-transparent text-cyber-light hover:text-cyber-cyan hover:border-cyber-cyan/50"
-                }`}
-            >
-              DEBUG
-            </Link>
           </div>
         )}
 
