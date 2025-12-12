@@ -11,7 +11,7 @@ export async function sendFriendRequest(receiverId: string) {
   // Check if request already exists
   const { data: existing } = await supabase
     .from('friend_requests')
-    .select('*')
+    .select('id, status')
     .or(`and(sender_id.eq.${user.id},receiver_id.eq.${receiverId}),and(sender_id.eq.${receiverId},receiver_id.eq.${user.id})`)
     .maybeSingle();
 
@@ -135,15 +135,18 @@ export async function getFriends(userId?: string) {
   const { data: friendships } = await supabase
     .from('friendships')
     .select('id, user_id_1, user_id_2, created_at')
-    .or(`user_id_1.eq.${targetUserId},user_id_2.eq.${targetUserId}`);
+    .or(`user_id_1.eq.${targetUserId},user_id_2.eq.${targetUserId}`)
+    .limit(50);
 
   if (!friendships) return [];
 
   const friendIds = friendships.map(f => f.user_id_1 === targetUserId ? f.user_id_2 : f.user_id_1);
 
+  if (friendIds.length === 0) return [];
+
   const { data: profiles } = await supabase
     .from('profiles')
-    .select('*')
+    .select('id, username, avatar_url, bio, city')
     .in('id', friendIds);
 
   return friendships.map(f => ({
@@ -165,9 +168,10 @@ export async function getRequests() {
 
   const { data: incoming, error: incomingError } = await supabase
     .from('friend_requests')
-    .select('*, sender:sender_id(id, username, avatar_url, bio, city)')
+    .select('id, created_at, status, sender:sender_id(id, username, avatar_url, bio, city)')
     .eq('receiver_id', user.id)
-    .eq('status', 'pending');
+    .eq('status', 'pending')
+    .limit(50);
 
   if (incomingError) {
     console.error('getRequests: Error fetching incoming:', incomingError);
@@ -183,9 +187,10 @@ export async function getRequests() {
   const { data: sent, error: sentError } = await supabase
     .from('friend_requests')
     // Use column name for FK relationship to avoid PGRST200
-    .select('*, receiver:receiver_id(id, username, avatar_url, bio, city)')
+    .select('id, created_at, status, receiver:receiver_id(id, username, avatar_url, bio, city)')
     .eq('sender_id', user.id)
-    .eq('status', 'pending');
+    .eq('status', 'pending')
+    .limit(50);
 
   if (sentError) {
     console.error('getRequests: Error fetching sent:', sentError);
@@ -221,7 +226,7 @@ export async function getMutualFriends(userId1: string, userId2: string) {
   const { data, error } = await supabase.rpc('get_mutual_friends', {
     user_id_1: userId1,
     user_id_2: userId2
-  });
+  }).limit(50);
   if (error) return [];
   return data || [];
 }
@@ -233,7 +238,7 @@ export async function getFriendStatus(userId1: string, userId2: string) {
   // Check friendships table first (Source of Truth)
   const { data: friendship } = await supabase
     .from('friendships')
-    .select('*')
+    .select('id')
     .or(`and(user_id_1.eq.${userId1},user_id_2.eq.${userId2}),and(user_id_1.eq.${userId2},user_id_2.eq.${userId1})`)
     .maybeSingle();
 
@@ -242,7 +247,7 @@ export async function getFriendStatus(userId1: string, userId2: string) {
   // Then check friend_requests
   const { data: request } = await supabase
     .from('friend_requests')
-    .select('*')
+    .select('id, sender_id')
     .or(`and(sender_id.eq.${userId1},receiver_id.eq.${userId2}),and(sender_id.eq.${userId2},receiver_id.eq.${userId1})`)
     .eq('status', 'pending')
     .maybeSingle();
