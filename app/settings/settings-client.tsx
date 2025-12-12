@@ -8,6 +8,7 @@ import { Navbar } from "@/components/navbar"
 import { CyberCard } from "@/components/ui/cyber-card"
 import { useTheme } from "@/components/theme-provider"
 import { updateUserTheme } from "@/app/actions/theme"
+import { ThemeSelector } from "./theme-selector"
 import type { User } from "@supabase/supabase-js"
 import { toast } from "sonner"
 
@@ -200,6 +201,14 @@ export function SettingsClient({ user }: SettingsClientProps) {
                             </div>
                         </div>
                     </CyberCard>
+
+                    <section className="p-6 rounded-lg bg-gray-900/50 border border-gray-800">
+                        <div className="flex items-center gap-3 mb-4">
+                            <span className="text-2xl">🎨</span>
+                            <h2 className="text-xl font-bold font-mono text-cyber-light">Appearance</h2>
+                        </div>
+                        <ThemeSelector />
+                    </section>
 
                     {/* Notifications */}
                     <CyberCard className="p-6">

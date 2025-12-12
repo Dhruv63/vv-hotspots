@@ -1,7 +1,23 @@
-export type ThemeId = 'cyberpunk' | 'light' | 'dark'
+export type ThemeId = 'cyberpunk' | 'light' | 'dark' | 'retro'
 
-export const themes: Record<ThemeId, { colors: { primary: string, secondary: string, accent: string, bg: string, text: string } }> = {
+export interface Theme {
+  id: ThemeId
+  name: string
+  tagline: string
+  colors: {
+    primary: string
+    secondary: string
+    accent: string
+    bg: string
+    text: string
+  }
+}
+
+export const themes: Record<ThemeId, Theme> = {
   cyberpunk: {
+    id: 'cyberpunk',
+    name: 'Cyberpunk',
+    tagline: 'Neon lights and high contrast',
     colors: {
       primary: '#E8FF00',
       secondary: '#FF006E',
@@ -11,6 +27,9 @@ export const themes: Record<ThemeId, { colors: { primary: string, secondary: str
     }
   },
   light: {
+    id: 'light',
+    name: 'Day Mode',
+    tagline: 'Clean and bright',
     colors: {
       primary: '#FF006E',
       secondary: '#E8FF00',
@@ -20,12 +39,27 @@ export const themes: Record<ThemeId, { colors: { primary: string, secondary: str
     }
   },
   dark: {
+    id: 'dark',
+    name: 'Night Mode',
+    tagline: 'Dark and easy on the eyes',
     colors: {
       primary: '#E8FF00',
       secondary: '#FF006E',
       accent: '#00D9FF',
       bg: '#0A0E27',
       text: '#B0B9C1'
+    }
+  },
+  retro: {
+    id: 'retro',
+    name: 'Retro Wave',
+    tagline: '80s sunset vibes',
+    colors: {
+      primary: '#FF71CE',
+      secondary: '#01CDFE',
+      accent: '#05FFA1',
+      bg: '#2D1B2E',
+      text: '#FFFFFF'
     }
   }
 }
