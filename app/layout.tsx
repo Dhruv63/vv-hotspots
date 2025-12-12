@@ -5,7 +5,8 @@ import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import "./globals.css"
 import { Toaster } from "sonner"
-import { ThemeProvider } from "@/components/theme-provider"
+import { ThemeProvider } from "./components/theme-provider"
+import { getUserTheme } from "./actions/theme"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 const firaCode = Fira_Code({ subsets: ["latin"], variable: "--font-mono" })
@@ -35,22 +36,19 @@ export const viewport: Viewport = {
 import { ServiceWorkerRegistration } from "@/components/service-worker-registration"
 import { NotificationPermissionModal } from "@/components/notification-permission-modal"
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const userTheme = await getUserTheme()
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${firaCode.variable} font-sans antialiased`}>
         <ServiceWorkerRegistration />
         <NotificationPermissionModal />
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
-          storageKey="vv-theme"
-        >
+        <ThemeProvider initialTheme={userTheme as any}>
           {children}
           <Toaster position="top-center" theme="system" />
         </ThemeProvider>
