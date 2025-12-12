@@ -1,7 +1,6 @@
 import { Suspense } from 'react'
 import { createClient } from "@/lib/supabase/server"
 import { getFriends, getRequests } from "@/app/actions/friends"
-import { FriendsClient } from "./friends-client"
 import { redirect } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import Link from "next/link"
