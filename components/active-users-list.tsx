@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { formatDistanceToNow } from "date-fns"
 import { User, Loader2 } from "lucide-react"
@@ -18,6 +18,7 @@ interface ActiveUsersListProps {
 }
 
 export function ActiveUsersList({ hotspotId }: ActiveUsersListProps) {
+  const router = useRouter()
   const [users, setUsers] = useState<ActiveUser[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -119,7 +120,12 @@ export function ActiveUsersList({ hotspotId }: ActiveUsersListProps) {
 
       <div className="flex flex-wrap gap-4">
         {users.map((user) => (
-          <Link key={user.user_id} href={`/users/${user.username}`}>
+          <div
+            key={user.user_id}
+            onMouseEnter={() => router.prefetch(`/users/${user.username}`)}
+            onClick={() => router.push(`/users/${user.username}`)}
+            className="cursor-pointer"
+          >
             <div className="flex flex-col items-center gap-2 group w-16 relative">
               <div className="relative">
                 {user.avatar_url ? (
@@ -148,7 +154,7 @@ export function ActiveUsersList({ hotspotId }: ActiveUsersListProps) {
                 </div>
               </div>
             </div>
-          </Link>
+          </div>
         ))}
       </div>
     </div>

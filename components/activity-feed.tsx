@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { formatDistanceToNow } from "date-fns"
 import {
   Activity, MapPin, Zap, Radio, Clock, Heart,
@@ -26,6 +26,7 @@ export function ActivityFeed({
   friendIds = [],
   showFriendsOnly = false
 }: ActivityFeedProps) {
+  const router = useRouter()
   const [activities, setActivities] = useState<ActivityFeedItem[]>(initialActivities)
   const [dailyCount, setDailyCount] = useState(todayCount)
   const [isConnected, setIsConnected] = useState(false)
@@ -297,7 +298,11 @@ export function ActivityFeed({
 
               <div className="flex items-start gap-3">
                 <div className="relative flex-shrink-0">
-                  <Link href={activity.username ? `/users/${activity.username}` : '#'}>
+                  <div
+                    onMouseEnter={() => activity.username && router.prefetch(`/users/${activity.username}`)}
+                    onClick={() => activity.username && router.push(`/users/${activity.username}`)}
+                    className="cursor-pointer"
+                  >
                     {activity.avatar_url ? (
                       <img
                         src={activity.avatar_url || "/placeholder.svg"}
@@ -310,16 +315,20 @@ export function ActivityFeed({
                       </div>
                     )}
                     <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-400 border-2 border-cyber-black rounded-full" />
-                  </Link>
+                  </div>
                 </div>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-col gap-1">
                     <p className="text-sm text-cyber-gray font-mono">
                       {activity.username ? (
-                        <Link href={`/users/${activity.username}`} className="hover:underline">
-                          <span className="text-cyber-light font-bold">{activity.username}</span>
-                        </Link>
+                        <span
+                            onMouseEnter={() => router.prefetch(`/users/${activity.username}`)}
+                            onClick={() => router.push(`/users/${activity.username}`)}
+                            className="text-cyber-light font-bold hover:underline cursor-pointer"
+                        >
+                            {activity.username}
+                        </span>
                       ) : (
                          <span className="text-cyber-light font-bold">Anonymous</span>
                       )}
