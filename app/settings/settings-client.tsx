@@ -6,7 +6,8 @@ import { ArrowLeft, Bell, Lock, Smartphone, LogOut, Sun, Moon, Volume2, Shield }
 import { createClient } from "@/lib/supabase/client"
 import { Navbar } from "@/components/navbar"
 import { CyberCard } from "@/components/ui/cyber-card"
-import { useTheme } from "next-themes"
+import { useTheme } from "@/components/theme-provider"
+import { updateUserTheme } from "@/app/actions/theme"
 import type { User } from "@supabase/supabase-js"
 import { toast } from "sonner"
 
@@ -34,6 +35,16 @@ export function SettingsClient({ user }: SettingsClientProps) {
     const [privacyMode, setPrivacyMode] = useState(false)
     const [soundEnabled, setSoundEnabled] = useState(true)
     const [loading, setLoading] = useState(true)
+
+    const handleThemeChange = async (themeId: any) => {
+        setTheme(themeId)
+        localStorage.setItem('user-theme', themeId)
+        const result = await updateUserTheme(themeId)
+        if (result.success) {
+            toast.success('Theme updated!')
+            window.location.reload()
+        }
+    }
 
     useEffect(() => {
         // Check initial subscription state
@@ -163,14 +174,14 @@ export function SettingsClient({ user }: SettingsClientProps) {
                                 </div>
                                 <div className="flex items-center gap-2 bg-cyber-black border border-cyber-gray rounded-lg p-1">
                                     <button
-                                        onClick={() => setTheme("light")}
+                                        onClick={() => handleThemeChange("light")}
                                         className={`p-2 rounded ${theme === 'light' ? 'bg-cyber-light text-cyber-black' : 'text-cyber-gray'}`}
                                     >
                                         <Sun className="w-4 h-4" />
                                     </button>
                                     <button
-                                        onClick={() => setTheme("dark")}
-                                        className={`p-2 rounded ${theme === 'dark' ? 'bg-cyber-primary text-cyber-black' : 'text-cyber-gray'}`}
+                                        onClick={() => handleThemeChange("dark")}
+                                        className={`p-2 rounded ${theme === 'dark' || theme === 'cyberpunk' ? 'bg-cyber-primary text-cyber-black' : 'text-cyber-gray'}`}
                                     >
                                         <Moon className="w-4 h-4" />
                                     </button>
