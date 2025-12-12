@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react"
 import { Locate, Loader2, X, Compass } from "lucide-react"
 import type { Hotspot } from "@/lib/types"
-import { useTheme } from "next-themes"
+import { useTheme } from "@/components/theme-provider"
 import "leaflet.markercluster/dist/MarkerCluster.css"
 import "leaflet.markercluster/dist/MarkerCluster.Default.css"
 
@@ -77,8 +77,8 @@ export function MapView({
   onLocationUpdate,
   viewMode,
 }: MapViewProps) {
-  const { resolvedTheme } = useTheme()
-  const theme = (resolvedTheme === "light" ? "light" : "dark") as keyof typeof THEME_COLORS
+  const { theme: currentTheme } = useTheme()
+  const theme = (currentTheme === "light" ? "light" : "dark") as keyof typeof THEME_COLORS
   const colors = THEME_COLORS[theme]
 
   const mapContainerRef = useRef<HTMLDivElement>(null)

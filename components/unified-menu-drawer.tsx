@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react"
 import { X, Check, Grid, List, Map as MapIcon, Activity, Layers, ArrowLeft, Users } from "lucide-react"
-import { useTheme } from "next-themes"
+import { useTheme } from "@/components/theme-provider"
 import { THEME_COLORS } from "@/components/map-view"
 
 interface UnifiedMenuDrawerProps {
@@ -26,8 +26,8 @@ export function UnifiedMenuDrawer({
   onApply,
   onClear
 }: UnifiedMenuDrawerProps) {
-  const { resolvedTheme } = useTheme()
-  const theme = (resolvedTheme === "light" ? "light" : "dark") as keyof typeof THEME_COLORS
+  const { theme: currentTheme } = useTheme()
+  const theme = (currentTheme === "light" ? "light" : "dark") as keyof typeof THEME_COLORS
   const colors = THEME_COLORS[theme]
 
   // Touch handling for swipe-down to close

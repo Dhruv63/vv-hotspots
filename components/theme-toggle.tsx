@@ -2,7 +2,8 @@
 
 import * as React from "react"
 import { Moon, Sun } from "lucide-react"
-import { useTheme } from "next-themes"
+import { useTheme } from "@/components/theme-provider"
+import { updateUserTheme } from "@/app/actions/theme"
 
 import { CyberButton } from "@/components/ui/cyber-button"
 
@@ -22,12 +23,20 @@ export function ThemeToggle() {
     )
   }
 
+  const handleToggle = async () => {
+      const newTheme = theme === "dark" || theme === "cyberpunk" ? "light" : "dark"
+      setTheme(newTheme)
+      localStorage.setItem('user-theme', newTheme)
+      await updateUserTheme(newTheme)
+      window.location.reload()
+  }
+
   return (
     <CyberButton
       variant="ghost"
       size="sm"
       className="w-11 h-11 px-0 min-h-[44px] min-w-[44px]"
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+      onClick={handleToggle}
       aria-label="Toggle theme"
     >
       <div className="relative w-5 h-5 flex items-center justify-center transition-transform duration-500 hover:rotate-12 active:rotate-180">

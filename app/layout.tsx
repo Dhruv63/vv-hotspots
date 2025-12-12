@@ -45,12 +45,7 @@ export default function RootLayout({
       <body className={`${inter.variable} ${firaCode.variable} font-sans antialiased`}>
         <ServiceWorkerRegistration />
         <NotificationPermissionModal />
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
-          storageKey="vv-theme"
-        >
+        <ThemeProvider>
           {children}
           <Toaster position="top-center" theme="system" />
         </ThemeProvider>
