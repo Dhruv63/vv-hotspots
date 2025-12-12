@@ -11,8 +11,10 @@ export default async function FriendsPage() {
     redirect("/auth/login")
   }
 
-  const friends = await getFriends()
-  const { incoming, sent } = await getRequests()
+  const [friends, { incoming, sent }] = await Promise.all([
+    getFriends(),
+    getRequests()
+  ])
 
   return (
     <FriendsClient
