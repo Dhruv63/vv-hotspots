@@ -1,7 +1,11 @@
 import { createClient } from "@/lib/supabase/server"
 import { getFriends, getRequests } from "@/app/actions/friends"
-import { FriendsClient } from "./friends-client"
 import { redirect } from "next/navigation"
+import dynamic from 'next/dynamic'
+
+const FriendsClient = dynamic(() => import('./friends-client').then(mod => mod.FriendsClient), {
+  loading: () => <div className="animate-pulse p-4 text-cyber-cyan">Loading friends...</div>
+})
 
 export default async function FriendsPage() {
   const supabase = await createClient()
@@ -26,5 +30,3 @@ export default async function FriendsPage() {
     />
   )
 }
-
-// Force rebuild v2
