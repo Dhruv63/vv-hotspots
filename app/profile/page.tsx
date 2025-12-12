@@ -14,8 +14,75 @@ export default async function ProfilePage() {
     redirect("/auth/login")
   }
 
-  // Get profile - use maybeSingle to handle case where profile doesn't exist
-  let { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle()
+  // Fetch all data in parallel
+  const [
+    { data: profileData },
+    { data: checkIns },
+    { data: ratings },
+    { data: userPhotos },
+    { data: popularHotspots },
+    { data: savedHotspots },
+  ] = await Promise.all([
+    // Get profile
+    supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
+
+    // Get check-in history
+    supabase
+      .from("check_ins")
+      .select(`
+        id,
+        checked_in_at,
+        is_active,
+        hotspots (id, name, category, address)
+      `)
+      .eq("user_id", user.id)
+      .order("checked_in_at", { ascending: false }),
+
+    // Get user's ratings with reviews
+    supabase
+      .from("ratings")
+      .select(`
+        id,
+        rating,
+        review,
+        created_at,
+        hotspots (id, name, category)
+      `)
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false }),
+
+    // Get user's photos
+    supabase
+      .from("hotspot_photos")
+      .select(`
+        id,
+        image_url,
+        thumbnail_url,
+        created_at,
+        hotspots (id, name, category)
+      `)
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false }),
+
+    // Get popular hotspots for recommendations (limit 3)
+    supabase
+      .from("hotspots")
+      .select("id, name, category, image_url, address")
+      .limit(3),
+
+    // Get saved hotspots
+    supabase
+      .from("saved_hotspots")
+      .select(`
+        id,
+        created_at,
+        hotspots (id, name, category, address, image_url)
+      `)
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+  ])
+
+  let profile = profileData
 
   // If profile doesn't exist, create one
   if (!profile) {
@@ -31,61 +98,6 @@ export default async function ProfilePage() {
       .single()
     profile = newProfile
   }
-
-  // Get check-in history
-  const { data: checkIns } = await supabase
-    .from("check_ins")
-    .select(`
-      id,
-      checked_in_at,
-      is_active,
-      hotspots (id, name, category, address)
-    `)
-    .eq("user_id", user.id)
-    .order("checked_in_at", { ascending: false })
-
-  // Get user's ratings with reviews
-  const { data: ratings } = await supabase
-    .from("ratings")
-    .select(`
-      id,
-      rating,
-      review,
-      created_at,
-      hotspots (id, name, category)
-    `)
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-
-  // Get user's photos
-  const { data: userPhotos } = await supabase
-    .from("hotspot_photos")
-    .select(`
-      id,
-      image_url,
-      thumbnail_url,
-      created_at,
-      hotspots (id, name, category)
-    `)
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-
-  // Get popular hotspots for recommendations (limit 3)
-  const { data: popularHotspots } = await supabase
-    .from("hotspots")
-    .select("id, name, category, image_url, address")
-    .limit(3)
-
-  // Get saved hotspots
-  const { data: savedHotspots } = await supabase
-    .from("saved_hotspots")
-    .select(`
-      id,
-      created_at,
-      hotspots (id, name, category, address, image_url)
-    `)
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
 
   return (
     <ProfileClient
