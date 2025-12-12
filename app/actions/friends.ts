@@ -1,6 +1,7 @@
 'use server'
 import { createClient } from '@/lib/supabase/server';
-import { revalidatePath } from 'next/cache';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { revalidatePath, unstable_cache } from 'next/cache';
 
 export async function sendFriendRequest(receiverId: string) {
   const supabase = await createClient();
@@ -121,38 +122,60 @@ export async function removeFriend(friendshipId: string, friendUserId: string) {
   return { success: true };
 }
 
+const getCachedFriends = unstable_cache(
+  async (targetUserId: string, callerId: string) => {
+    // We use the service role key to bypass RLS, but we strictly filter the query
+    // to match what the user is allowed to see (their own friends or connections).
+    const supabase = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    let query = supabase
+      .from('friendships')
+      .select('id, user_id_1, user_id_2, created_at')
+      .or(`user_id_1.eq.${targetUserId},user_id_2.eq.${targetUserId}`);
+
+    // If fetching for another user, only show mutual connection (security enforcement)
+    if (targetUserId !== callerId) {
+      // Logic: (u1=target OR u2=target) AND (u1=caller OR u2=caller)
+      // This effectively finds the specific friendship row between target and caller.
+      query = query.or(`user_id_1.eq.${callerId},user_id_2.eq.${callerId}`);
+    }
+
+    const { data: friendships } = await query.limit(50);
+
+    if (!friendships || friendships.length === 0) return [];
+
+    const friendIds = friendships.map(f => f.user_id_1 === targetUserId ? f.user_id_2 : f.user_id_1);
+
+    if (friendIds.length === 0) return [];
+
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, username, avatar_url, bio, city')
+      .in('id', friendIds);
+
+    return friendships.map(f => ({
+      friendshipId: f.id,
+      friend: profiles?.find(p => p.id === (f.user_id_1 === targetUserId ? f.user_id_2 : f.user_id_1))
+    }));
+  },
+  ['user-friends'],
+  { revalidate: 30, tags: ['friends'] }
+);
+
 // Adapted to support optional userId for public profile compatibility
 export async function getFriends(userId?: string) {
   const supabase = await createClient();
-  let targetUserId = userId;
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!targetUserId) {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return [];
-    targetUserId = user.id;
-  }
+  // If not authenticated, return empty (friends are private/protected)
+  if (!user) return [];
 
-  const { data: friendships } = await supabase
-    .from('friendships')
-    .select('id, user_id_1, user_id_2, created_at')
-    .or(`user_id_1.eq.${targetUserId},user_id_2.eq.${targetUserId}`)
-    .limit(50);
+  const targetUserId = userId || user.id;
 
-  if (!friendships) return [];
-
-  const friendIds = friendships.map(f => f.user_id_1 === targetUserId ? f.user_id_2 : f.user_id_1);
-
-  if (friendIds.length === 0) return [];
-
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('id, username, avatar_url, bio, city')
-    .in('id', friendIds);
-
-  return friendships.map(f => ({
-    friendshipId: f.id,
-    friend: profiles?.find(p => p.id === (f.user_id_1 === targetUserId ? f.user_id_2 : f.user_id_1))
-  }));
+  return getCachedFriends(targetUserId, user.id);
 }
 
 export async function getRequests() {
