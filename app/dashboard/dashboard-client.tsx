@@ -12,9 +12,10 @@ import { UnifiedMenuDrawer } from "@/components/unified-menu-drawer"
 import { OnboardingFlow } from "@/components/onboarding-flow"
 import { CheckInModal } from "@/components/check-in-modal"
 import { RateReviewModal } from "@/components/rate-review-modal"
-import { BottomNav } from "@/components/bottom-nav" // New Import
 import { MobileSearchBar } from "@/components/mobile-search-bar" // New Import
 import { sanitizeInput, checkRateLimit } from "@/lib/security"
+import { useViewMode } from "@/hooks/useViewMode"
+import { useDashboardContext } from "@/context/dashboard-context"
 import type { Hotspot, ActivityFeedItem } from "@/lib/types"
 import type { User } from "@supabase/supabase-js"
 
@@ -101,8 +102,8 @@ export function DashboardClient({
   }, [user.id, localSavedIds, router])
 
   // New State for Unified Menu
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [viewMode, setViewMode] = useState<string>("map") // Default to map
+  const [viewMode, setViewMode] = useViewMode()
+  const { isMenuOpen, setIsMenuOpen } = useDashboardContext()
   const [filterCategories, setFilterCategories] = useState<string[]>([])
   const [showFriendsOnly, setShowFriendsOnly] = useState(false)
   const [searchTerm, setSearchTerm] = useState("") // Unified search state for mobile
@@ -126,19 +127,9 @@ export function DashboardClient({
   const [rateModalOpen, setRateModalOpen] = useState(false)
   const [actionHotspot, setActionHotspot] = useState<Hotspot | null>(null)
 
-  // Initialize viewMode from localStorage
-  useEffect(() => {
-    const savedView = localStorage.getItem('vv-view-mode')
-    if (savedView) {
-        setViewMode(savedView)
-    }
-  }, [])
-
-  // Persist viewMode
   const handleViewChange = useCallback((newView: string) => {
       setViewMode(newView)
-      localStorage.setItem('vv-view-mode', newView)
-  }, [])
+  }, [setViewMode])
 
   // Sync state with props
   useEffect(() => { setActiveCheckins(initialActiveCheckins) }, [initialActiveCheckins])
@@ -541,16 +532,6 @@ export function DashboardClient({
           />
         </div>
       </div>
-
-      {/* Mobile Bottom Navigation */}
-      <BottomNav
-        currentView={viewMode}
-        onViewChange={(view) => {
-            handleViewChange(view)
-            // Reset search if switching views? Maybe keep it.
-        }}
-        onMenuClick={() => setIsMenuOpen(true)}
-      />
 
       <CheckInModal
         isOpen={checkInModalOpen}
