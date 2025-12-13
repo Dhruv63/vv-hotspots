@@ -99,18 +99,23 @@ export default async function PublicProfilePage({ params }: PageProps) {
 
   // Execute all promises
   const [
-    { data: allCheckIns },
-    { data: ratings },
+    checkInsResult,
+    ratingsResult,
     friends,
     friendStatus,
     mutuals,
     requestResult
   ] = await Promise.all([
-    ...fetchPromises,
+    fetchPromises[0],
+    fetchPromises[1],
+    fetchPromises[2],
     friendStatusPromise,
     mutualsPromise,
     requestPromise
   ])
+
+  const allCheckIns = (checkInsResult as any)?.data
+  const ratings = (ratingsResult as any)?.data
 
   // Process Results
   const checkIns = allCheckIns || []

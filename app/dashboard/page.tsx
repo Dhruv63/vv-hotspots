@@ -149,7 +149,7 @@ export default async function DashboardPage() {
       friendVisitsPromise = supabase
         .from('check_ins')
         .select('hotspot_id')
-        .in('user_id', friendIds)
+        .in('user_id', friendIds) as any
   }
 
   // Await dependent data
