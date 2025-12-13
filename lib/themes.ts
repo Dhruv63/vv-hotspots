@@ -1,4 +1,4 @@
-export type ThemeId = 'cyberpunk' | 'light' | 'dark' | 'retro'
+export type ThemeId = 'cyberpunk' | 'genshin' | 'lofi' | 'rdr2'
 
 export interface Theme {
   id: ThemeId
@@ -26,40 +26,40 @@ export const themes: Record<ThemeId, Theme> = {
       text: '#B0B9C1'
     }
   },
-  light: {
-    id: 'light',
-    name: 'Day Mode',
-    tagline: 'Clean and bright',
+  genshin: {
+    id: 'genshin',
+    name: 'Genshin Impact',
+    tagline: 'Fantasy world adventure',
     colors: {
-      primary: '#FF006E',
-      secondary: '#E8FF00',
-      accent: '#00D9FF',
-      bg: '#FFFFFF',
-      text: '#0A0E27'
+      primary: '#D4AF37',   // Gold
+      secondary: '#4A90E2', // Sky Blue
+      accent: '#9E7CC1',    // Electro Purple
+      bg: '#F0F4F8',        // Cloud White
+      text: '#333333'       // Dark Gray
     }
   },
-  dark: {
-    id: 'dark',
-    name: 'Night Mode',
-    tagline: 'Dark and easy on the eyes',
+  lofi: {
+    id: 'lofi',
+    name: 'Lofi Cafe',
+    tagline: 'Chill beats to relax to',
     colors: {
-      primary: '#E8FF00',
-      secondary: '#FF006E',
-      accent: '#00D9FF',
-      bg: '#0A0E27',
-      text: '#B0B9C1'
+      primary: '#C0A080',   // Latte
+      secondary: '#8C705F', // Mocha
+      accent: '#D4A373',    // Caramel
+      bg: '#E6DCCF',        // Paper/Cream
+      text: '#4E4237'       // Coffee
     }
   },
-  retro: {
-    id: 'retro',
-    name: 'Retro Wave',
-    tagline: '80s sunset vibes',
+  rdr2: {
+    id: 'rdr2',
+    name: 'RDR2',
+    tagline: 'Outlaws for life',
     colors: {
-      primary: '#FF71CE',
-      secondary: '#01CDFE',
-      accent: '#05FFA1',
-      bg: '#2D1B2E',
-      text: '#FFFFFF'
+      primary: '#C0392B',   // Blood Red
+      secondary: '#D35400', // Rust
+      accent: '#F1C40F',    // Badge Gold
+      bg: '#2C241B',        // Dark Leather
+      text: '#D6CDBB'       // Old Paper
     }
   }
 }

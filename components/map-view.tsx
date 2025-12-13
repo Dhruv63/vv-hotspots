@@ -25,20 +25,26 @@ const DEFAULT_ZOOM = 13
 
 // Map tile providers
 const TILE_LAYERS = {
-  dark: {
+  cyberpunk: {
     url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
   },
-  light: {
+  genshin: {
     url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+  },
+  lofi: {
+    url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+  },
+  rdr2: {
+    url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
   },
 }
 
 export const THEME_COLORS = {
-  dark: {
+  cyberpunk: {
     cafe: { main: "#00FFFF", glow: "rgba(0, 255, 255, 0.8)", name: "Cafe" },
     park: { main: "#39FF14", glow: "rgba(57, 255, 20, 0.8)", name: "Park" },
     gaming: { main: "#BF00FF", glow: "rgba(191, 0, 255, 0.8)", name: "Gaming" },
@@ -51,18 +57,44 @@ export const THEME_COLORS = {
     popupBg: "#12121a",
     popupText: "#e0e0e0"
   },
-  light: {
-    cafe: { main: "#8B4513", glow: "rgba(139, 69, 19, 0.8)", name: "Cafe" },
-    park: { main: "#228B22", glow: "rgba(34, 139, 34, 0.8)", name: "Park" },
-    gaming: { main: "#6A0DAD", glow: "rgba(106, 13, 173, 0.8)", name: "Gaming" },
-    food: { main: "#FF4500", glow: "rgba(255, 69, 0, 0.8)", name: "Food" },
-    hangout: { main: "#FF1493", glow: "rgba(255, 20, 147, 0.8)", name: "Hangout" },
-    other: { main: "#708090", glow: "rgba(112, 128, 144, 0.8)", name: "Other" },
-    highlight: "#FF1493", // Hot Pink
-    highlightGlow: "#FF1493",
-    userLocation: "#FF1493",
+  genshin: {
+    cafe: { main: "#00BCD4", glow: "rgba(0, 188, 212, 0.8)", name: "Cafe" },
+    park: { main: "#4CAF50", glow: "rgba(76, 175, 80, 0.8)", name: "Park" },
+    gaming: { main: "#9C27B0", glow: "rgba(156, 39, 176, 0.8)", name: "Gaming" },
+    food: { main: "#FF9800", glow: "rgba(255, 152, 0, 0.8)", name: "Food" },
+    hangout: { main: "#E91E63", glow: "rgba(233, 30, 99, 0.8)", name: "Hangout" },
+    other: { main: "#9E9E9E", glow: "rgba(158, 158, 158, 0.8)", name: "Other" },
+    highlight: "#FFD700",
+    highlightGlow: "#FFD700",
+    userLocation: "#FFD700",
     popupBg: "#FFFFFF",
-    popupText: "#2A2A2A"
+    popupText: "#333333"
+  },
+  lofi: {
+    cafe: { main: "#795548", glow: "rgba(121, 85, 72, 0.8)", name: "Cafe" },
+    park: { main: "#827717", glow: "rgba(130, 119, 23, 0.8)", name: "Park" },
+    gaming: { main: "#607D8B", glow: "rgba(96, 125, 139, 0.8)", name: "Gaming" },
+    food: { main: "#BF360C", glow: "rgba(191, 54, 12, 0.8)", name: "Food" },
+    hangout: { main: "#00695C", glow: "rgba(0, 105, 92, 0.8)", name: "Hangout" },
+    other: { main: "#8D6E63", glow: "rgba(141, 110, 99, 0.8)", name: "Other" },
+    highlight: "#D84315",
+    highlightGlow: "#D84315",
+    userLocation: "#D84315",
+    popupBg: "#F5EBE0",
+    popupText: "#4E4237"
+  },
+  rdr2: {
+    cafe: { main: "#CD853F", glow: "rgba(205, 133, 63, 0.8)", name: "Cafe" },
+    park: { main: "#2E8B57", glow: "rgba(46, 139, 87, 0.8)", name: "Park" },
+    gaming: { main: "#8B0000", glow: "rgba(139, 0, 0, 0.8)", name: "Gaming" },
+    food: { main: "#DAA520", glow: "rgba(218, 165, 32, 0.8)", name: "Food" },
+    hangout: { main: "#A0522D", glow: "rgba(160, 82, 45, 0.8)", name: "Hangout" },
+    other: { main: "#708090", glow: "rgba(112, 128, 144, 0.8)", name: "Other" },
+    highlight: "#FFD700",
+    highlightGlow: "#FFD700",
+    userLocation: "#FFD700",
+    popupBg: "#3E3427",
+    popupText: "#D6CDBB"
   }
 }
 
@@ -78,8 +110,8 @@ export function MapView({
   viewMode,
 }: MapViewProps) {
   const { theme: currentTheme } = useTheme()
-  const theme = (currentTheme === "light" ? "light" : "dark") as keyof typeof THEME_COLORS
-  const colors = THEME_COLORS[theme]
+  const theme = currentTheme as keyof typeof THEME_COLORS
+  const colors = THEME_COLORS[theme] || THEME_COLORS.cyberpunk
 
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<L.Map | null>(null)
@@ -107,7 +139,7 @@ export function MapView({
   // Update tile layer when theme changes
   useEffect(() => {
     if (mapRef.current && tileLayerRef.current) {
-      const tileConfig = TILE_LAYERS[theme]
+      const tileConfig = TILE_LAYERS[theme] || TILE_LAYERS.cyberpunk
       tileLayerRef.current.setUrl(tileConfig.url)
     }
   }, [theme])
@@ -162,10 +194,6 @@ export function MapView({
     (hotspot: Hotspot, isSelected: boolean) => {
       if (!L) return null
 
-      // Need to capture current colors inside useCallback or use ref, but useCallback depends on theme/colors
-      // We are in render scope, so colors is current.
-      // But dependencies must include colors.
-
       const colorInfo = (colors as any)[hotspot.category] || (colors as any).other
       const activeCount = activeCheckins[hotspot.id] || 0
       const isCheckedInHere = userCurrentCheckin === hotspot.id
@@ -175,7 +203,7 @@ export function MapView({
       const glowIntensity = isSelected ? 20 : hasActiveUsers ? 12 : 6
 
       const mainColor = isCheckedInHere ? colors.highlight : colorInfo.main
-      const glowColor = isCheckedInHere ? colors.highlightGlow : colorInfo.main
+      // const glowColor = isCheckedInHere ? colors.highlightGlow : colorInfo.main
 
       const html = `
       <div class="marker-wrapper" style="
@@ -215,14 +243,14 @@ export function MapView({
             min-width: 18px;
             height: 18px;
             background: ${mainColor};
-            border: 2px solid ${theme === 'dark' ? '#000000' : '#FFFFFF'};
+            border: 2px solid ${['genshin', 'lofi'].includes(theme) ? '#FFFFFF' : '#000000'};
             border-radius: 9px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 10px;
             font-weight: bold;
-            color: ${theme === 'dark' ? '#000000' : '#FFFFFF'};
+            color: ${['genshin', 'lofi'].includes(theme) ? '#FFFFFF' : '#000000'};
             padding: 0 4px;
             font-family: monospace;
             box-shadow: 0 0 8px ${mainColor};
@@ -313,7 +341,7 @@ export function MapView({
 
     L.control.zoom({ position: "topright" }).addTo(map)
 
-    const tileConfig = TILE_LAYERS[theme]
+    const tileConfig = TILE_LAYERS[theme] || TILE_LAYERS.cyberpunk
 
     const tileLayer = L.tileLayer(tileConfig.url, {
       attribution: tileConfig.attribution,
@@ -374,7 +402,7 @@ export function MapView({
       tileLayerRef.current = null
       clusterGroupRef.current = null
     }
-  }, [L]) // Removed theme dependency here to prevent map re-initialization
+  }, [L])
 
   // Update user marker when location or theme changes
   useEffect(() => {
@@ -396,6 +424,8 @@ export function MapView({
       const activeCount = activeCheckins[hotspot.id] || 0
       const isCheckedInHere = userCurrentCheckin === hotspot.id
       const colorInfo = (colors as any)[hotspot.category] || (colors as any).other
+      const textColor = ['genshin', 'lofi'].includes(theme) ? '#333333' : '#e0e0e0'
+      const subTextColor = ['genshin', 'lofi'].includes(theme) ? '#666666' : '#888888'
 
       return `
       <div style="
@@ -413,7 +443,7 @@ export function MapView({
         <div style="font-weight: bold; font-size: 14px; margin-bottom: 4px; color: ${colors.popupText};">
           ${hotspot.name}
         </div>
-        <div style="font-size: 11px; color: ${theme === 'dark' ? '#888' : '#666'}; margin-bottom: 12px;">
+        <div style="font-size: 11px; color: ${subTextColor}; margin-bottom: 12px;">
           ${hotspot.address || "Vasai-Virar"}
         </div>
         ${
@@ -442,7 +472,7 @@ export function MapView({
             style="
               width: 100%;
               background: ${colorInfo.main};
-              color: ${theme === 'dark' ? '#000000' : '#FFFFFF'};
+              color: ${['genshin', 'lofi'].includes(theme) ? '#FFFFFF' : '#000000'};
               border: none;
               padding: 10px;
               font-family: monospace;
@@ -527,8 +557,8 @@ export function MapView({
     L,
     activeCheckins,
     userCurrentCheckin,
-    openPopupId, // Re-run when popup state changes? Not strictly needed for icon update but harmless.
-    theme // Ensure re-run on theme change
+    openPopupId,
+    theme
   ])
 
   useEffect(() => {
@@ -556,17 +586,12 @@ export function MapView({
     }
   }, [selectedHotspot])
 
-  // Handle layout changes
   useEffect(() => {
     if (mapRef.current) {
-      // Use a small timeout to allow CSS transitions to complete or start
       const timeoutId = setTimeout(() => {
         mapRef.current?.invalidateSize({ animate: true })
       }, 300)
-
-      // Also invalidate immediately to start animation
       mapRef.current.invalidateSize({ animate: true })
-
       return () => clearTimeout(timeoutId)
     }
   }, [viewMode])
@@ -596,28 +621,28 @@ export function MapView({
           z-index: 1000 !important;
         }
         .cyber-popup .leaflet-popup-content-wrapper {
-          background: var(--color-cyber-navy) !important;
-          border: 2px solid var(--color-cyber-primary) !important;
+          background: var(--color-card) !important;
+          border: 2px solid var(--color-primary) !important;
           border-radius: 8px;
-          box-shadow: 0 0 20px var(--color-cyber-primary) !important;
+          box-shadow: 0 0 20px var(--color-primary) !important;
           padding: 0;
           overflow: visible;
         }
         .cyber-popup .leaflet-popup-content {
           margin: 0;
-          color: var(--color-cyber-gray);
+          color: var(--color-foreground);
         }
         .cyber-popup .leaflet-popup-tip-container {
           overflow: visible;
         }
         .cyber-popup .leaflet-popup-tip {
-          background: var(--color-cyber-navy) !important;
-          border: 2px solid var(--color-cyber-primary) !important;
+          background: var(--color-card) !important;
+          border: 2px solid var(--color-primary) !important;
           border-top: none;
           border-left: none;
         }
         .cyber-popup .leaflet-popup-close-button {
-          color: var(--color-cyber-primary) !important;
+          color: var(--color-primary) !important;
           font-size: 20px;
           width: 24px;
           height: 24px;
@@ -625,25 +650,25 @@ export function MapView({
           top: 4px !important;
         }
         .cyber-popup .leaflet-popup-close-button:hover {
-          color: var(--color-cyber-secondary) !important;
+          color: var(--color-secondary) !important;
         }
         .leaflet-control-zoom {
-          border: 2px solid var(--color-cyber-primary) !important;
+          border: 2px solid var(--color-primary) !important;
           border-radius: 6px !important;
           overflow: hidden;
         }
         .leaflet-control-zoom a {
-          background: var(--color-cyber-navy) !important;
-          color: var(--color-cyber-primary) !important;
-          border-color: var(--color-cyber-gray) !important;
+          background: var(--color-card) !important;
+          color: var(--color-primary) !important;
+          border-color: var(--color-border) !important;
           width: 32px !important;
           height: 32px !important;
           line-height: 32px !important;
           font-size: 16px !important;
         }
         .leaflet-control-zoom a:hover {
-          background: var(--color-cyber-primary) !important;
-          color: var(--color-cyber-black) !important;
+          background: var(--color-primary) !important;
+          color: var(--color-primary-foreground) !important;
         }
         .popup-checkin-btn:hover {
           opacity: 0.9;
@@ -656,30 +681,31 @@ export function MapView({
           100% { background-position: 200% 0; }
         }
         .map-skeleton {
-          background: linear-gradient(90deg, var(--color-cyber-dark) 25%, var(--color-cyber-navy) 50%, var(--color-cyber-dark) 75%);
+          background: linear-gradient(90deg, var(--color-muted) 25%, var(--color-card) 50%, var(--color-muted) 75%);
           background-size: 200% 100%;
           animation: shimmer 1.5s infinite;
         }
         .cyber-cluster {
           width: 40px;
           height: 40px;
-          background: rgba(255, 255, 0, 0.2);
-          border: 2px solid #FFFF00;
+          background: rgba(var(--color-primary), 0.2); /* Note: this might not work if var is hex. Use opacity modifier in JS or fallback */
+          border: 2px solid var(--color-primary);
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
           font-weight: bold;
-          color: #FFFF00;
-          box-shadow: 0 0 15px #FFFF00;
+          color: var(--color-primary);
+          box-shadow: 0 0 15px var(--color-primary);
           font-family: monospace;
         }
-        :global(.light) .cyber-cluster {
-           background: rgba(255, 20, 147, 0.2);
-           border-color: #FF1493;
-           color: #FF1493;
-           box-shadow: 0 0 15px #FF1493;
+        /* Fallback for cluster background if hex var issues, relying on JS driven colors if possible or simple transparency */
+        .cyber-cluster {
+           background: var(--color-primary);
+           opacity: 0.8;
+           color: var(--color-primary-foreground);
         }
+
         .custom-cluster-icon {
           background: transparent !important;
           border: none !important;
@@ -692,23 +718,23 @@ export function MapView({
             z-index: 1000;
         }
         .cyber-tooltip {
-          background: var(--color-cyber-navy) !important;
-          border: 1px solid var(--color-cyber-primary) !important;
-          color: var(--color-cyber-primary) !important;
+          background: var(--color-card) !important;
+          border: 1px solid var(--color-primary) !important;
+          color: var(--color-primary) !important;
           font-family: monospace;
           font-size: 10px;
           border-radius: 4px;
           box-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
         .cyber-tooltip::before {
-            border-top-color: var(--color-cyber-primary) !important;
+            border-top-color: var(--color-primary) !important;
         }
       `}</style>
 
-      <div ref={mapContainerRef} className="w-full h-full bg-cyber-black" />
+      <div ref={mapContainerRef} className="w-full h-full bg-background" />
 
-      <div className="hidden md:block absolute bottom-8 left-4 z-[1000] bg-cyber-black/90 border-2 border-cyber-primary rounded-lg p-3 shadow-[0_0_15px_rgba(0,0,0,0.3)]">
-        <div className="text-xs font-mono text-cyber-primary mb-2 uppercase tracking-wider font-bold">Legend</div>
+      <div className="hidden md:block absolute bottom-8 left-4 z-[1000] bg-background/90 border-2 border-primary rounded-lg p-3 shadow-lg">
+        <div className="text-xs font-mono text-primary mb-2 uppercase tracking-wider font-bold">Legend</div>
         <div className="space-y-1.5">
           {Object.entries(colors).filter(([key]) => !['highlight', 'highlightGlow', 'userLocation', 'popupBg', 'popupText'].includes(key)).map(([key, value]) => (
             <div key={key} className="flex items-center gap-2">
@@ -716,12 +742,12 @@ export function MapView({
                 className="w-3 h-3 rounded-full"
                 style={{ background: (value as any).main, boxShadow: `0 0 6px ${(value as any).main}` }}
               />
-              <span className="text-xs font-mono text-cyber-gray capitalize">{(value as any).name}</span>
+              <span className="text-xs font-mono text-muted-foreground capitalize">{(value as any).name}</span>
             </div>
           ))}
-          <div className="flex items-center gap-2 pt-2 border-t border-cyber-gray/30 mt-1">
-             <div className="w-3 h-3 rounded-full bg-[#FFFF00]/20 border border-[#FFFF00]" />
-             <span className="text-xs font-mono text-cyber-gray">Cluster</span>
+          <div className="flex items-center gap-2 pt-2 border-t border-border mt-1">
+             <div className="w-3 h-3 rounded-full bg-primary/20 border border-primary" />
+             <span className="text-xs font-mono text-muted-foreground">Cluster</span>
           </div>
         </div>
       </div>
@@ -729,13 +755,13 @@ export function MapView({
       <button
         onClick={handleGetLocation}
         disabled={isLocating}
-        className="absolute bottom-8 right-4 z-[1000] w-12 h-12 bg-cyber-navy border-2 border-cyber-primary rounded-full flex items-center justify-center transition-all hover:bg-cyber-primary/20 hover:shadow-[0_0_15px_rgba(0,0,0,0.5)] disabled:opacity-50 min-w-[48px] min-h-[48px]"
+        className="absolute bottom-8 right-4 z-[1000] w-12 h-12 bg-card border-2 border-primary rounded-full flex items-center justify-center transition-all hover:bg-primary/20 hover:shadow-lg disabled:opacity-50 min-w-[48px] min-h-[48px]"
         title="Find my location"
       >
         {isLocating ? (
-          <Loader2 className="w-5 h-5 text-cyber-primary animate-spin" />
+          <Loader2 className="w-5 h-5 text-primary animate-spin" />
         ) : (
-          <Compass className="w-5 h-5 text-cyber-primary" />
+          <Compass className="w-5 h-5 text-primary" />
         )}
       </button>
 
@@ -743,26 +769,26 @@ export function MapView({
         <div className="absolute inset-0 z-[60] flex flex-col">
           <div className="flex-1 map-skeleton" />
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center bg-cyber-navy/80 p-6 rounded-lg border border-cyber-cyan/30">
-              <Loader2 className="w-10 h-10 text-cyber-cyan animate-spin mx-auto mb-3" />
-              <p className="text-cyber-cyan font-mono text-sm">LOADING MAP...</p>
-              <p className="text-cyber-gray font-mono text-xs mt-1">Preparing hotspots</p>
+            <div className="text-center bg-card/80 p-6 rounded-lg border border-accent/30">
+              <Loader2 className="w-10 h-10 text-accent animate-spin mx-auto mb-3" />
+              <p className="text-accent font-mono text-sm">LOADING MAP...</p>
+              <p className="text-muted-foreground font-mono text-xs mt-1">Preparing hotspots</p>
             </div>
           </div>
         </div>
       )}
 
       {mapError && (
-        <div className="absolute inset-0 z-[60] flex items-center justify-center bg-cyber-black">
+        <div className="absolute inset-0 z-[60] flex items-center justify-center bg-background">
           <div className="text-center p-6">
-            <div className="w-16 h-16 rounded-full bg-cyber-pink/20 flex items-center justify-center mx-auto mb-4">
-              <X className="w-8 h-8 text-cyber-pink" />
+            <div className="w-16 h-16 rounded-full bg-secondary/20 flex items-center justify-center mx-auto mb-4">
+              <X className="w-8 h-8 text-secondary" />
             </div>
-            <p className="text-cyber-pink font-mono text-lg mb-2">Map Failed to Load</p>
-            <p className="text-cyber-gray font-mono text-sm mb-4">{mapError}</p>
+            <p className="text-secondary font-mono text-lg mb-2">Map Failed to Load</p>
+            <p className="text-muted-foreground font-mono text-sm mb-4">{mapError}</p>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-cyber-cyan text-cyber-black font-mono font-bold rounded-lg hover:bg-cyber-cyan/80 transition-colors"
+              className="px-4 py-2 bg-accent text-accent-foreground font-mono font-bold rounded-lg hover:bg-accent/80 transition-colors"
             >
               Refresh Page
             </button>
@@ -771,10 +797,10 @@ export function MapView({
       )}
 
       {isLoading && isLoaded && (
-        <div className="absolute inset-0 z-[55] bg-cyber-black/50 flex items-center justify-center pointer-events-none">
-          <div className="bg-cyber-navy border border-cyber-cyan rounded-lg p-4 flex items-center gap-3">
-            <Loader2 className="w-5 h-5 text-cyber-cyan animate-spin" />
-            <span className="text-cyber-cyan font-mono text-sm">Processing...</span>
+        <div className="absolute inset-0 z-[55] bg-background/50 flex items-center justify-center pointer-events-none">
+          <div className="bg-card border border-accent rounded-lg p-4 flex items-center gap-3">
+            <Loader2 className="w-5 h-5 text-accent animate-spin" />
+            <span className="text-accent font-mono text-sm">Processing...</span>
           </div>
         </div>
       )}
