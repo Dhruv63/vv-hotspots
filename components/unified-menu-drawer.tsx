@@ -1,20 +1,29 @@
 "use client"
 
-import { useEffect, useRef } from "react"
-import { X, Check, Grid, List, Map as MapIcon, Activity, Layers, ArrowLeft, Users } from "lucide-react"
-import { useTheme } from "@/components/theme-provider"
-import { THEME_COLORS } from "@/components/map-view"
+import { X, SlidersHorizontal, Users, Shield, Settings, LogOut, User as UserIcon, List as ListIcon } from "lucide-react"
+import { createClient } from "@/lib/supabase/client"
+import { useRouter } from "next/navigation"
+import { ThemeSelector } from "@/app/settings/theme-selector"
+import Link from "next/link"
 
 interface UnifiedMenuDrawerProps {
   isOpen: boolean
   onClose: () => void
-  currentView: string // 'all', 'map', 'list', 'grid', 'feed'
+  currentView: string
   currentCategories: string[]
   showFriendsOnly: boolean
-  onToggleFriendsOnly: (value: boolean) => void
+  onToggleFriendsOnly: (show: boolean) => void
   onApply: (view: string, categories: string[]) => void
   onClear: () => void
 }
+
+const CATEGORIES = [
+  { id: "cafe", label: "Cafes", emoji: "☕" },
+  { id: "park", label: "Parks", emoji: "🌳" },
+  { id: "food", label: "Food", emoji: "🍔" },
+  { id: "gaming", label: "Gaming", emoji: "🎮" },
+  { id: "hangout", label: "Hangout", emoji: "🍻" },
+]
 
 export function UnifiedMenuDrawer({
   isOpen,
@@ -24,244 +33,141 @@ export function UnifiedMenuDrawer({
   showFriendsOnly,
   onToggleFriendsOnly,
   onApply,
-  onClear
+  onClear,
 }: UnifiedMenuDrawerProps) {
-  const { theme: currentTheme } = useTheme()
-  const theme = currentTheme as keyof typeof THEME_COLORS
-  const colors = THEME_COLORS[theme] || THEME_COLORS.cyberpunk
+  const router = useRouter()
+  const supabase = createClient()
 
-  // Touch handling for swipe-down to close
-  const touchStartY = useRef<number | null>(null)
-  const drawerRef = useRef<HTMLDivElement>(null)
+  // We are removing the internal state for categories and view,
+  // relying on props to be "controlled" or just simple actions.
+  // Actually, the previous implementation likely had local state for "Apply" button pattern.
+  // Requirement: "Menu: Profile, Friends, Settings, Sign Out"
+  // "The UnifiedMenuDrawer is a controlled component that applies filter and view changes instantly via the onApply prop, eliminating the need for a manual 'Apply' button." (From Memory)
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartY.current = e.touches[0].clientY
+  // However, since this is now the "Menu" from the bottom nav, it should probably show Menu items primarily,
+  // and maybe filters as a subsection or separate tab?
+  // The prompt says "Menu: Profile, Friends, Settings, Sign Out".
+  // But also "Search component... Quick filter pills". So filters are on the search bar now.
+  // Do we still need filters in the drawer?
+  // The DashboardClient uses this drawer for "Menu" click.
+  // Let's transform this into a proper User Menu + Settings, and keep Filters maybe as a "Filter Settings" or remove them if they are fully covered by the Smart Search Bar.
+  // Wait, the Smart Search Bar is only on List/Grid. Map view needs filters too?
+  // "Map View Enhancements... Floating search button... opens search overlay modal".
+  // Maybe the floating search button should open the Search Bar in a modal/sheet, OR this drawer.
+
+  // Let's make this drawer a comprehensive "More" menu.
+  // It can have sections: "User", "Navigation", "Filters" (optional or minimal).
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    router.push("/auth/login")
   }
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (touchStartY.current === null || !drawerRef.current) return
-    const touchY = e.touches[0].clientY
-    const diff = touchY - touchStartY.current
-
-    // If swiping down and at the top of the scroll container
-    if (diff > 50 && drawerRef.current.scrollTop === 0) {
-      // Could add visual feedback here (transform)
-    }
-  }
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartY.current === null) return
-    const touchY = e.changedTouches[0].clientY
-    const diff = touchY - touchStartY.current
-
-    if (diff > 100) { // Threshold for closing
-      onClose()
-    }
-    touchStartY.current = null
-  }
-
-  // Close on ESC
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen) {
-        onClose()
-      }
-    }
-    window.addEventListener("keydown", handleEsc)
-    return () => window.removeEventListener("keydown", handleEsc)
-  }, [isOpen, onClose])
-
-  const categories = [
-    { value: "cafe", label: "Cafes", color: colors.cafe.main },
-    { value: "park", label: "Parks", color: colors.park.main },
-    { value: "gaming", label: "Gaming", color: colors.gaming.main },
-    { value: "food", label: "Food", color: colors.food.main },
-    { value: "hangout", label: "Hangout", color: colors.hangout.main },
-    { value: "other", label: "Other", color: colors.other.main },
-  ]
-
-  const viewOptions = [
-    { value: "all", label: "All Places", icon: Layers },
-    { value: "grid", label: "Grid View", icon: Grid },
-    { value: "list", label: "List View", icon: List },
-    { value: "map", label: "Map Only", icon: MapIcon },
-    { value: "feed", label: "Feed", icon: Activity },
-  ]
-
-  const toggleCategory = (cat: string) => {
-    let newCategories: string[]
-    if (currentCategories.includes(cat)) {
-      newCategories = currentCategories.filter(c => c !== cat)
-    } else {
-      newCategories = [...currentCategories, cat]
-    }
-    onApply(currentView, newCategories)
-  }
-
-  const setView = (view: string) => {
-    onApply(view, currentCategories)
-  }
-
-  if (!isOpen) return null
 
   return (
     <>
-       {/* Backdrop */}
+      {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] md:z-[40] transition-opacity duration-300"
+        className={`fixed inset-0 bg-background/80 backdrop-blur-sm z-[100] transition-opacity duration-300 ${
+          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
         onClick={onClose}
-        aria-hidden="true"
       />
 
       {/* Drawer */}
       <div
-        ref={drawerRef}
-        className={`fixed inset-x-0 bottom-0 md:top-16 md:bottom-0 md:left-0 md:right-auto md:w-80 z-[100] md:z-[50]
-        bg-card border-t-2 md:border-t-0 md:border-r border-primary md:border-border
-        rounded-t-2xl md:rounded-none transition-transform duration-300 ease-out
-        flex flex-col shadow-2xl
-        ${isOpen ? "translate-y-0 md:translate-x-0" : "translate-y-full md:-translate-x-full"}`}
-        style={{ maxHeight: "85vh", height: "100%" }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        className={`fixed inset-y-0 right-0 z-[101] w-[300px] bg-card border-l border-border shadow-2xl transform transition-transform duration-300 ease-in-out ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        }`}
       >
-        {/* Drag Handle for Mobile */}
-        <div className="md:hidden w-full flex justify-center pt-3 pb-1" onClick={onClose}>
-            <div className="w-12 h-1.5 bg-muted-foreground/30 rounded-full"></div>
-        </div>
+        <div className="flex flex-col h-full">
+          <div className="flex items-center justify-between p-4 border-b border-border">
+            <h2 className="font-heading text-lg font-bold text-foreground">MENU</h2>
+            <button onClick={onClose} className="p-2 hover:bg-muted rounded-full transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
 
-        <div className="flex items-center justify-between p-4 border-b border-border">
-            <div className="flex items-center gap-3">
-                <button
+          <div className="flex-1 overflow-y-auto p-4 space-y-6">
+
+            {/* User Navigation Section */}
+            <div className="space-y-2">
+                <p className="text-xs font-mono text-muted-foreground uppercase tracking-wider mb-2">Account</p>
+                <Link
+                    href="/profile"
                     onClick={onClose}
-                    className="md:hidden p-2 -ml-2 text-muted-foreground hover:text-primary transition-colors rounded-full hover:bg-muted/10"
+                    className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-muted transition-colors text-foreground font-medium"
                 >
-                    <ArrowLeft className="w-5 h-5" />
-                </button>
-                <div>
-                    <h2 className="text-primary font-mono text-lg font-bold tracking-wider">FILTERS</h2>
-                    {currentCategories.length > 0 && (
-                        <p className="text-xs font-mono text-muted-foreground">{currentCategories.length} selected</p>
-                    )}
-                </div>
+                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                        <UserIcon className="w-4 h-4" />
+                    </div>
+                    Profile
+                </Link>
+                <Link
+                    href="/profile/friends"
+                    onClick={onClose}
+                    className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-muted transition-colors text-foreground font-medium"
+                >
+                    <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent">
+                        <Users className="w-4 h-4" />
+                    </div>
+                    Friends
+                </Link>
+                <Link
+                    href="/settings"
+                    onClick={onClose}
+                    className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-muted transition-colors text-foreground font-medium"
+                >
+                    <div className="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center text-secondary">
+                        <Settings className="w-4 h-4" />
+                    </div>
+                    Settings
+                </Link>
             </div>
-          <button
-            onClick={onClose}
-            className="hidden md:block p-2 text-muted-foreground hover:text-primary transition-colors rounded-full hover:bg-muted/10"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-6">
-            {/* View Options */}
-            <section>
-                <h3 className="text-foreground/70 font-mono text-xs font-bold mb-3 uppercase tracking-wider">View Options</h3>
-                <div className="grid grid-cols-2 gap-2">
-                    {viewOptions.map((option) => {
-                        const isActive = currentView === option.value
-                        return (
-                            <button
-                                key={option.value}
-                                onClick={() => setView(option.value)}
-                                className={`flex items-center gap-2 p-3 rounded-lg border transition-all text-left duration-200
-                                    ${isActive
-                                        ? "border-primary bg-primary/10 text-primary shadow-lg"
-                                        : "border-border bg-muted/30 text-foreground hover:border-muted-foreground"
-                                    }
-                                `}
-                            >
-                                <option.icon className="w-4 h-4 flex-shrink-0" />
-                                <span className="font-mono text-xs font-bold">{option.label}</span>
-                            </button>
-                        )
-                    })}
-                </div>
-            </section>
+            <div className="border-t border-border my-2" />
 
-            {/* Social Filters */}
-            <section>
-                 <h3 className="text-foreground/70 font-mono text-xs font-bold mb-3 uppercase tracking-wider">Social</h3>
-                 <button
-                    onClick={() => onToggleFriendsOnly(!showFriendsOnly)}
-                    className={`flex items-center justify-between w-full p-3 rounded-lg border transition-all duration-200
-                        ${showFriendsOnly
-                            ? "border-primary bg-primary/10"
-                            : "border-border bg-muted/30 hover:border-muted-foreground"
-                        }
-                    `}
-                >
-                     <div className="flex items-center gap-3">
-                          <Users className={`w-4 h-4 ${showFriendsOnly ? "text-primary" : 'text-muted-foreground'}`} />
-                          <span className={`font-mono text-sm transition-colors ${showFriendsOnly ? "text-foreground font-bold" : "text-muted-foreground"}`}>
-                                Friends Only
-                          </span>
-                     </div>
-                     <div className={`w-10 h-5 rounded-full border relative transition-colors duration-300
-                          ${showFriendsOnly ? "border-primary bg-primary/10" : "border-muted-foreground bg-transparent"}
-                     `}>
-                          <div className={`absolute top-0.5 bottom-0.5 w-3.5 h-3.5 rounded-full transition-all duration-300
-                               ${showFriendsOnly ? "right-0.5 bg-primary" : "left-0.5 bg-muted-foreground"}
-                          `} style={{ right: showFriendsOnly ? '2px' : 'auto', left: showFriendsOnly ? 'auto' : '2px' }} />
-                     </div>
-                </button>
-            </section>
+            {/* Filters Section (Still useful for Map View or specific toggles like Friends Only) */}
+            <div className="space-y-4">
+                 <div className="flex items-center justify-between">
+                    <p className="text-xs font-mono text-muted-foreground uppercase tracking-wider">Map Filters</p>
+                 </div>
 
-            {/* Filter Categories */}
-             <section>
-                <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-foreground/70 font-mono text-xs font-bold uppercase tracking-wider">Categories</h3>
-                    {currentCategories.length > 0 && (
-                         <button
-                            onClick={onClear}
-                            className="text-xs font-mono text-muted-foreground hover:text-primary underline decoration-dotted underline-offset-4"
-                        >
-                            Clear All
-                        </button>
-                    )}
-                </div>
-                <div className="space-y-2">
-                    {categories.map((cat) => {
-                        const isSelected = currentCategories.includes(cat.value)
-                        return (
-                            <button
-                                key={cat.value}
-                                onClick={() => toggleCategory(cat.value)}
-                                className={`flex items-center justify-between w-full p-3 rounded-lg border transition-all duration-200
-                                    ${isSelected
-                                        ? "border-primary bg-primary/10"
-                                        : "border-border bg-muted/30 hover:border-muted-foreground"
-                                    }
-                                `}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div
-                                        className="w-2.5 h-2.5 rounded-full shadow-[0_0_5px] transition-transform duration-300"
-                                        style={{
-                                            backgroundColor: cat.color,
-                                            boxShadow: `0 0 5px ${cat.color}`,
-                                            transform: isSelected ? 'scale(1.2)' : 'scale(1)'
-                                        }}
-                                    />
-                                    <span className={`font-mono text-sm transition-colors ${isSelected ? "text-foreground font-bold" : "text-muted-foreground"}`}>
-                                        {cat.label}
-                                    </span>
-                                </div>
+                 <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/30">
+                    <div className="flex items-center gap-2">
+                        <Users className="w-4 h-4 text-accent" />
+                        <span className="text-sm font-medium">Friends Only</span>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                            type="checkbox"
+                            className="sr-only peer"
+                            checked={showFriendsOnly}
+                            onChange={(e) => onToggleFriendsOnly(e.target.checked)}
+                        />
+                        <div className="w-9 h-5 bg-muted-foreground/30 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent"></div>
+                    </label>
+                 </div>
+            </div>
 
-                                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all duration-200
-                                    ${isSelected
-                                        ? "bg-primary border-transparent"
-                                        : "border-muted-foreground bg-transparent"
-                                    }
-                                `}>
-                                    <Check className={`w-3.5 h-3.5 text-primary-foreground transition-opacity duration-200 ${isSelected ? 'opacity-100' : 'opacity-0'}`} />
-                                </div>
-                            </button>
-                        )
-                    })}
-                </div>
-            </section>
+            <div className="border-t border-border my-2" />
+
+            {/* Theme Selector Section (Quick Access) */}
+            <div className="space-y-2">
+                 <p className="text-xs font-mono text-muted-foreground uppercase tracking-wider mb-2">Appearance</p>
+                 <ThemeSelector />
+            </div>
+
+          </div>
+
+          <div className="p-4 border-t border-border bg-muted/30">
+             <button
+                onClick={handleSignOut}
+                className="flex items-center justify-center gap-2 w-full p-3 rounded-lg border border-red-500/30 text-red-500 hover:bg-red-500/10 transition-colors font-bold"
+            >
+                <LogOut className="w-4 h-4" />
+                Sign Out
+            </button>
+          </div>
         </div>
       </div>
     </>

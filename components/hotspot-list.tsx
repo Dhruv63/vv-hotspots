@@ -111,9 +111,25 @@ export function HotspotList({
     return matchesSearch
   })
 
+  // Determine if we are on desktop based on styling - but here we rely on viewMode prop usually passed by parent.
+  // We'll hide the desktop search bar if we are in mobile view mode and the parent renders MobileSearchBar.
+  // However, HotspotList is reused in Desktop Sidebar.
+  // Let's keep the desktop search bar logic but make it hidden on mobile if needed via CSS classes in parent?
+  // Or simpler: HotspotList is primarily the sidebar content.
+  // If used as full screen mobile list, we might want to hide the internal search bar if there's an external one.
+  // But typically the Sidebar HAS the search bar.
+
   return (
     <div className="flex flex-col h-full bg-muted">
-      <div className="p-4 border-b border-border space-y-4">
+      {/* Desktop/Sidebar Search - Hidden on mobile if we use the top MobileSearchBar instead,
+          but usually this component IS the sidebar content.
+          Let's assume this component renders the search bar.
+          On mobile full-screen view, we might hide this header via CSS if we have the new MobileSearchBar.
+          For now, I'll keep it but add md:block hidden if I want to replace it.
+          Actually, the requirement is "Smart Search Bar... visible in List, Grid, and All Places views".
+          If I use MobileSearchBar in DashboardClient, I should probably HIDE this header on mobile.
+      */}
+      <div className="p-4 border-b border-border space-y-4 hidden md:block">
         <div className="flex items-center justify-between">
           <h2 className="font-mono text-base text-foreground">
             <span className="text-primary">{">"}</span> HOTSPOTS
@@ -135,16 +151,17 @@ export function HotspotList({
               onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
               className="pl-12 pr-12 h-14 text-lg rounded-xl bg-card border-border text-foreground placeholder:text-muted-foreground/50 transition-all duration-200 focus:border-primary focus:ring-primary/20 focus:shadow-lg shadow-inner"
             />
+            {/* ... key shortcut ... */}
             <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
               <kbd className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded bg-background border border-muted-foreground/30 text-[10px] font-mono text-muted-foreground">
                 <span className="text-xs">⌘</span>K
               </kbd>
             </div>
-
-            {/* Autocomplete / Recent Searches Dropdown */}
+             {/* ... autocomplete ... */}
             {showSuggestions && (
               <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-primary/30 rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100 max-h-[300px] overflow-y-auto z-50">
-                {search.trim() === '' ? (
+                 {/* ... existing logic ... */}
+                 {search.trim() === '' ? (
                   recentSearches.length > 0 && (
                     <div className="p-2">
                       <p className="text-xs font-mono text-muted-foreground px-2 py-1">RECENT SEARCHES</p>
@@ -162,7 +179,7 @@ export function HotspotList({
                   )
                 ) : (
                   <div className="p-2">
-                    {filteredHotspots.slice(0, 5).map(hotspot => (
+                     {filteredHotspots.slice(0, 5).map(hotspot => (
                         <button
                           key={hotspot.id}
                           onClick={() => handleSuggestionClick(hotspot)}
@@ -177,11 +194,6 @@ export function HotspotList({
                           </div>
                         </button>
                     ))}
-                    {filteredHotspots.length === 0 && (
-                        <div className="p-4 text-center text-muted-foreground text-sm font-mono">
-                          No matches found
-                        </div>
-                    )}
                   </div>
                 )}
               </div>
@@ -214,11 +226,11 @@ export function HotspotList({
         </div>
       </div>
 
-      <div className={viewMode === "grid" ? "flex-1 overflow-y-auto" : "flex-1 overflow-y-auto p-4"}>
+      <div className={viewMode === "grid" ? "flex-1 overflow-y-auto pb-20 md:pb-0" : "flex-1 overflow-y-auto p-3 pb-20 md:p-4 md:pb-4"}>
         <div
           className={
             viewMode === "grid"
-              ? "grid grid-cols-1 min-[400px]:grid-cols-2 gap-[12px] p-[12px] auto-rows-fr"
+              ? "grid grid-cols-2 gap-[12px] p-[12px] auto-rows-fr"
               : "space-y-3"
           }
         >
@@ -247,8 +259,9 @@ export function HotspotList({
                   distance={distance}
                   isSaved={savedHotspotIds.includes(hotspot.id)}
                   onToggleSave={onToggleSave}
+                  variant={viewMode}
                 >
-                  <div className="flex justify-between w-full gap-2 mt-2">
+                  <div className={cn("flex justify-between w-full gap-2 mt-2", viewMode === "grid" ? "flex-col" : "")}>
                     {onCheckIn && (
                       <button
                         onClick={(e) => {
@@ -256,21 +269,24 @@ export function HotspotList({
                           onCheckIn(hotspot)
                         }}
                         disabled={isLoading}
-                        className={`flex-1 py-2.5 px-2 font-mono text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 min-h-[40px] ${
+                        className={cn(
+                          "flex-1 font-mono font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 min-h-[40px] active:scale-95",
+                          viewMode === "grid" ? "text-[10px] py-1.5" : "text-[11px] py-2.5 px-2",
                           isCheckedInHere
                             ? "bg-secondary text-secondary-foreground shadow-lg"
-                            : "bg-primary text-primary-foreground hover:bg-primary/80 hover:shadow-[0_0_15px_var(--color-primary)]"
-                        } disabled:opacity-50 disabled:cursor-not-allowed active:scale-95`}
+                            : "bg-primary text-primary-foreground hover:bg-primary/80 hover:shadow-[0_0_15px_var(--color-primary)]",
+                          "disabled:opacity-50 disabled:cursor-not-allowed"
+                        )}
                       >
                         {isCheckedInHere ? (
                           <>
                             <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                            HERE
+                            {viewMode === "grid" ? "HERE" : "HERE"}
                           </>
                         ) : (
                           <>
                             <Zap className="w-3.5 h-3.5" />
-                            CHECK IN
+                            {viewMode === "grid" ? "CHECK IN" : "CHECK IN"}
                           </>
                         )}
                       </button>
@@ -283,11 +299,14 @@ export function HotspotList({
                           onRate(hotspot)
                         }}
                         disabled={isLoading}
-                        className={`flex-1 py-2.5 px-2 font-mono text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 min-h-[40px] ${
+                        className={cn(
+                          "flex-1 font-mono font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 min-h-[40px] active:scale-95",
+                          viewMode === "grid" ? "text-[10px] py-1.5" : "text-[11px] py-2.5 px-2",
                           userRating
                             ? "bg-accent text-accent-foreground shadow-lg"
-                            : "bg-muted text-muted-foreground hover:bg-secondary hover:text-secondary-foreground hover:shadow-[0_0_15px_var(--color-secondary)]"
-                        } active:scale-95 disabled:opacity-50`}
+                            : "bg-muted text-muted-foreground hover:bg-secondary hover:text-secondary-foreground hover:shadow-[0_0_15px_var(--color-secondary)]",
+                          "disabled:opacity-50"
+                        )}
                       >
                         <Star className={`w-3.5 h-3.5 ${userRating ? "fill-current" : ""}`} />
                         {userRating ? `${userRating}★` : "RATE"}

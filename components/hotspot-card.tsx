@@ -17,6 +17,7 @@ interface HotspotCardProps {
   children?: ReactNode
   isSaved?: boolean
   onToggleSave?: (id: string) => void
+  variant?: "list" | "grid" | "compact" // Added variant prop
 }
 
 const getHotspotImage = (hotspot: Hotspot): string => {
@@ -49,7 +50,7 @@ const getHotspotImage = (hotspot: Hotspot): string => {
 }
 
 const getCategoryColor = (category: string) => {
-  const common = "text-white" // Keep text white for contrast against colored badges
+  const common = "text-white"
   switch (category) {
     case "cafe":
       return `bg-cat-cafe border-cat-cafe shadow-[0_0_10px_var(--color-cat-cafe)] ${common}`
@@ -71,13 +72,14 @@ export function HotspotCard({
   hotspot,
   activeCheckins = 0,
   averageRating = 0,
-  ratingCount = 234, // Default mock value for visual polish
+  ratingCount = 234,
   distance,
   onClick,
   isSelected = false,
   children,
   isSaved,
   onToggleSave,
+  variant = "list", // Default to list for backward compatibility with sidebar
 }: HotspotCardProps) {
   const imageUrl = getHotspotImage(hotspot)
 
@@ -86,33 +88,30 @@ export function HotspotCard({
     const fullStars = Math.floor(rating)
     const hasHalfStar = rating % 1 >= 0.5
 
-    // Full stars
     for (let i = 0; i < fullStars; i++) {
       stars.push(
         <Star
           key={`full-${i}`}
-          className="w-3.5 h-3.5 fill-primary text-primary"
+          className="w-3 h-3 md:w-3.5 md:h-3.5 fill-primary text-primary"
         />
       )
     }
 
-    // Half star
     if (hasHalfStar) {
       stars.push(
-        <div key="half" className="relative w-3.5 h-3.5">
-            <StarHalf className="absolute inset-0 w-3.5 h-3.5 fill-primary text-primary z-10" />
-            <Star className="absolute inset-0 w-3.5 h-3.5 text-muted-foreground/30" />
+        <div key="half" className="relative w-3 h-3 md:w-3.5 md:h-3.5">
+            <StarHalf className="absolute inset-0 w-full h-full fill-primary text-primary z-10" />
+            <Star className="absolute inset-0 w-full h-full text-muted-foreground/30" />
         </div>
       )
     }
 
-    // Empty stars
     const remainingStars = 5 - stars.length
     for (let i = 0; i < remainingStars; i++) {
       stars.push(
         <Star
           key={`empty-${i}`}
-          className="w-3.5 h-3.5 text-muted-foreground/30"
+          className="w-3 h-3 md:w-3.5 md:h-3.5 text-muted-foreground/30"
         />
       )
     }
@@ -120,32 +119,41 @@ export function HotspotCard({
     return stars
   }
 
+  // Define layout styles based on variant
+  const isGrid = variant === "grid"
+  const isCompact = variant === "compact"
+
+  // Height for images
+  const imageHeight = isGrid ? "h-[140px]" : "h-[180px]"
+
   return (
     <div
       onClick={onClick}
       className={cn(
-        "group relative overflow-hidden card-theme cursor-pointer flex flex-col h-full",
+        "group relative overflow-hidden card-theme cursor-pointer flex flex-col bg-card",
         isSelected
           ? "border-primary shadow-[var(--shadow-hover)]"
-          : "hover:border-primary/50"
+          : "hover:border-primary/50",
+        // Spacing based on variant
+        isGrid ? "w-full" : "w-full mb-3 last:mb-0"
       )}
-      style={{ width: "100%" }}
     >
-      {/* Image section - Increased height to 150px */}
-      <div className="relative h-[150px] w-full shrink-0 bg-muted/50 overflow-hidden">
+      {/* Image section */}
+      <div className={cn("relative w-full shrink-0 bg-muted/50 overflow-hidden", imageHeight)}>
         <Image
           src={imageUrl || "/placeholder.svg"}
           alt={hotspot.name}
           fill
-          className="object-cover transition-all duration-200 group-hover:brightness-105"
-          sizes="(max-width: 768px) 100vw, 320px"
+          className="object-cover transition-all duration-300 group-hover:scale-105"
+          sizes={isGrid ? "(max-width: 768px) 50vw, 320px" : "(max-width: 768px) 100vw, 320px"}
+          loading="lazy"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-80" />
 
         {/* Category badge */}
         <div className="absolute top-2 left-2 z-10">
           <span
-            className={`px-2 py-0.5 text-[10px] font-heading font-bold uppercase rounded ${getCategoryColor(hotspot.category)}`}
+            className={`px-2 py-0.5 text-[10px] font-heading font-bold uppercase rounded shadow-sm ${getCategoryColor(hotspot.category)}`}
           >
             {hotspot.category}
           </span>
@@ -154,7 +162,7 @@ export function HotspotCard({
         {/* Active users badge & Save Button */}
         <div className="absolute top-2 right-2 z-10 flex items-center gap-2">
           {activeCheckins > 0 && (
-            <div className="flex items-center gap-1 px-2 py-0.5 bg-background/80 border border-accent text-accent text-[10px] font-heading rounded">
+            <div className="flex items-center gap-1 px-2 py-0.5 bg-background/90 border border-accent text-accent text-[10px] font-heading rounded backdrop-blur-sm">
               <Users className="w-3 h-3" />
               <span>{activeCheckins}</span>
             </div>
@@ -162,48 +170,66 @@ export function HotspotCard({
           {onToggleSave && (
              <button
                 onClick={(e) => { e.stopPropagation(); onToggleSave(hotspot.id) }}
-                className={`p-1.5 rounded-full bg-background/80 border transition-colors ${isSaved ? "border-secondary text-secondary" : "border-white/20 text-white/50 hover:text-white hover:border-white"}`}
+                className={cn(
+                  "p-1.5 rounded-full backdrop-blur-sm transition-all active:scale-95",
+                  isSaved
+                    ? "bg-secondary/20 border-secondary text-secondary"
+                    : "bg-black/30 border-white/20 text-white hover:bg-black/50 hover:border-white"
+                )}
              >
-                <Heart className={`w-3.5 h-3.5 ${isSaved ? "fill-secondary" : ""}`} />
+                <Heart className={cn("w-3.5 h-3.5", isSaved && "fill-secondary")} />
              </button>
           )}
         </div>
+
+        {/* Distance (Bottom Left overlay for grid/list) */}
+        {distance !== undefined && distance !== null && (
+          <div className="absolute bottom-2 left-2 z-10">
+             <span className="text-[10px] font-mono font-bold text-white/90 bg-black/50 px-1.5 py-0.5 rounded backdrop-blur-sm border border-white/10">
+                {distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)} km`}
+             </span>
+          </div>
+        )}
       </div>
 
       {/* Content section */}
       <div className="p-3 flex flex-col flex-1 overflow-hidden">
         <div className="flex justify-between items-start mb-1 gap-2">
-            <h3 className="font-heading text-[16px] font-bold text-foreground leading-tight line-clamp-2 text-ellipsis">
-            {hotspot.name}
+            <h3 className={cn(
+              "font-heading font-bold text-foreground leading-tight line-clamp-1",
+              isGrid ? "text-[14px]" : "text-[18px]"
+            )}>
+              {hotspot.name}
             </h3>
-            {distance !== undefined && distance !== null && (
-                <span className="text-[10px] font-heading font-bold text-primary whitespace-nowrap bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">
-                    {distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)} km`}
-                </span>
-            )}
         </div>
 
-        <div className="flex items-center gap-1 text-muted-foreground text-[12px] mb-2">
-          <MapPin className="w-3 h-3 flex-shrink-0" />
-          <span className="leading-tight line-clamp-1 text-ellipsis overflow-hidden">{hotspot.address}</span>
-        </div>
+        {!isGrid && (
+          <div className="flex items-center gap-1 text-muted-foreground text-[12px] mb-2">
+            <MapPin className="w-3 h-3 flex-shrink-0" />
+            <span className="leading-tight line-clamp-1 text-ellipsis overflow-hidden">{hotspot.address}</span>
+          </div>
+        )}
 
         {/* Rating display */}
-        <div className="flex items-center gap-1 mt-auto text-[14px] mb-3">
+        <div className="flex items-center gap-1 mt-auto mb-2">
           {averageRating > 0 ? (
             <div className="flex items-center gap-1.5">
                <div className="flex items-center">
                   {renderStars(averageRating)}
                </div>
-               <span className="text-muted-foreground text-xs font-mono">({ratingCount} ratings)</span>
+               {!isGrid && <span className="text-muted-foreground text-xs font-mono">({ratingCount})</span>}
             </div>
           ) : (
-            <span className="text-muted-foreground text-xs font-mono">No ratings yet</span>
+            <span className="text-muted-foreground text-xs font-mono">No ratings</span>
           )}
         </div>
 
-        {/* Buttons (Children) - Ensure full width and spacing handled by parent or flex here if needed */}
-        {children && <div className="mt-auto w-full">{children}</div>}
+        {/* Buttons (Children) */}
+        {children && (
+          <div className={cn("mt-auto w-full", isGrid ? "pt-1" : "pt-2")}>
+            {children}
+          </div>
+        )}
       </div>
     </div>
   )
