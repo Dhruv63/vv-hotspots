@@ -161,7 +161,7 @@ export function UserProfileClient({
                            </CyberButton>
                         )}
                         {friendStatus === 'received' && (
-                           <CyberButton onClick={handleAcceptRequest} disabled={isLoading} variant="default" size="sm" className="gap-2 bg-lime-500 text-black hover:bg-lime-400">
+                           <CyberButton onClick={handleAcceptRequest} disabled={isLoading} variant="cyan" size="sm" className="gap-2 bg-lime-500 text-black hover:bg-lime-400 border-none">
                              Accept Request
                            </CyberButton>
                         )}

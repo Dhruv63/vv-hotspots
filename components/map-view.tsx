@@ -8,9 +8,10 @@ import "leaflet.markercluster/dist/MarkerCluster.css"
 import "leaflet.markercluster/dist/MarkerCluster.Default.css"
 import type { Hotspot } from "@/lib/types"
 import { useTheme } from "next-themes"
-import { THEME_COLORS } from "@/lib/themes"
+import { themes } from "@/lib/themes"
 import { Search, Navigation, Layers, Info } from "lucide-react"
 import { HotspotCard } from "@/components/hotspot-card"
+import MarkerClusterGroup from "@/components/ui/marker-cluster"
 
 // Fix for default marker icons in Next.js
 // @ts-ignore
@@ -20,15 +21,6 @@ L.Icon.Default.mergeOptions({
   iconUrl: "/marker-icon.png",
   shadowUrl: "/marker-shadow.png",
 })
-
-// Client-side only import for marker cluster
-let MarkerClusterGroup: any = null
-if (typeof window !== "undefined") {
-    // @ts-ignore
-    window.L = L
-    require("leaflet.markercluster")
-    MarkerClusterGroup = require("react-leaflet-markercluster").default
-}
 
 interface MapViewProps {
   hotspots: Hotspot[]
@@ -253,7 +245,7 @@ export function MapView({
     }
   }, [viewMode])
 
-  const activeTheme = (theme as keyof typeof THEME_COLORS) || "cyberpunk"
+  const activeTheme = (theme as keyof typeof themes) || "cyberpunk"
   const tileLayerUrl = activeTheme === 'genshin'
     ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
     : activeTheme === 'lofi'
@@ -294,7 +286,7 @@ export function MapView({
              />
         )}
 
-        {typeof window !== "undefined" && MarkerClusterGroup && (
+        {typeof window !== "undefined" && (
             <MarkerClusterGroup
                 showCoverageOnHover={false}
                 maxClusterRadius={40}

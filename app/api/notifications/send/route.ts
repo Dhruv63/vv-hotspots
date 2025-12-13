@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+// @ts-ignore
 import webpush from "web-push"
 
 if (
