@@ -51,7 +51,7 @@ export async function fetchFriends(userId: string): Promise<FriendData[]> {
       twitterUsername: profile.twitter_username,
       createdAt: friendship.created_at
     }
-  }).filter((item): item is FriendData => item !== null)
+  }).filter((item: FriendData | null): item is FriendData => item !== null)
 }
 
 export async function removeFriend(id: string) {
