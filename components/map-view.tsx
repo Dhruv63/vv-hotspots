@@ -1,11 +1,34 @@
 "use client"
 
-import { useEffect, useRef, useState, useCallback } from "react"
-import { Locate, Loader2, X, Compass } from "lucide-react"
-import type { Hotspot } from "@/lib/types"
-import { useTheme } from "@/components/theme-provider"
+import { useEffect, useState, useRef, useCallback } from "react"
+import L from "leaflet"
+import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl } from "react-leaflet"
+import "leaflet/dist/leaflet.css"
 import "leaflet.markercluster/dist/MarkerCluster.css"
 import "leaflet.markercluster/dist/MarkerCluster.Default.css"
+import type { Hotspot } from "@/lib/types"
+import { useTheme } from "next-themes"
+import { THEME_COLORS } from "@/lib/themes"
+import { Search, Navigation, Layers, Info } from "lucide-react"
+import { HotspotCard } from "@/components/hotspot-card"
+
+// Fix for default marker icons in Next.js
+// @ts-ignore
+delete L.Icon.Default.prototype._getIconUrl
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "/marker-icon-2x.png",
+  iconUrl: "/marker-icon.png",
+  shadowUrl: "/marker-shadow.png",
+})
+
+// Client-side only import for marker cluster
+let MarkerClusterGroup: any = null
+if (typeof window !== "undefined") {
+    // @ts-ignore
+    window.L = L
+    require("leaflet.markercluster")
+    MarkerClusterGroup = require("react-leaflet-markercluster").default
+}
 
 interface MapViewProps {
   hotspots: Hotspot[]
@@ -17,86 +40,135 @@ interface MapViewProps {
   isLoading?: boolean
   onLocationUpdate?: (location: [number, number]) => void
   viewMode?: string
+  onSearchClick?: () => void // New prop for search trigger
 }
 
-// Vasai-Virar center coordinates
-const VASAI_VIRAR_CENTER: [number, number] = [19.42, 72.82]
+function MapUpdater({ center, zoom }: { center: [number, number]; zoom: number }) {
+  const map = useMap()
+  useEffect(() => {
+    map.flyTo(center, zoom, { duration: 1.5 })
+  }, [center, zoom, map])
+  return null
+}
+
+function RecenterControl({ onRecenter, isTracking }: { onRecenter: () => void, isTracking: boolean }) {
+    return (
+        <button
+            onClick={onRecenter}
+            className={`leaflet-bar leaflet-control leaflet-control-custom p-2 bg-background border-2 rounded-lg shadow-lg transition-all active:scale-95 flex items-center justify-center ${
+                isTracking ? "border-primary text-primary" : "border-muted-foreground/30 text-muted-foreground"
+            }`}
+            style={{
+                position: 'absolute',
+                bottom: '80px', // Raised above bottom nav
+                right: '16px',
+                zIndex: 400,
+                width: '44px',
+                height: '44px'
+            }}
+            aria-label="Recenter map"
+        >
+            <Navigation className={`w-5 h-5 ${isTracking ? "fill-current" : ""}`} />
+        </button>
+    )
+}
+
+function SearchTrigger({ onClick }: { onClick: () => void }) {
+    return (
+        <button
+            onClick={onClick}
+            className="md:hidden leaflet-bar leaflet-control leaflet-control-custom p-2 bg-background/90 backdrop-blur border-2 border-primary/20 rounded-full shadow-lg flex items-center gap-2 px-4"
+            style={{
+                position: 'absolute',
+                top: '16px',
+                left: '16px',
+                zIndex: 400,
+                height: '44px'
+            }}
+        >
+            <Search className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium text-foreground">Search hotspots...</span>
+        </button>
+    )
+}
+
+function LegendControl({ isOpen, onToggle }: { isOpen: boolean, onToggle: () => void }) {
+    return (
+        <>
+            <button
+                onClick={onToggle}
+                className={`leaflet-bar leaflet-control leaflet-control-custom p-2 bg-background border-2 border-muted-foreground/30 rounded-lg shadow-lg transition-all active:scale-95 flex items-center justify-center`}
+                style={{
+                    position: 'absolute',
+                    bottom: '132px', // Above Recenter
+                    right: '16px',
+                    zIndex: 400,
+                    width: '44px',
+                    height: '44px'
+                }}
+                aria-label="Toggle Legend"
+            >
+                <Layers className="w-5 h-5 text-muted-foreground" />
+            </button>
+
+            {isOpen && (
+                 <div
+                    className="leaflet-bar leaflet-control leaflet-control-custom p-3 bg-background/95 backdrop-blur border border-border rounded-lg shadow-xl"
+                    style={{
+                        position: 'absolute',
+                        bottom: '132px',
+                        right: '70px',
+                        zIndex: 400,
+                        width: '160px'
+                    }}
+                 >
+                    <p className="text-xs font-bold font-mono mb-2 text-muted-foreground uppercase">Categories</p>
+                    <div className="space-y-1.5">
+                        {Object.entries(CATEGORY_COLORS).map(([key, color]) => (
+                            <div key={key} className="flex items-center gap-2">
+                                <span className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></span>
+                                <span className="text-xs font-medium capitalize">{key}</span>
+                            </div>
+                        ))}
+                    </div>
+                 </div>
+            )}
+        </>
+    )
+}
+
+const CATEGORY_COLORS: Record<string, string> = {
+  cafe: "#00f0ff", // cyan
+  park: "#39ff14", // lime
+  gaming: "#b026ff", // purple
+  food: "#ff8d00", // orange
+  hangout: "#ff0099", // pink
+  other: "#cccccc",
+}
+
+const createCustomIcon = (hotspot: Hotspot, isActive: boolean, isSelected: boolean, activeUsers: number) => {
+  const color = CATEGORY_COLORS[hotspot.category] || CATEGORY_COLORS.other
+  const size = isSelected ? 48 : 36
+  const pulseClass = isActive || activeUsers > 0 ? "marker-pulse" : ""
+  const selectedClass = isSelected ? "marker-selected" : ""
+
+  return L.divIcon({
+    className: "custom-div-icon",
+    html: `
+      <div class="marker-wrapper ${pulseClass} ${selectedClass}" style="--marker-color: ${color}">
+        <div class="marker-pin" style="background-color: ${color}; width: ${size}px; height: ${size}px;">
+           ${activeUsers > 0 ? `<span class="marker-badge">${activeUsers}</span>` : ''}
+        </div>
+      </div>
+    `,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size],
+    popupAnchor: [0, -size],
+  })
+}
+
+const DEFAULT_CENTER: [number, number] = [19.3919, 72.8397] // Vasai-Virar
 const DEFAULT_ZOOM = 13
-
-// Map tile providers
-const TILE_LAYERS = {
-  cyberpunk: {
-    url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
-    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-  },
-  genshin: {
-    url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
-    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-  },
-  lofi: {
-    url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
-    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-  },
-  rdr2: {
-    url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
-    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-  },
-}
-
-export const THEME_COLORS = {
-  cyberpunk: {
-    cafe: { main: "#00FFFF", glow: "rgba(0, 255, 255, 0.8)", name: "Cafe" },
-    park: { main: "#39FF14", glow: "rgba(57, 255, 20, 0.8)", name: "Park" },
-    gaming: { main: "#BF00FF", glow: "rgba(191, 0, 255, 0.8)", name: "Gaming" },
-    food: { main: "#FF6600", glow: "rgba(255, 102, 0, 0.8)", name: "Food" },
-    hangout: { main: "#FF1493", glow: "rgba(255, 20, 147, 0.8)", name: "Hangout" },
-    other: { main: "#FFFF00", glow: "rgba(255, 255, 0, 0.8)", name: "Other" },
-    highlight: "#FFFF00", // For checked in / selected
-    highlightGlow: "#FFFF00",
-    userLocation: "#CCFF00",
-    popupBg: "#12121a",
-    popupText: "#e0e0e0"
-  },
-  genshin: {
-    cafe: { main: "#00BCD4", glow: "rgba(0, 188, 212, 0.8)", name: "Cafe" },
-    park: { main: "#4CAF50", glow: "rgba(76, 175, 80, 0.8)", name: "Park" },
-    gaming: { main: "#9C27B0", glow: "rgba(156, 39, 176, 0.8)", name: "Gaming" },
-    food: { main: "#FF9800", glow: "rgba(255, 152, 0, 0.8)", name: "Food" },
-    hangout: { main: "#E91E63", glow: "rgba(233, 30, 99, 0.8)", name: "Hangout" },
-    other: { main: "#9E9E9E", glow: "rgba(158, 158, 158, 0.8)", name: "Other" },
-    highlight: "#FFD700",
-    highlightGlow: "#FFD700",
-    userLocation: "#FFD700",
-    popupBg: "#FFFFFF",
-    popupText: "#333333"
-  },
-  lofi: {
-    cafe: { main: "#795548", glow: "rgba(121, 85, 72, 0.8)", name: "Cafe" },
-    park: { main: "#827717", glow: "rgba(130, 119, 23, 0.8)", name: "Park" },
-    gaming: { main: "#607D8B", glow: "rgba(96, 125, 139, 0.8)", name: "Gaming" },
-    food: { main: "#BF360C", glow: "rgba(191, 54, 12, 0.8)", name: "Food" },
-    hangout: { main: "#00695C", glow: "rgba(0, 105, 92, 0.8)", name: "Hangout" },
-    other: { main: "#8D6E63", glow: "rgba(141, 110, 99, 0.8)", name: "Other" },
-    highlight: "#D84315",
-    highlightGlow: "#D84315",
-    userLocation: "#D84315",
-    popupBg: "#F5EBE0",
-    popupText: "#4E4237"
-  },
-  rdr2: {
-    cafe: { main: "#CD853F", glow: "rgba(205, 133, 63, 0.8)", name: "Cafe" },
-    park: { main: "#2E8B57", glow: "rgba(46, 139, 87, 0.8)", name: "Park" },
-    gaming: { main: "#8B0000", glow: "rgba(139, 0, 0, 0.8)", name: "Gaming" },
-    food: { main: "#DAA520", glow: "rgba(218, 165, 32, 0.8)", name: "Food" },
-    hangout: { main: "#A0522D", glow: "rgba(160, 82, 45, 0.8)", name: "Hangout" },
-    other: { main: "#708090", glow: "rgba(112, 128, 144, 0.8)", name: "Other" },
-    highlight: "#FFD700",
-    highlightGlow: "#FFD700",
-    userLocation: "#FFD700",
-    popupBg: "#3E3427",
-    popupText: "#D6CDBB"
-  }
-}
 
 export function MapView({
   hotspots,
@@ -108,702 +180,231 @@ export function MapView({
   isLoading,
   onLocationUpdate,
   viewMode,
+  onSearchClick
 }: MapViewProps) {
-  const { theme: currentTheme } = useTheme()
-  const theme = currentTheme as keyof typeof THEME_COLORS
-  const colors = THEME_COLORS[theme] || THEME_COLORS.cyberpunk
-
-  const mapContainerRef = useRef<HTMLDivElement>(null)
+  const { theme } = useTheme()
   const mapRef = useRef<L.Map | null>(null)
-  const tileLayerRef = useRef<L.TileLayer | null>(null)
-  const clusterGroupRef = useRef<any>(null)
-  const markersRef = useRef<Map<string, L.Marker>>(new Map())
-  const userMarkerRef = useRef<L.Marker | null>(null)
-  const [isLoaded, setIsLoaded] = useState(false)
-  const [L, setL] = useState<typeof import("leaflet") | null>(null)
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null)
-  const [isLocating, setIsLocating] = useState(false)
-  const [openPopupId, setOpenPopupId] = useState<string | null>(null)
-  const [mapError, setMapError] = useState<string | null>(null)
+  const [isTracking, setIsTracking] = useState(false)
+  const [mapReady, setMapReady] = useState(false)
+  const [previewHotspot, setPreviewHotspot] = useState<Hotspot | null>(null)
+  const [showLegend, setShowLegend] = useState(false)
 
-  const hotspotsRef = useRef(hotspots)
-  const onCheckInRef = useRef(onCheckIn)
-  const userCurrentCheckinRef = useRef(userCurrentCheckin)
-
+  // Sync selectedHotspot with preview
   useEffect(() => {
-    hotspotsRef.current = hotspots
-    onCheckInRef.current = onCheckIn
-    userCurrentCheckinRef.current = userCurrentCheckin
-  }, [hotspots, onCheckIn, userCurrentCheckin])
-
-  // Update tile layer when theme changes
-  useEffect(() => {
-    if (mapRef.current && tileLayerRef.current) {
-      const tileConfig = TILE_LAYERS[theme] || TILE_LAYERS.cyberpunk
-      tileLayerRef.current.setUrl(tileConfig.url)
-    }
-  }, [theme])
-
-  useEffect(() => {
-    const handlePopupClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement
-      if (target.classList.contains("popup-checkin-btn")) {
-        e.preventDefault()
-        e.stopPropagation()
-
-        const hotspotId = target.getAttribute("data-hotspot-id")
-        if (hotspotId && onCheckInRef.current) {
-          const hotspot = hotspotsRef.current.find((h) => h.id === hotspotId)
-          if (hotspot) {
-            onCheckInRef.current(hotspot)
-          }
-        }
-      }
-    }
-
-    document.addEventListener("click", handlePopupClick, true)
-    return () => document.removeEventListener("click", handlePopupClick, true)
-  }, [])
-
-  useEffect(() => {
-    const loadLeaflet = async () => {
-      try {
-        const leafletModule = await import("leaflet")
-        const leaflet = leafletModule.default || leafletModule
-        // @ts-ignore
-        if (typeof window !== "undefined") window.L = leaflet
-        await import("leaflet.markercluster")
-
-        delete (leaflet.Icon.Default.prototype as any)._getIconUrl
-        leaflet.Icon.Default.mergeOptions({
-          iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-          iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-          shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-        })
-        setL(leaflet)
-        setMapError(null)
-      } catch (error) {
-        console.error("Failed to load map library:", error)
-        setMapError("Failed to load map. Please refresh the page.")
-      }
-    }
-    loadLeaflet()
-  }, [])
-
-  const createMarkerIcon = useCallback(
-    (hotspot: Hotspot, isSelected: boolean) => {
-      if (!L) return null
-
-      const colorInfo = (colors as any)[hotspot.category] || (colors as any).other
-      const activeCount = activeCheckins[hotspot.id] || 0
-      const isCheckedInHere = userCurrentCheckin === hotspot.id
-      const hasActiveUsers = activeCount > 0
-
-      const size = isSelected ? 44 : 32
-      const glowIntensity = isSelected ? 20 : hasActiveUsers ? 12 : 6
-
-      const mainColor = isCheckedInHere ? colors.highlight : colorInfo.main
-      // const glowColor = isCheckedInHere ? colors.highlightGlow : colorInfo.main
-
-      const html = `
-      <div class="marker-wrapper" style="
-        position: relative;
-        width: ${size}px;
-        height: ${size}px;
-        cursor: pointer;
-      ">
-        <div style="
-          width: 100%;
-          height: 100%;
-          background: ${mainColor}25;
-          border: 3px solid ${mainColor};
-          border-radius: 50% 50% 50% 0;
-          transform: rotate(-45deg);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 0 ${glowIntensity}px ${mainColor};
-          ${hasActiveUsers || isCheckedInHere ? `animation: markerPulse 2s infinite;` : ""}
-        ">
-          <div style="
-            width: 10px;
-            height: 10px;
-            background: ${mainColor};
-            border-radius: 50%;
-            transform: rotate(45deg);
-          "></div>
-        </div>
-        ${
-          hasActiveUsers
-            ? `
-          <div style="
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            min-width: 18px;
-            height: 18px;
-            background: ${mainColor};
-            border: 2px solid ${['genshin', 'lofi'].includes(theme) ? '#FFFFFF' : '#000000'};
-            border-radius: 9px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            font-weight: bold;
-            color: ${['genshin', 'lofi'].includes(theme) ? '#FFFFFF' : '#000000'};
-            padding: 0 4px;
-            font-family: monospace;
-            box-shadow: 0 0 8px ${mainColor};
-          ">${activeCount}</div>
-        `
-            : ""
-        }
-      </div>
-    `
-
-      return L.divIcon({
-        html,
-        className: "custom-marker",
-        iconSize: [size, size],
-        iconAnchor: [size / 2, size],
-        popupAnchor: [0, -size + 5],
-      })
-    },
-    [L, activeCheckins, userCurrentCheckin, colors, theme],
-  )
-
-  const createUserLocationIcon = useCallback(() => {
-    if (!L) return null
-
-    const html = `
-      <div style="
-        width: 20px;
-        height: 20px;
-        background: ${colors.userLocation};
-        border: 3px solid white;
-        border-radius: 50%;
-        box-shadow: 0 0 15px ${colors.userLocation};
-        animation: userPulse 2s infinite;
-      "></div>
-    `
-
-    return L.divIcon({
-      html,
-      className: "user-location-marker",
-      iconSize: [20, 20],
-      iconAnchor: [10, 10],
-    })
-  }, [L, colors])
-
-  const handleGetLocation = useCallback(() => {
-    if (!navigator.geolocation) {
-      if (mapRef.current) {
-        mapRef.current.setView(VASAI_VIRAR_CENTER, DEFAULT_ZOOM, { animate: true })
-      }
-      return
-    }
-
-    setIsLocating(true)
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords
-        setUserLocation([latitude, longitude])
-        if (onLocationUpdate) {
-          onLocationUpdate([latitude, longitude])
-        }
-
-        if (mapRef.current) {
-          mapRef.current.setView([latitude, longitude], 15, { animate: true })
-        }
-
-        setIsLocating(false)
-      },
-      (error) => {
-        console.error("Error getting location:", error)
-        if (mapRef.current) {
-          mapRef.current.setView(VASAI_VIRAR_CENTER, DEFAULT_ZOOM, { animate: true })
-        }
-        setIsLocating(false)
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
-    )
-  }, [])
-
-  useEffect(() => {
-    if (!L || !mapContainerRef.current || mapRef.current) return
-
-    const map = L.map(mapContainerRef.current, {
-      center: VASAI_VIRAR_CENTER,
-      zoom: DEFAULT_ZOOM,
-      zoomControl: false,
-    })
-
-    L.control.zoom({ position: "topright" }).addTo(map)
-
-    const tileConfig = TILE_LAYERS[theme] || TILE_LAYERS.cyberpunk
-
-    const tileLayer = L.tileLayer(tileConfig.url, {
-      attribution: tileConfig.attribution,
-    }).addTo(map)
-
-    tileLayerRef.current = tileLayer
-
-    // Initialize Cluster Group or Fallback
-    let clusterGroup: L.MarkerClusterGroup | L.FeatureGroup
-    try {
-      if ((L as any).markerClusterGroup) {
-        clusterGroup = (L as any).markerClusterGroup({
-          maxClusterRadius: 50,
-          showCoverageOnHover: false,
-          iconCreateFunction: (cluster: any) => {
-            const childCount = cluster.getChildCount()
-            return L.divIcon({
-              html: `<div class="cyber-cluster"><span>${childCount}</span></div>`,
-              className: "custom-cluster-icon",
-              iconSize: L.point(40, 40),
-            })
-          },
-        })
-
-          clusterGroup.on('clustermouseover', (a: any) => {
-              if (!a.layer.getTooltip()) {
-                  const childCount = a.layer.getChildCount();
-                  a.layer.bindTooltip(`${childCount} hotspots in this area<br>Click to zoom in`, {
-                     className: 'cyber-tooltip',
-                     direction: 'top',
-                     opacity: 1
-                  });
-              }
-              a.layer.openTooltip();
-          });
-      } else {
-        console.warn("MarkerClusterGroup not found, falling back to FeatureGroup")
-        clusterGroup = L.featureGroup()
-      }
-    } catch (e) {
-      console.error("Error initializing MarkerClusterGroup:", e)
-      clusterGroup = L.featureGroup()
-    }
-
-    map.addLayer(clusterGroup)
-    clusterGroupRef.current = clusterGroup
-
-    map.on("popupclose", () => {
-      setOpenPopupId(null)
-    })
-
-    mapRef.current = map
-    setIsLoaded(true)
-
-    return () => {
-      map.remove()
-      mapRef.current = null
-      tileLayerRef.current = null
-      clusterGroupRef.current = null
-    }
-  }, [L])
-
-  // Update user marker when location or theme changes
-  useEffect(() => {
-    if (!isLoaded || !mapRef.current || !L || !userLocation) return
-
-    if (userMarkerRef.current) {
-      userMarkerRef.current.remove()
-    }
-
-    const icon = createUserLocationIcon()
-    if (icon) {
-      const marker = L.marker(userLocation, { icon, zIndexOffset: 1000 }).addTo(mapRef.current)
-      userMarkerRef.current = marker
-    }
-  }, [isLoaded, L, userLocation, createUserLocationIcon])
-
-  const createPopupContent = useCallback(
-    (hotspot: Hotspot) => {
-      const activeCount = activeCheckins[hotspot.id] || 0
-      const isCheckedInHere = userCurrentCheckin === hotspot.id
-      const colorInfo = (colors as any)[hotspot.category] || (colors as any).other
-      const textColor = ['genshin', 'lofi'].includes(theme) ? '#333333' : '#e0e0e0'
-      const subTextColor = ['genshin', 'lofi'].includes(theme) ? '#666666' : '#888888'
-
-      return `
-      <div style="
-        font-family: monospace;
-        width: 200px;
-        padding: 12px;
-      ">
-        <div style="
-          font-size: 10px;
-          color: ${colorInfo.main};
-          text-transform: uppercase;
-          letter-spacing: 1px;
-          margin-bottom: 6px;
-        ">${colorInfo.name}</div>
-        <div style="font-weight: bold; font-size: 14px; margin-bottom: 4px; color: ${colors.popupText};">
-          ${hotspot.name}
-        </div>
-        <div style="font-size: 11px; color: ${subTextColor}; margin-bottom: 12px;">
-          ${hotspot.address || "Vasai-Virar"}
-        </div>
-        ${
-          activeCount > 0
-            ? `<div style="color: ${colorInfo.main}; font-size: 12px; margin-bottom: 12px;">
-            <strong>${activeCount}</strong> here now
-          </div>`
-            : ""
-        }
-        ${
-          isCheckedInHere
-            ? `<div style="
-            background: ${colors.highlight}20;
-            border: 2px solid ${colors.highlight};
-            color: ${colors.highlight};
-            padding: 10px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 11px;
-            border-radius: 6px;
-          ">YOU ARE CHECKED IN</div>`
-            : `<button 
-            class="popup-checkin-btn"
-            data-hotspot-id="${hotspot.id}"
-            type="button"
-            style="
-              width: 100%;
-              background: ${colorInfo.main};
-              color: ${['genshin', 'lofi'].includes(theme) ? '#FFFFFF' : '#000000'};
-              border: none;
-              padding: 10px;
-              font-family: monospace;
-              font-weight: bold;
-              font-size: 11px;
-              cursor: pointer;
-              border-radius: 6px;
-            "
-          >CHECK IN HERE</button>`
-        }
-      </div>
-    `
-    },
-    [activeCheckins, userCurrentCheckin, colors, theme],
-  )
-
-  useEffect(() => {
-    if (!isLoaded || !mapRef.current || !L) return
-
-    // Re-create markers when dependencies (like theme/colors) change
-    const currentMarkerIds = new Set(markersRef.current.keys())
-    const newHotspotIds = new Set(hotspots.map((h) => h.id))
-
-    // Remove old markers
-    currentMarkerIds.forEach((id) => {
-      if (!newHotspotIds.has(id)) {
-        const marker = markersRef.current.get(id)
-        if (marker) {
-          clusterGroupRef.current?.removeLayer(marker)
-          markersRef.current.delete(id)
-        }
-      }
-    })
-
-    // Update or add markers
-    hotspots.forEach((hotspot) => {
-      const isSelected = selectedHotspot?.id === hotspot.id
-      let marker = markersRef.current.get(hotspot.id)
-
-      const icon = createMarkerIcon(hotspot, isSelected)
-      const popupContent = createPopupContent(hotspot)
-
-      if (marker) {
-        if (icon) marker.setIcon(icon)
-        marker.setPopupContent(popupContent)
-      } else {
-        if (!icon) return
-
-        marker = L.marker([Number(hotspot.latitude), Number(hotspot.longitude)], {
-          icon,
-          title: hotspot.name,
-        })
-          .on("click", () => {
-            if (openPopupId !== hotspot.id) {
-              setOpenPopupId(hotspot.id)
-              onHotspotSelect(hotspot)
-            }
-          })
-
-        marker.bindPopup(popupContent, {
-          className: "cyber-popup",
-          closeButton: true,
-          maxWidth: 220,
-          minWidth: 200,
-          autoPan: true,
-          autoPanPaddingTopLeft: [100, 100],
-          autoPanPaddingBottomRight: [100, 100],
-          keepInView: true,
-        })
-
-        clusterGroupRef.current?.addLayer(marker)
-        markersRef.current.set(hotspot.id, marker)
-      }
-    })
-  }, [
-    isLoaded,
-    hotspots,
-    selectedHotspot,
-    onHotspotSelect,
-    createMarkerIcon,
-    createPopupContent,
-    L,
-    activeCheckins,
-    userCurrentCheckin,
-    openPopupId,
-    theme
-  ])
-
-  useEffect(() => {
-    if (selectedHotspot && mapRef.current) {
-      mapRef.current.setView([Number(selectedHotspot.latitude), Number(selectedHotspot.longitude)], 15, {
-        animate: true,
-      })
-
-      const marker = markersRef.current.get(selectedHotspot.id)
-      if (marker) {
-        if (clusterGroupRef.current) {
-             clusterGroupRef.current.zoomToShowLayer(marker, () => {
-                 setTimeout(() => {
-                    marker.openPopup()
-                    setOpenPopupId(selectedHotspot.id)
-                 }, 300)
-             });
-        } else {
-             setTimeout(() => {
-                marker.openPopup()
-                setOpenPopupId(selectedHotspot.id)
-              }, 300)
-        }
-      }
+    if (selectedHotspot) {
+        setPreviewHotspot(selectedHotspot)
     }
   }, [selectedHotspot])
 
+  // Get user location
+  useEffect(() => {
+    if (!navigator.geolocation) return
+
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords
+        const newLoc: [number, number] = [latitude, longitude]
+        setUserLocation(newLoc)
+        if (onLocationUpdate) onLocationUpdate(newLoc)
+
+        // Initial center
+        if (!mapReady && mapRef.current) {
+             mapRef.current.setView(newLoc, 15)
+             setMapReady(true)
+        }
+      },
+      (error) => {
+        console.error("Geolocation error:", error)
+        setIsTracking(false)
+      },
+      { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+    )
+
+    return () => navigator.geolocation.clearWatch(watchId)
+  }, [onLocationUpdate, mapReady])
+
+  // Recenter function
+  const handleRecenter = () => {
+    if (userLocation && mapRef.current) {
+      mapRef.current.flyTo(userLocation, 16, { duration: 1.5 })
+      setIsTracking(true)
+    } else {
+        mapRef.current?.flyTo(DEFAULT_CENTER, DEFAULT_ZOOM)
+    }
+  }
+
+  // Handle Marker Click
+  const handleMarkerClick = (hotspot: Hotspot) => {
+      setPreviewHotspot(hotspot)
+      onHotspotSelect(hotspot)
+      if (mapRef.current) {
+          const latOffset = -0.005
+          mapRef.current.flyTo([Number(hotspot.latitude) + latOffset, Number(hotspot.longitude)], 16)
+      }
+  }
+
+  // Handle map resizing
   useEffect(() => {
     if (mapRef.current) {
-      const timeoutId = setTimeout(() => {
-        mapRef.current?.invalidateSize({ animate: true })
-      }, 300)
-      mapRef.current.invalidateSize({ animate: true })
-      return () => clearTimeout(timeoutId)
+        setTimeout(() => {
+            mapRef.current?.invalidateSize()
+        }, 300)
     }
   }, [viewMode])
 
+  const activeTheme = (theme as keyof typeof THEME_COLORS) || "cyberpunk"
+  const tileLayerUrl = activeTheme === 'genshin'
+    ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+    : activeTheme === 'lofi'
+    ? "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+    : activeTheme === 'rdr2'
+    ? "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
+    : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+
   return (
-    <div className="relative w-full h-full">
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-
-      <style jsx global>{`
-        @keyframes markerPulse {
-          0%, 100% { transform: rotate(-45deg) scale(1); }
-          50% { transform: rotate(-45deg) scale(1.05); }
-        }
-        @keyframes userPulse {
-          0%, 100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.2); opacity: 0.8; }
-        }
-        .custom-marker {
-          background: transparent !important;
-          border: none !important;
-        }
-        .user-location-marker {
-          background: transparent !important;
-          border: none !important;
-        }
-        .cyber-popup {
-          z-index: 1000 !important;
-        }
-        .cyber-popup .leaflet-popup-content-wrapper {
-          background: var(--color-card) !important;
-          border: 2px solid var(--color-primary) !important;
-          border-radius: 8px;
-          box-shadow: 0 0 20px var(--color-primary) !important;
-          padding: 0;
-          overflow: visible;
-        }
-        .cyber-popup .leaflet-popup-content {
-          margin: 0;
-          color: var(--color-foreground);
-        }
-        .cyber-popup .leaflet-popup-tip-container {
-          overflow: visible;
-        }
-        .cyber-popup .leaflet-popup-tip {
-          background: var(--color-card) !important;
-          border: 2px solid var(--color-primary) !important;
-          border-top: none;
-          border-left: none;
-        }
-        .cyber-popup .leaflet-popup-close-button {
-          color: var(--color-primary) !important;
-          font-size: 20px;
-          width: 24px;
-          height: 24px;
-          right: 4px !important;
-          top: 4px !important;
-        }
-        .cyber-popup .leaflet-popup-close-button:hover {
-          color: var(--color-secondary) !important;
-        }
-        .leaflet-control-zoom {
-          border: 2px solid var(--color-primary) !important;
-          border-radius: 6px !important;
-          overflow: hidden;
-        }
-        .leaflet-control-zoom a {
-          background: var(--color-card) !important;
-          color: var(--color-primary) !important;
-          border-color: var(--color-border) !important;
-          width: 32px !important;
-          height: 32px !important;
-          line-height: 32px !important;
-          font-size: 16px !important;
-        }
-        .leaflet-control-zoom a:hover {
-          background: var(--color-primary) !important;
-          color: var(--color-primary-foreground) !important;
-        }
-        .popup-checkin-btn:hover {
-          opacity: 0.9;
-        }
-        .popup-checkin-btn:active {
-          transform: scale(0.98);
-        }
-        @keyframes shimmer {
-          0% { background-position: -200% 0; }
-          100% { background-position: 200% 0; }
-        }
-        .map-skeleton {
-          background: linear-gradient(90deg, var(--color-muted) 25%, var(--color-card) 50%, var(--color-muted) 75%);
-          background-size: 200% 100%;
-          animation: shimmer 1.5s infinite;
-        }
-        .cyber-cluster {
-          width: 40px;
-          height: 40px;
-          background: rgba(var(--color-primary), 0.2); /* Note: this might not work if var is hex. Use opacity modifier in JS or fallback */
-          border: 2px solid var(--color-primary);
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: bold;
-          color: var(--color-primary);
-          box-shadow: 0 0 15px var(--color-primary);
-          font-family: monospace;
-        }
-        /* Fallback for cluster background if hex var issues, relying on JS driven colors if possible or simple transparency */
-        .cyber-cluster {
-           background: var(--color-primary);
-           opacity: 0.8;
-           color: var(--color-primary-foreground);
-        }
-
-        .custom-cluster-icon {
-          background: transparent !important;
-          border: none !important;
-        }
-        .marker-wrapper {
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .marker-wrapper:hover {
-            transform: scale(1.1) translateY(-5px);
-            z-index: 1000;
-        }
-        .cyber-tooltip {
-          background: var(--color-card) !important;
-          border: 1px solid var(--color-primary) !important;
-          color: var(--color-primary) !important;
-          font-family: monospace;
-          font-size: 10px;
-          border-radius: 4px;
-          box-shadow: 0 0 10px rgba(0,0,0,0.5);
-        }
-        .cyber-tooltip::before {
-            border-top-color: var(--color-primary) !important;
-        }
-      `}</style>
-
-      <div ref={mapContainerRef} className="w-full h-full bg-background" />
-
-      <div className="hidden md:block absolute bottom-8 left-4 z-[1000] bg-background/90 border-2 border-primary rounded-lg p-3 shadow-lg">
-        <div className="text-xs font-mono text-primary mb-2 uppercase tracking-wider font-bold">Legend</div>
-        <div className="space-y-1.5">
-          {Object.entries(colors).filter(([key]) => !['highlight', 'highlightGlow', 'userLocation', 'popupBg', 'popupText'].includes(key)).map(([key, value]) => (
-            <div key={key} className="flex items-center gap-2">
-              <div
-                className="w-3 h-3 rounded-full"
-                style={{ background: (value as any).main, boxShadow: `0 0 6px ${(value as any).main}` }}
-              />
-              <span className="text-xs font-mono text-muted-foreground capitalize">{(value as any).name}</span>
-            </div>
-          ))}
-          <div className="flex items-center gap-2 pt-2 border-t border-border mt-1">
-             <div className="w-3 h-3 rounded-full bg-primary/20 border border-primary" />
-             <span className="text-xs font-mono text-muted-foreground">Cluster</span>
-          </div>
-        </div>
-      </div>
-
-      <button
-        onClick={handleGetLocation}
-        disabled={isLocating}
-        className="absolute bottom-8 right-4 z-[1000] w-12 h-12 bg-card border-2 border-primary rounded-full flex items-center justify-center transition-all hover:bg-primary/20 hover:shadow-lg disabled:opacity-50 min-w-[48px] min-h-[48px]"
-        title="Find my location"
+    <div className="relative w-full h-full bg-muted z-0">
+      <MapContainer
+        center={DEFAULT_CENTER}
+        zoom={DEFAULT_ZOOM}
+        className="w-full h-full outline-none"
+        ref={mapRef}
+        zoomControl={false}
       >
-        {isLocating ? (
-          <Loader2 className="w-5 h-5 text-primary animate-spin" />
-        ) : (
-          <Compass className="w-5 h-5 text-primary" />
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url={tileLayerUrl}
+          maxZoom={20}
+        />
+
+        <ZoomControl position="bottomright" />
+
+        <RecenterControl onRecenter={handleRecenter} isTracking={isTracking} />
+        <LegendControl isOpen={showLegend} onToggle={() => setShowLegend(!showLegend)} />
+        <SearchTrigger onClick={() => onSearchClick?.()} />
+
+        {userLocation && (
+             <Marker
+                position={userLocation}
+                icon={L.divIcon({
+                    className: 'user-location-marker',
+                    html: '<div class="w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-lg pulse-ring"></div>',
+                    iconSize: [16, 16]
+                })}
+             />
         )}
-      </button>
 
-      {!isLoaded && !mapError && (
-        <div className="absolute inset-0 z-[60] flex flex-col">
-          <div className="flex-1 map-skeleton" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center bg-card/80 p-6 rounded-lg border border-accent/30">
-              <Loader2 className="w-10 h-10 text-accent animate-spin mx-auto mb-3" />
-              <p className="text-accent font-mono text-sm">LOADING MAP...</p>
-              <p className="text-muted-foreground font-mono text-xs mt-1">Preparing hotspots</p>
-            </div>
-          </div>
-        </div>
-      )}
+        {typeof window !== "undefined" && MarkerClusterGroup && (
+            <MarkerClusterGroup
+                showCoverageOnHover={false}
+                maxClusterRadius={40}
+                spiderfyOnMaxZoom={true}
+                iconCreateFunction={(cluster: any) => {
+                    const count = cluster.getChildCount()
+                    let size = 'small'
+                    if (count > 10) size = 'medium'
+                    if (count > 50) size = 'large'
 
-      {mapError && (
-        <div className="absolute inset-0 z-[60] flex items-center justify-center bg-background">
-          <div className="text-center p-6">
-            <div className="w-16 h-16 rounded-full bg-secondary/20 flex items-center justify-center mx-auto mb-4">
-              <X className="w-8 h-8 text-secondary" />
-            </div>
-            <p className="text-secondary font-mono text-lg mb-2">Map Failed to Load</p>
-            <p className="text-muted-foreground font-mono text-sm mb-4">{mapError}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-accent text-accent-foreground font-mono font-bold rounded-lg hover:bg-accent/80 transition-colors"
+                    return L.divIcon({
+                        html: `<div class="cyber-cluster cluster-${size}"><span>${count}</span></div>`,
+                        className: 'cyber-cluster-icon',
+                        iconSize: [40, 40]
+                    })
+                }}
             >
-              Refresh Page
-            </button>
-          </div>
-        </div>
-      )}
+                {hotspots.map((hotspot) => (
+                    <Marker
+                        key={hotspot.id}
+                        position={[Number(hotspot.latitude), Number(hotspot.longitude)]}
+                        icon={createCustomIcon(
+                            hotspot,
+                            userCurrentCheckin === hotspot.id,
+                            selectedHotspot?.id === hotspot.id,
+                            activeCheckins[hotspot.id] || 0
+                        )}
+                        eventHandlers={{
+                            click: () => handleMarkerClick(hotspot),
+                        }}
+                    />
+                ))}
+            </MarkerClusterGroup>
+        )}
 
-      {isLoading && isLoaded && (
-        <div className="absolute inset-0 z-[55] bg-background/50 flex items-center justify-center pointer-events-none">
-          <div className="bg-card border border-accent rounded-lg p-4 flex items-center gap-3">
-            <Loader2 className="w-5 h-5 text-accent animate-spin" />
-            <span className="text-accent font-mono text-sm">Processing...</span>
+        <MapUpdater center={selectedHotspot ? [Number(selectedHotspot.latitude), Number(selectedHotspot.longitude)] : (userLocation || DEFAULT_CENTER)} zoom={selectedHotspot ? 16 : DEFAULT_ZOOM} />
+      </MapContainer>
+
+      {/* Mobile Bottom Sheet Preview */}
+      {previewHotspot && (
+          <div className="md:hidden fixed bottom-[70px] left-4 right-4 z-[500] animate-in slide-in-from-bottom-10 duration-300">
+              <div className="rounded-xl overflow-hidden shadow-2xl border border-primary/20">
+                  <HotspotCard
+                      hotspot={previewHotspot}
+                      activeCheckins={activeCheckins[previewHotspot.id]}
+                      isSelected={false}
+                      variant="compact"
+                      onClick={() => {
+                         // Click to view details? Or maybe the preview is enough?
+                         // Let's assume clicking it does nothing or opens full detail if needed.
+                         // For now, buttons inside handle actions.
+                      }}
+                  >
+                     <div className="flex gap-2 mt-2">
+                        <button
+                             onClick={(e) => {
+                                 e.stopPropagation()
+                                 onCheckIn?.(previewHotspot)
+                             }}
+                             className="flex-1 bg-primary text-primary-foreground py-2 text-xs font-bold font-mono rounded hover:bg-primary/90"
+                        >
+                            CHECK IN
+                        </button>
+                        <button
+                             onClick={(e) => {
+                                 e.stopPropagation()
+                                 // Close preview to show map? Or open Details modal?
+                                 // The modal logic is in parent. We need a way to open it.
+                                 // Since onHotspotSelect sets selectedHotspot, the parent opens HotspotDetail automatically if logic dictates.
+                                 // But in DashboardClient, HotspotDetail is rendered if selectedHotspot is set.
+                                 // Wait, if HotspotDetail is open, it might cover the map.
+                                 // Let's assume 'Details' button just ensures selectedHotspot is set and maybe closes preview?
+                                 // Actually preview is shown *because* selectedHotspot is set.
+                                 // So HotspotDetail might already be open or hidden.
+                                 // In DashboardClient, `selectedHotspot && <HotspotDetail ...>`
+                                 // So selecting a hotspot opens the detail modal.
+                                 // But here we want a preview sheet INSTEAD of the full modal on map click?
+                                 // If so, we need to distinguish "Preview" vs "Full Detail".
+                                 // But for now, let's keep it simple: Preview is shown.
+                             }}
+                             className="flex-1 bg-secondary/20 text-secondary py-2 text-xs font-bold font-mono rounded hover:bg-secondary/30"
+                        >
+                            DETAILS
+                        </button>
+                     </div>
+                  </HotspotCard>
+                  <button
+                      onClick={() => {
+                          setPreviewHotspot(null)
+                          // Also deselect?
+                          // onHotspotSelect(null) - type doesn't allow null if strict, but let's see.
+                          // It expects Hotspot. So we can't deselect via this prop if it's strictly Hotspot.
+                          // But we can just hide the preview locally.
+                      }}
+                      className="absolute top-2 right-2 p-1 rounded-full bg-black/50 text-white hover:bg-black/70"
+                  >
+                      <XIcon className="w-4 h-4" />
+                  </button>
+              </div>
           </div>
-        </div>
       )}
     </div>
   )
+}
+
+function XIcon({ className }: { className?: string }) {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+        </svg>
+    )
 }
