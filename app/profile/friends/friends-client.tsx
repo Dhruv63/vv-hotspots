@@ -52,7 +52,7 @@ const FriendCard = memo(function FriendCard({
     <div
       onMouseEnter={() => router.prefetch(`/users/${friend.username}`)}
       onClick={() => router.push(`/users/${friend.username}`)}
-      className="flex flex-col items-center p-6 rounded-xl relative overflow-hidden group transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(232,255,0,0.2)] cursor-pointer"
+      className="flex flex-col items-center p-6 card-theme relative overflow-hidden group cursor-pointer"
       role="link"
       tabIndex={0}
       onKeyDown={(e) => {
@@ -61,20 +61,15 @@ const FriendCard = memo(function FriendCard({
           router.push(`/users/${friend.username}`)
         }
       }}
-      style={{
-        backgroundColor: '#0A0E27',
-        borderColor: '#E8FF00',
-        borderWidth: '1px'
-      }}
     >
       {/* Avatar */}
       <div className="mb-4 relative">
-        <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[#00D9FF] bg-cyber-dark relative z-10">
+        <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-accent bg-muted relative z-10">
           {friend.avatar_url ? (
             <Image src={friend.avatar_url} alt={friend.username} fill className="object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-[#0A0E27]">
-              <User className="w-8 h-8 text-[#00D9FF]" />
+            <div className="w-full h-full flex items-center justify-center bg-background">
+              <User className="w-8 h-8 text-accent" />
             </div>
           )}
         </div>
@@ -83,16 +78,16 @@ const FriendCard = memo(function FriendCard({
       {/* Info */}
       <div className="text-center w-full mb-6">
         <div className="hover:underline block mb-1">
-          <h3 className="font-bold text-lg truncate" style={{ color: '#00D9FF' }}>@{friend.username}</h3>
+          <h3 className="font-heading font-bold text-lg truncate text-accent">@{friend.username}</h3>
         </div>
 
-        <div className="flex items-center justify-center gap-1 text-sm text-gray-400 mb-2">
+        <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground mb-2">
           <MapPin className="w-3 h-3" />
-          <span className="truncate max-w-[150px]">{friend.city || 'Vasai-Virar'}</span>
+          <span className="truncate max-w-[150px] font-heading">{friend.city || 'Vasai-Virar'}</span>
         </div>
 
         {friend.bio && (
-          <p className="text-xs text-gray-500 line-clamp-2 min-h-[2.5em] px-2">
+          <p className="text-xs text-muted-foreground line-clamp-2 min-h-[2.5em] px-2 font-heading">
             {friend.bio}
           </p>
         )}
@@ -102,11 +97,7 @@ const FriendCard = memo(function FriendCard({
       <div className="flex gap-3 w-full mt-auto">
         <div className="flex-1">
           <button
-            className="w-full py-2 px-3 text-sm font-bold rounded transition-colors uppercase tracking-wider hover:brightness-110 flex items-center justify-center gap-2"
-            style={{
-              backgroundColor: '#FF006E',
-              color: 'white'
-            }}
+            className="w-full py-2 px-3 text-sm font-heading font-bold rounded transition-colors uppercase tracking-wider hover:brightness-110 flex items-center justify-center gap-2 bg-secondary text-secondary-foreground"
           >
             View Profile
           </button>
@@ -313,7 +304,7 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
             incoming?.length > 0 ? (
               <div className="space-y-4">
                 {incoming?.map((req: any) => (
-                  <CyberCard key={req.id} className="p-4 flex items-center gap-4 border-l-4 border-l-lime-500">
+                  <div key={req.id} className="card-theme p-4 flex items-center gap-4 border-l-4 border-l-primary">
                     <div
                       onMouseEnter={() => router.prefetch(`/users/${req.sender.username}`)}
                       onClick={() => router.push(`/users/${req.sender.username}`)}
@@ -327,20 +318,20 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
                         }
                       }}
                     >
-                      <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-lime-500 bg-cyber-dark relative">
+                      <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-primary bg-muted relative">
                         {req.sender?.avatar_url ? (
                           <Image src={req.sender.avatar_url} alt={req.sender.username} fill className="object-cover" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
-                            <User className="w-6 h-6 text-lime-500" />
+                            <User className="w-6 h-6 text-primary" />
                           </div>
                         )}
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                         <span className="text-xs text-lime-500 font-mono uppercase tracking-wider">Request Received</span>
-                         <span className="text-xs text-cyber-gray">• {formatDistanceToNow(new Date(req.created_at))} ago</span>
+                         <span className="text-xs text-primary font-heading uppercase tracking-wider">Request Received</span>
+                         <span className="text-xs text-muted-foreground font-heading">• {formatDistanceToNow(new Date(req.created_at))} ago</span>
                       </div>
                       <div
                         onMouseEnter={() => router.prefetch(`/users/${req.sender.username}`)}
@@ -355,14 +346,14 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
                           }
                         }}
                       >
-                        <h3 className="font-bold text-cyber-light text-lg">@{req.sender?.username}</h3>
+                        <h3 className="font-heading font-bold text-foreground text-lg">@{req.sender?.username}</h3>
                       </div>
                     </div>
                     <div className="flex gap-2">
                       <CyberButton
                         variant="ghost"
                         size="sm"
-                        className="bg-lime-500 text-black hover:bg-lime-400"
+                        className="bg-primary text-primary-foreground hover:bg-primary/90"
                         onClick={() => handleAction(acceptFriendRequest, req.id, "Friend request accepted", 'request')}
                         disabled={loadingId === req.id}
                       >
@@ -378,7 +369,7 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
                         <X className="w-4 h-4" />
                       </CyberButton>
                     </div>
-                  </CyberCard>
+                  </div>
                 ))}
               </div>
             ) : (
@@ -392,7 +383,7 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
             sent?.length > 0 ? (
               <div className="space-y-4">
                 {sent?.map((req: any) => (
-                  <CyberCard key={req.id} className="p-4 flex items-center gap-4 opacity-80">
+                  <div key={req.id} className="card-theme p-4 flex items-center gap-4 opacity-80">
                     <div
                       onMouseEnter={() => router.prefetch(`/users/${req.receiver.username}`)}
                       onClick={() => router.push(`/users/${req.receiver.username}`)}
@@ -406,20 +397,20 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
                         }
                       }}
                     >
-                      <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-cyber-gray bg-cyber-dark relative">
+                      <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-muted-foreground bg-muted relative">
                         {req.receiver?.avatar_url ? (
                           <Image src={req.receiver.avatar_url} alt={req.receiver.username} fill className="object-cover" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
-                            <User className="w-6 h-6 text-cyber-gray" />
+                            <User className="w-6 h-6 text-muted-foreground" />
                           </div>
                         )}
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                         <span className="text-xs text-cyber-gray font-mono uppercase tracking-wider">Request Sent</span>
-                         <span className="text-xs text-cyber-gray">• {formatDistanceToNow(new Date(req.created_at))} ago</span>
+                         <span className="text-xs text-muted-foreground font-heading uppercase tracking-wider">Request Sent</span>
+                         <span className="text-xs text-muted-foreground font-heading">• {formatDistanceToNow(new Date(req.created_at))} ago</span>
                       </div>
                       <div
                         onMouseEnter={() => router.prefetch(`/users/${req.receiver.username}`)}
@@ -434,19 +425,19 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
                           }
                         }}
                       >
-                        <h3 className="font-bold text-cyber-light">@{req.receiver?.username}</h3>
+                        <h3 className="font-heading font-bold text-foreground">@{req.receiver?.username}</h3>
                       </div>
                     </div>
                     <CyberButton
                       variant="outline"
                       size="sm"
-                      className="text-cyber-gray hover:text-red-400 hover:border-red-400"
+                      className="text-muted-foreground hover:text-destructive hover:border-destructive font-heading"
                       onClick={() => handleAction(cancelFriendRequest, req.id, "Request cancelled", 'sent')}
                       disabled={loadingId === req.id}
                     >
                       Cancel
                     </CyberButton>
-                  </CyberCard>
+                  </div>
                 ))}
               </div>
             ) : (

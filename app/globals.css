@@ -92,7 +92,16 @@
   --border: #2A3055;
   --input: #2A3055;
   --ring: #E8FF00;
-  --radius: 0.5rem;
+  --radius: 2px;
+
+  /* Theme Personality Variables */
+  --shadow-card: 0 0 20px rgba(0, 255, 255, 0.3);
+  --shadow-hover: 0 0 30px rgba(0, 255, 255, 0.5);
+  --font-heading: 'Courier New', monospace;
+  --transition-speed: 150ms;
+  --bg-pattern: repeating-linear-gradient(0deg, rgba(0, 217, 255, 0.03), rgba(0, 217, 255, 0.03) 1px, transparent 1px, transparent 2px);
+  --border-card: var(--accent);
+  --text-glow: 0 0 10px var(--accent), 0 0 20px var(--secondary);
 
   --scanline-color: rgba(0, 217, 255, 0.03);
 
@@ -134,6 +143,16 @@
   --border: #CBD5E0;
   --input: #CBD5E0;
   --ring: #D4AF37;
+  --radius: 16px;
+
+  /* Genshin Personality */
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.12);
+  --font-heading: 'Georgia', serif;
+  --transition-speed: 300ms;
+  --bg-pattern: radial-gradient(circle at top right, rgba(74, 144, 226, 0.05), transparent 60%), radial-gradient(circle at bottom left, rgba(158, 124, 193, 0.05), transparent 60%);
+  --border-card: var(--border);
+  --text-glow: 0 0 8px rgba(255, 200, 0, 0.4);
 
   --scanline-color: rgba(0, 0, 0, 0.02);
 
@@ -165,6 +184,17 @@
   --border: #BCAAA4;
   --input: #BCAAA4;
   --ring: #A68A64;
+  --radius: 12px;
+
+  /* Lofi Personality */
+  --shadow-card: 0 4px 12px rgba(139, 90, 43, 0.15);
+  --shadow-hover: 0 6px 16px rgba(139, 90, 43, 0.2);
+  --font-heading: system-ui, -apple-system, sans-serif;
+  --transition-speed: 350ms;
+  /* Noise texture data uri */
+  --bg-pattern: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  --border-card: var(--border);
+  --text-glow: none;
 
   --scanline-color: rgba(78, 66, 55, 0.03);
 
@@ -196,6 +226,17 @@
   --border: #5D4037;
   --input: #5D4037;
   --ring: #C0392B;
+  --radius: 4px;
+
+  /* RDR2 Personality */
+  --shadow-card: 0 2px 8px rgba(101, 50, 15, 0.4);
+  --shadow-hover: 0 4px 12px rgba(101, 50, 15, 0.6);
+  --font-heading: 'Georgia', serif;
+  --transition-speed: 200ms;
+  /* Grunge/Texture pattern */
+  --bg-pattern: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%235D4037' fill-opacity='0.1'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z'/%3E%3C/g%3E%3C/svg%3E");
+  --border-card: var(--border);
+  --text-glow: none;
 
   --scanline-color: rgba(214, 205, 187, 0.03);
 
@@ -209,26 +250,88 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50 transition-colors duration-300;
+    @apply border-border outline-ring/50;
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, transform, box-shadow;
+    transition-duration: var(--transition-speed);
+    transition-timing-function: ease;
   }
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+    position: relative;
   }
+  /* Background Pattern Overlay */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: var(--bg-pattern);
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0.6;
+  }
+
   h1, h2, h3, h4, h5, h6 {
     @apply text-foreground font-bold;
+    font-family: var(--font-heading);
   }
 }
+
+/* Theme Utilities */
+.font-heading {
+  font-family: var(--font-heading);
+}
+
+.text-glow {
+  text-shadow: var(--text-glow);
+}
+
+.shadow-theme {
+  box-shadow: var(--shadow-card);
+}
+
+.card-theme {
+  @apply bg-card border;
+  border-color: var(--border-card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  transition: all var(--transition-speed) ease;
+}
+
+.card-theme:hover {
+  box-shadow: var(--shadow-hover);
+  transform: scale(1.02);
+}
+
+/* Theme-specific card hover overrides */
+[data-theme="cyberpunk"] .card-theme:hover {
+  transform: translateY(-2px); /* sharp lift */
+}
+
+[data-theme="genshin"] .card-theme:hover {
+  transform: scale(1.02); /* gentle scale */
+}
+
+[data-theme="lofi"] .card-theme:hover {
+  transform: scale(1.01); /* very subtle */
+}
+
+[data-theme="rdr2"] .card-theme:hover {
+  transform: none; /* solid feel */
+  filter: brightness(1.05); /* richness */
+}
+
 
 /* Global button hover effect */
 button:not(:disabled) {
-  @apply transition-transform duration-200;
+  transition-duration: var(--transition-speed);
 }
 button:not(:disabled):hover {
-  @apply scale-[1.02] shadow-lg; /* simplified shadow, color depends on context */
+  @apply scale-[1.02];
+  box-shadow: var(--shadow-hover);
 }
 
-/* Scanline overlay effect */
+/* Scanline overlay effect - kept for legacy or specific cyberpunk use */
 .scanlines {
   position: relative;
 }
