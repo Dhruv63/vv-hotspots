@@ -32,6 +32,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       .then(res => res.json())
       .then(data => {
         if (data.theme && themes[data.theme as ThemeId] && data.theme !== savedTheme) {
+          // Prevent overwriting local preference with default 'cyberpunk' if user is guest/unauthenticated
+          if (data.theme === 'cyberpunk' && savedTheme) {
+            return
+          }
           setTheme(data.theme as ThemeId)
           localStorage.setItem('user-theme', data.theme)
           applyTheme(data.theme as ThemeId)

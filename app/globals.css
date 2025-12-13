@@ -6,6 +6,7 @@
 @theme inline {
   --font-sans: "Inter", "Inter Fallback", system-ui, sans-serif;
   --font-mono: "Fira Code", "JetBrains Mono", "Geist Mono", monospace;
+  --font-heading: var(--font-heading);
 
   /* Semantic Theme Colors */
   --color-background: var(--background);
@@ -73,6 +74,7 @@
 
 :root {
   /* Default Theme: Cyberpunk */
+  --font-heading: "Courier New", monospace; /* Cyberpunk Default */
   --background: #0A0E27;
   --foreground: #FFFFFF;
   --card: #1A1F3A;
@@ -115,6 +117,7 @@
 }
 
 [data-theme="genshin"] {
+  --font-heading: "Georgia", serif;
   --background: #F0F4F8;
   --foreground: #333333;
   --card: #FFFFFF;
@@ -146,6 +149,7 @@
 }
 
 [data-theme="lofi"] {
+  --font-heading: system-ui, -apple-system, sans-serif;
   --background: #E6DCCF;
   --foreground: #4E4237;
   --card: #F5EBE0;
@@ -177,6 +181,7 @@
 }
 
 [data-theme="rdr2"] {
+  --font-heading: "Georgia", serif;
   --background: #2C241B;
   --foreground: #D6CDBB;
   --card: #3E3427;
@@ -217,6 +222,7 @@
   }
   h1, h2, h3, h4, h5, h6 {
     @apply text-foreground font-bold;
+    font-family: var(--font-heading);
   }
 }
 

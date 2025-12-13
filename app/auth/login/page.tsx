@@ -95,7 +95,7 @@ export default function LoginPage() {
         </Link>
 
         <CyberCard className="p-8 bg-cyber-navy border-white/10">
-          <h1 className="font-sans text-2xl font-bold text-cyber-light mb-2">Welcome Back</h1>
+          <h1 className="font-heading text-2xl font-bold text-cyber-light mb-2">Welcome Back</h1>
           <p className="text-cyber-gray mb-6">Login to access the real-time map</p>
 
           <div className="mb-6">
