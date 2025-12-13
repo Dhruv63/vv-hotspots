@@ -54,8 +54,8 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
             <div className="w-8 h-8 bg-accent cyber-clip-sm flex items-center justify-center transition-colors duration-300">
               <MapPin className="w-5 h-5 text-accent-foreground transition-colors duration-300" />
             </div>
-            <span className="font-mono text-xl font-bold hidden sm:inline">
-              <span className="text-accent neon-text-cyan transition-colors duration-300">VV</span>
+            <span className="font-heading text-xl font-bold hidden sm:inline">
+              <span className="text-accent text-glow transition-colors duration-300">VV</span>
               <span className="text-foreground transition-colors duration-300"> HOTSPOTS</span>
             </span>
           </Link>
@@ -66,8 +66,8 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
           <div className="hidden md:flex items-center gap-8">
             <Link
               href="/dashboard"
-              className={`font-mono text-sm tracking-wider transition-all py-1 border-b-2 ${isActive("/dashboard")
-                  ? "border-primary text-primary shadow-[0_2px_10px_rgba(var(--color-primary),0.3)]" // Note: This might need adjustment if shadow doesn't work with var
+              className={`font-heading text-sm tracking-wider transition-all py-1 border-b-2 ${isActive("/dashboard")
+                  ? "border-primary text-primary shadow-[var(--shadow-hover)]"
                   : "border-transparent text-foreground hover:text-accent hover:border-accent/50"
                 }`}
             >
@@ -75,8 +75,8 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
             </Link>
             <Link
               href="/profile"
-              className={`font-mono text-sm tracking-wider transition-all py-1 border-b-2 ${isActive("/profile")
-                  ? "border-primary text-primary"
+              className={`font-heading text-sm tracking-wider transition-all py-1 border-b-2 ${isActive("/profile")
+                  ? "border-primary text-primary shadow-[var(--shadow-hover)]"
                   : "border-transparent text-foreground hover:text-accent hover:border-accent/50"
                 }`}
             >
@@ -84,8 +84,8 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
             </Link>
             <Link
               href="/profile/friends"
-              className={`font-mono text-sm tracking-wider transition-all py-1 border-b-2 ${isActive("/profile/friends")
-                  ? "border-primary text-primary"
+              className={`font-heading text-sm tracking-wider transition-all py-1 border-b-2 ${isActive("/profile/friends")
+                  ? "border-primary text-primary shadow-[var(--shadow-hover)]"
                   : "border-transparent text-foreground hover:text-accent hover:border-accent/50"
                 }`}
             >
@@ -199,7 +199,7 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
                 <Link
                   href="/dashboard"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors font-mono min-h-[44px] ${isActive("/dashboard") ? "bg-primary/10 text-primary border border-primary" : "text-foreground hover:bg-accent/10"
+                  className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors font-heading min-h-[44px] ${isActive("/dashboard") ? "bg-primary/10 text-primary border border-primary" : "text-foreground hover:bg-accent/10"
                     }`}
                 >
                   <MapPin className="w-5 h-5" />
@@ -208,7 +208,7 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
                 <Link
                   href="/profile"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors font-mono min-h-[44px] ${isActive("/profile") ? "bg-primary/10 text-primary border border-primary" : "text-foreground hover:bg-accent/10"
+                  className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors font-heading min-h-[44px] ${isActive("/profile") ? "bg-primary/10 text-primary border border-primary" : "text-foreground hover:bg-accent/10"
                     }`}
                 >
                   <User className="w-5 h-5" />
@@ -217,7 +217,7 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
                 <Link
                   href="/profile/friends"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors font-mono min-h-[44px] ${isActive("/profile/friends") ? "bg-primary/10 text-primary border border-primary" : "text-foreground hover:bg-accent/10"
+                  className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors font-heading min-h-[44px] ${isActive("/profile/friends") ? "bg-primary/10 text-primary border border-primary" : "text-foreground hover:bg-accent/10"
                     }`}
                 >
                   <Users className="w-5 h-5" />
@@ -226,7 +226,7 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
                 <Link
                   href="/settings"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors font-mono min-h-[44px] ${isActive("/settings") ? "bg-primary/10 text-primary border border-primary" : "text-foreground hover:bg-accent/10"
+                  className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors font-heading min-h-[44px] ${isActive("/settings") ? "bg-primary/10 text-primary border border-primary" : "text-foreground hover:bg-accent/10"
                     }`}
                 >
                   <Settings className="w-5 h-5" />
@@ -234,7 +234,7 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
                 </Link>
                 <button
                   onClick={handleSignOut}
-                  className="flex items-center gap-3 w-full p-3 text-red-400 border border-red-500/50 hover:bg-red-500/10 rounded-lg transition-colors font-mono min-h-[44px]"
+                  className="flex items-center gap-3 w-full p-3 text-red-400 border border-red-500/50 hover:bg-red-500/10 rounded-lg transition-colors font-heading min-h-[44px]"
                 >
                   <LogOut className="w-5 h-5" />
                   Sign Out
@@ -245,14 +245,14 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
                 <Link
                   href="/auth/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-center w-full p-3 text-foreground border border-border hover:border-accent rounded-lg transition-colors font-mono min-h-[44px]"
+                  className="flex items-center justify-center w-full p-3 text-foreground border border-border hover:border-accent rounded-lg transition-colors font-heading min-h-[44px]"
                 >
                   Login
                 </Link>
                 <Link
                   href="/auth/sign-up"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-center w-full p-3 bg-accent text-accent-foreground rounded-lg font-mono font-bold min-h-[44px]"
+                  className="flex items-center justify-center w-full p-3 bg-accent text-accent-foreground rounded-lg font-heading font-bold min-h-[44px]"
                 >
                   Sign Up
                 </Link>

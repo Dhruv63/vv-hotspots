@@ -22,7 +22,7 @@ export function CategoryBadge({ category, className }: CategoryBadgeProps) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 px-2 py-1 text-xs font-mono uppercase border rounded font-bold text-white dark:text-black",
+        "inline-flex items-center gap-1.5 px-2 py-1 text-xs font-heading uppercase border rounded font-bold text-white dark:text-black",
         config.color,
         className,
       )}

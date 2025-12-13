@@ -1,6 +1,7 @@
 "use client"
 
 import { ReactNode } from "react"
+import { cn } from "@/lib/utils"
 import Image from "next/image"
 import { MapPin, Users, Star, StarHalf, Heart } from "lucide-react"
 import type { Hotspot } from "@/lib/types"
@@ -122,11 +123,12 @@ export function HotspotCard({
   return (
     <div
       onClick={onClick}
-      className={`group relative overflow-hidden rounded-lg cursor-pointer transition-all duration-200 ease-out bg-card border flex flex-col h-full active:scale-[0.98] hover:scale-[1.02] hover:shadow-lg ${
+      className={cn(
+        "group relative overflow-hidden card-theme cursor-pointer flex flex-col h-full",
         isSelected
-          ? "border-primary shadow-lg"
-          : "border-border hover:border-primary/50"
-      }`}
+          ? "border-primary shadow-[var(--shadow-hover)]"
+          : "hover:border-primary/50"
+      )}
       style={{ width: "100%" }}
     >
       {/* Image section - Increased height to 150px */}
@@ -143,7 +145,7 @@ export function HotspotCard({
         {/* Category badge */}
         <div className="absolute top-2 left-2 z-10">
           <span
-            className={`px-2 py-0.5 text-[10px] font-mono font-bold uppercase rounded ${getCategoryColor(hotspot.category)}`}
+            className={`px-2 py-0.5 text-[10px] font-heading font-bold uppercase rounded ${getCategoryColor(hotspot.category)}`}
           >
             {hotspot.category}
           </span>
@@ -152,7 +154,7 @@ export function HotspotCard({
         {/* Active users badge & Save Button */}
         <div className="absolute top-2 right-2 z-10 flex items-center gap-2">
           {activeCheckins > 0 && (
-            <div className="flex items-center gap-1 px-2 py-0.5 bg-background/80 border border-accent text-accent text-[10px] font-mono rounded">
+            <div className="flex items-center gap-1 px-2 py-0.5 bg-background/80 border border-accent text-accent text-[10px] font-heading rounded">
               <Users className="w-3 h-3" />
               <span>{activeCheckins}</span>
             </div>
@@ -171,11 +173,11 @@ export function HotspotCard({
       {/* Content section */}
       <div className="p-3 flex flex-col flex-1 overflow-hidden">
         <div className="flex justify-between items-start mb-1 gap-2">
-            <h3 className="font-mono text-[16px] font-bold text-foreground leading-tight line-clamp-2 text-ellipsis">
+            <h3 className="font-heading text-[16px] font-bold text-foreground leading-tight line-clamp-2 text-ellipsis">
             {hotspot.name}
             </h3>
             {distance !== undefined && distance !== null && (
-                <span className="text-[10px] font-mono font-bold text-primary whitespace-nowrap bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">
+                <span className="text-[10px] font-heading font-bold text-primary whitespace-nowrap bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">
                     {distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)} km`}
                 </span>
             )}
