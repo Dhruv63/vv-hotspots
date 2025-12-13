@@ -18,19 +18,23 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Load theme from localStorage first (instant)
     const savedTheme = localStorage.getItem('user-theme') as ThemeId
+    // Check if saved theme exists in our definition (handles legacy theme cleanup)
     if (savedTheme && themes[savedTheme]) {
       setTheme(savedTheme)
       applyTheme(savedTheme)
+    } else {
+      // Default to cyberpunk if no theme or invalid theme found
+      applyTheme('cyberpunk')
     }
 
     // Then fetch from server (sync with DB)
     fetch('/api/theme')
       .then(res => res.json())
       .then(data => {
-        if (data.theme && data.theme !== savedTheme) {
-          setTheme(data.theme)
+        if (data.theme && themes[data.theme as ThemeId] && data.theme !== savedTheme) {
+          setTheme(data.theme as ThemeId)
           localStorage.setItem('user-theme', data.theme)
-          applyTheme(data.theme)
+          applyTheme(data.theme as ThemeId)
         }
       })
       .catch(() => {})
@@ -45,21 +49,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [theme, mounted])
 
   const applyTheme = (themeId: ThemeId) => {
-    const themeColors = themes[themeId].colors
-    document.documentElement.style.setProperty('--color-primary', themeColors.primary)
-    document.documentElement.style.setProperty('--color-secondary', themeColors.secondary)
-    document.documentElement.style.setProperty('--color-accent', themeColors.accent)
-    document.documentElement.style.setProperty('--color-bg', themeColors.bg)
-    document.documentElement.style.setProperty('--color-text', themeColors.text)
+    // Set data-theme attribute which drives the CSS variables in globals.css
+    document.documentElement.setAttribute('data-theme', themeId)
 
-    // Add class for tailwind dark mode if needed (or light)
-    if (themeId === 'light') {
-        document.documentElement.classList.remove('dark')
-        document.documentElement.classList.add('light')
-    } else {
-        document.documentElement.classList.remove('light')
-        document.documentElement.classList.add('dark')
-    }
+    // Helper classes for Tailwind dark mode or other library compatibility
+    // Genshin and Lofi are light themes; Cyberpunk and RDR2 are dark themes
+    const isLight = themeId === 'genshin' || themeId === 'lofi'
+
+    document.documentElement.classList.remove('light', 'dark')
+    document.documentElement.classList.add(isLight ? 'light' : 'dark')
   }
 
   const updateTheme = (newTheme: ThemeId) => {

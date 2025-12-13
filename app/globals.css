@@ -1,160 +1,54 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
-@custom-variant light (&:is(.light *));
-
-:root {
-  /* Updated Color Palette */
-  --cyber-black: #0A0E27; /* Dark Navy Background */
-  --cyber-dark: #0F1430; /* Slightly lighter navy */
-  --cyber-navy: #1A1F3A; /* Card Background */
-
-  --cyber-yellow: #E8FF00; /* Primary */
-  --cyber-pink: #FF006E;   /* Secondary */
-  --cyber-cyan: #00D9FF;   /* Tertiary */
-
-  --cyber-gray: #B0B9C1;   /* Body Text */
-  --cyber-light: #FFFFFF;  /* Headings */
-  --cyber-white: #FFFFFF;
-
-  /* Semantic Aliases */
-  --cyber-primary: var(--cyber-yellow);
-  --cyber-secondary: var(--cyber-pink);
-  --cyber-accent: var(--cyber-cyan);
-
-  /* Tailwind mappings */
-  --background: var(--cyber-black);
-  --foreground: var(--cyber-light);
-  --card: var(--cyber-navy);
-  --card-foreground: var(--cyber-light);
-  --popover: var(--cyber-navy);
-  --popover-foreground: var(--cyber-light);
-
-  --primary: var(--cyber-yellow);
-  --primary-foreground: #000000;
-
-  --secondary: var(--cyber-pink);
-  --secondary-foreground: #FFFFFF;
-
-  --muted: var(--cyber-dark);
-  --muted-foreground: var(--cyber-gray);
-
-  --accent: var(--cyber-cyan);
-  --accent-foreground: #000000;
-
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(1 0 0);
-
-  --border: #2A3055;
-  --input: #2A3055;
-  --ring: var(--cyber-yellow);
-
-  /* Chart Colors */
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-
-  --radius: 0.5rem;
-
-  --sidebar: var(--cyber-navy);
-  --sidebar-foreground: var(--cyber-light);
-  --sidebar-primary: var(--cyber-yellow);
-  --sidebar-primary-foreground: #000000;
-  --sidebar-accent: var(--cyber-dark);
-  --sidebar-accent-foreground: var(--cyber-light);
-  --sidebar-border: #2A3055;
-  --sidebar-ring: var(--cyber-yellow);
-
-  /* Category Colors (Dark) - Updated to match new palette */
-  --cat-cafe: #00D9FF; /* Cyan */
-  --cat-park: #E8FF00; /* Yellow */
-  --cat-gaming: #FF006E; /* Pink */
-  --cat-food: #FF9900; /* Orange */
-  --cat-hangout: #00FF99; /* Green */
-  --cat-other: #B0B9C1; /* Gray */
-
-  /* Misc */
-  --scanline-color: rgba(0, 217, 255, 0.03);
-}
-
-/* Light Theme Overrides (Keeping structurally similar but can be adjusted) */
-.light {
-  --background: #FFFFFF;
-  --foreground: #0A0E27;
-  --card: #F0F2F5;
-  --card-foreground: #0A0E27;
-
-  --primary: #FF006E; /* Pink primary in light mode */
-  --primary-foreground: #FFFFFF;
-
-  --secondary: #E8FF00;
-  --secondary-foreground: #000000;
-
-  --muted: #F0F2F5;
-  --muted-foreground: #666666;
-
-  --accent: #00D9FF;
-  --accent-foreground: #000000;
-
-  --border: #E0E0E0;
-  --input: #E0E0E0;
-  --ring: #FF006E;
-
-  /* Cyberpunk Palette (Light) */
-  --cyber-black: #FFFFFF;
-  --cyber-dark: #F0F2F5;
-  --cyber-navy: #FFFFFF;
-
-  --cyber-yellow: #FF006E;
-  --cyber-pink: #E8FF00;
-  --cyber-cyan: #00D9FF;
-
-  --cyber-gray: #666666;
-  --cyber-light: #0A0E27;
-
-  /* Semantic Aliases */
-  --cyber-primary: #FF006E;
-  --cyber-secondary: #E8FF00;
-  --cyber-accent: #00D9FF;
-
-   /* Category Colors (Light) */
-  --cat-cafe: #0088AA;
-  --cat-park: #88AA00;
-  --cat-gaming: #AA0044;
-  --cat-food: #CC6600;
-  --cat-hangout: #00AA66;
-  --cat-other: #666666;
-
-  --scanline-color: rgba(0, 0, 0, 0.02);
-}
+@custom-variant dark (&:where([data-theme="cyberpunk"], [data-theme="rdr2"], :not([data-theme="genshin"]):not([data-theme="lofi"]) *));
 
 @theme inline {
   --font-sans: "Inter", "Inter Fallback", system-ui, sans-serif;
   --font-mono: "Fira Code", "JetBrains Mono", "Geist Mono", monospace;
 
-  /* Cyberpunk color palette mapped to variables */
-  --color-cyber-black: var(--cyber-black);
-  --color-cyber-dark: var(--cyber-dark);
-  --color-cyber-navy: var(--cyber-navy);
+  /* Semantic Theme Colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
 
-  --color-cyber-yellow: var(--cyber-yellow);
-  --color-cyber-pink: var(--cyber-pink);
-  --color-cyber-cyan: var(--cyber-cyan);
-  --color-cyber-white: var(--cyber-white);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
 
-  --color-cyber-gray: var(--cyber-gray);
-  --color-cyber-light: var(--cyber-light);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
 
-  /* Semantic aliases */
-  --color-cyber-primary: var(--cyber-primary);
-  --color-cyber-secondary: var(--cyber-secondary);
-  --color-cyber-accent: var(--cyber-accent);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
 
-  /* Keep purple for compatibility if used explicitly, map to accent or pink */
-  --color-cyber-purple: var(--cyber-pink);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Legacy Cyberpunk Aliases - Mapped to semantic tokens for compatibility */
+  --color-cyber-black: var(--background);
+  --color-cyber-dark: var(--muted);
+  --color-cyber-navy: var(--card);
+  --color-cyber-yellow: var(--primary);
+  --color-cyber-pink: var(--secondary);
+  --color-cyber-cyan: var(--accent);
+  --color-cyber-gray: var(--muted-foreground);
+  --color-cyber-light: var(--foreground);
+  --color-cyber-white: var(--foreground);
+  --color-cyber-primary: var(--primary);
+  --color-cyber-secondary: var(--secondary);
+  --color-cyber-accent: var(--accent);
 
   /* Category Colors */
   --color-cat-cafe: var(--cat-cafe);
@@ -164,42 +58,153 @@
   --color-cat-hangout: var(--cat-hangout);
   --color-cat-other: var(--cat-other);
 
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
+  /* Charts */
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  /* Default Theme: Cyberpunk */
+  --background: #0A0E27;
+  --foreground: #FFFFFF;
+  --card: #1A1F3A;
+  --card-foreground: #FFFFFF;
+  --popover: #1A1F3A;
+  --popover-foreground: #FFFFFF;
+  --primary: #E8FF00;
+  --primary-foreground: #000000;
+  --secondary: #FF006E;
+  --secondary-foreground: #FFFFFF;
+  --muted: #0F1430;
+  --muted-foreground: #B0B9C1;
+  --accent: #00D9FF;
+  --accent-foreground: #000000;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --border: #2A3055;
+  --input: #2A3055;
+  --ring: #E8FF00;
+  --radius: 0.5rem;
+
+  --scanline-color: rgba(0, 217, 255, 0.03);
+
+  --cat-cafe: #00D9FF;
+  --cat-park: #E8FF00;
+  --cat-gaming: #FF006E;
+  --cat-food: #FF9900;
+  --cat-hangout: #00FF99;
+  --cat-other: #B0B9C1;
+
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+}
+
+[data-theme="cyberpunk"] {
+  /* Inherits from root */
+}
+
+[data-theme="genshin"] {
+  --background: #F0F4F8;
+  --foreground: #333333;
+  --card: #FFFFFF;
+  --card-foreground: #333333;
+  --popover: #FFFFFF;
+  --popover-foreground: #333333;
+  --primary: #D4AF37;
+  --primary-foreground: #FFFFFF;
+  --secondary: #4A90E2;
+  --secondary-foreground: #FFFFFF;
+  --muted: #E2E8F0;
+  --muted-foreground: #64748B;
+  --accent: #9E7CC1;
+  --accent-foreground: #FFFFFF;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --border: #CBD5E0;
+  --input: #CBD5E0;
+  --ring: #D4AF37;
+
+  --scanline-color: rgba(0, 0, 0, 0.02);
+
+  --cat-cafe: #4A90E2;
+  --cat-park: #9E7CC1;
+  --cat-gaming: #D4AF37;
+  --cat-food: #F59E0B;
+  --cat-hangout: #10B981;
+  --cat-other: #94A3B8;
+}
+
+[data-theme="lofi"] {
+  --background: #E6DCCF;
+  --foreground: #4E4237;
+  --card: #F5EBE0;
+  --card-foreground: #4E4237;
+  --popover: #F5EBE0;
+  --popover-foreground: #4E4237;
+  --primary: #A68A64;
+  --primary-foreground: #FFFFFF;
+  --secondary: #8C705F;
+  --secondary-foreground: #FFFFFF;
+  --muted: #D8C8B8;
+  --muted-foreground: #7D6E63;
+  --accent: #D4A373;
+  --accent-foreground: #FFFFFF;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --border: #BCAAA4;
+  --input: #BCAAA4;
+  --ring: #A68A64;
+
+  --scanline-color: rgba(78, 66, 55, 0.03);
+
+  --cat-cafe: #8C705F;
+  --cat-park: #A68A64;
+  --cat-gaming: #D4A373;
+  --cat-food: #C0A080;
+  --cat-hangout: #9E8C7A;
+  --cat-other: #BCAAA4;
+}
+
+[data-theme="rdr2"] {
+  --background: #2C241B;
+  --foreground: #D6CDBB;
+  --card: #3E3427;
+  --card-foreground: #D6CDBB;
+  --popover: #3E3427;
+  --popover-foreground: #D6CDBB;
+  --primary: #C0392B;
+  --primary-foreground: #FFFFFF;
+  --secondary: #D35400;
+  --secondary-foreground: #FFFFFF;
+  --muted: #1F1812;
+  --muted-foreground: #8D7F71;
+  --accent: #F1C40F;
+  --accent-foreground: #000000;
+  --destructive: #8B0000;
+  --destructive-foreground: #FFFFFF;
+  --border: #5D4037;
+  --input: #5D4037;
+  --ring: #C0392B;
+
+  --scanline-color: rgba(214, 205, 187, 0.03);
+
+  --cat-cafe: #D35400;
+  --cat-park: #5D4037;
+  --cat-gaming: #C0392B;
+  --cat-food: #F1C40F;
+  --cat-hangout: #8D7F71;
+  --cat-other: #4E342E;
 }
 
 @layer base {
@@ -207,11 +212,11 @@
     @apply border-border outline-ring/50 transition-colors duration-300;
   }
   body {
-    @apply bg-cyber-black text-cyber-gray antialiased;
+    @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply text-cyber-light font-bold;
+    @apply text-foreground font-bold;
   }
 }
 
@@ -220,7 +225,7 @@ button:not(:disabled) {
   @apply transition-transform duration-200;
 }
 button:not(:disabled):hover {
-  @apply scale-[1.02] shadow-[0_0_15px_rgba(232,255,0,0.3)];
+  @apply scale-[1.02] shadow-lg; /* simplified shadow, color depends on context */
 }
 
 /* Scanline overlay effect */
@@ -243,48 +248,48 @@ button:not(:disabled):hover {
   z-index: 10;
 }
 
-/* Neon glow effects */
+/* Neon glow effects - now using semantic vars */
 .neon-cyan {
-  box-shadow: 0 0 5px var(--color-cyber-cyan), 0 0 10px var(--color-cyber-cyan), 0 0 20px var(--color-cyber-cyan);
+  box-shadow: 0 0 5px var(--color-accent), 0 0 10px var(--color-accent), 0 0 20px var(--color-accent);
 }
 
 .neon-pink {
-  box-shadow: 0 0 5px var(--color-cyber-pink), 0 0 10px var(--color-cyber-pink), 0 0 20px var(--color-cyber-pink);
+  box-shadow: 0 0 5px var(--color-secondary), 0 0 10px var(--color-secondary), 0 0 20px var(--color-secondary);
 }
 
 .neon-yellow {
-  box-shadow: 0 0 5px var(--color-cyber-yellow), 0 0 10px var(--color-cyber-yellow), 0 0 20px var(--color-cyber-yellow);
+  box-shadow: 0 0 5px var(--color-primary), 0 0 10px var(--color-primary), 0 0 20px var(--color-primary);
 }
 
 .neon-border-cyan {
-  border-color: var(--color-cyber-cyan);
-  box-shadow: 0 0 5px var(--color-cyber-cyan), inset 0 0 5px rgba(0, 217, 255, 0.2);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 5px var(--color-accent), inset 0 0 5px var(--color-accent); /* Simplified RGBA */
 }
 
 .neon-border-pink {
-  border-color: var(--color-cyber-pink);
-  box-shadow: 0 0 5px var(--color-cyber-pink), inset 0 0 5px rgba(255, 0, 110, 0.2);
+  border-color: var(--color-secondary);
+  box-shadow: 0 0 5px var(--color-secondary), inset 0 0 5px var(--color-secondary);
 }
 
 .neon-text-cyan {
-  color: var(--color-cyber-cyan);
-  text-shadow: 0 0 5px var(--color-cyber-cyan), 0 0 10px var(--color-cyber-cyan);
+  color: var(--color-accent);
+  text-shadow: 0 0 5px var(--color-accent), 0 0 10px var(--color-accent);
 }
 
 .neon-text-pink {
-  color: var(--color-cyber-pink);
-  text-shadow: 0 0 5px var(--color-cyber-pink), 0 0 10px var(--color-cyber-pink);
+  color: var(--color-secondary);
+  text-shadow: 0 0 5px var(--color-secondary), 0 0 10px var(--color-secondary);
 }
 
 .neon-text-yellow {
-  color: var(--color-cyber-yellow);
-  text-shadow: 0 0 5px var(--color-cyber-yellow), 0 0 10px var(--color-cyber-yellow);
+  color: var(--color-primary);
+  text-shadow: 0 0 5px var(--color-primary), 0 0 10px var(--color-primary);
 }
 
-/* Keep purple classes for compatibility */
+/* Keep purple classes for compatibility, mapped to accent */
 .neon-text-purple {
-  color: var(--color-cyber-pink);
-  text-shadow: 0 0 5px var(--color-cyber-pink);
+  color: var(--color-accent);
+  text-shadow: 0 0 5px var(--color-accent);
 }
 
 /* Glitch effect */
@@ -313,10 +318,10 @@ button:not(:disabled):hover {
 /* Pulse animation */
 @keyframes neon-pulse {
   0%, 100% {
-    box-shadow: 0 0 5px var(--color-cyber-yellow), 0 0 10px var(--color-cyber-yellow);
+    box-shadow: 0 0 5px var(--color-primary), 0 0 10px var(--color-primary);
   }
   50% {
-    box-shadow: 0 0 10px var(--color-cyber-yellow), 0 0 20px var(--color-cyber-yellow), 0 0 40px var(--color-cyber-yellow);
+    box-shadow: 0 0 10px var(--color-primary), 0 0 20px var(--color-primary), 0 0 40px var(--color-primary);
   }
 }
 
@@ -331,16 +336,16 @@ button:not(:disabled):hover {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-cyber-dark);
+  background: var(--color-muted);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2A3055;
+  background: var(--color-border);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-cyber-cyan);
+  background: var(--color-accent);
 }
 
 /* Map marker styles */
@@ -355,7 +360,7 @@ button:not(:disabled):hover {
 
 /* Leaflet map theme overrides */
 .leaflet-container {
-  background: var(--color-cyber-black) !important;
+  background: var(--color-background) !important;
 }
 
 .leaflet-tile-pane {
@@ -363,22 +368,22 @@ button:not(:disabled):hover {
 }
 
 .leaflet-control-zoom a {
-  background: var(--color-cyber-navy) !important;
-  color: var(--color-cyber-cyan) !important;
-  border-color: #2A3055 !important;
+  background: var(--color-card) !important;
+  color: var(--color-accent) !important;
+  border-color: var(--color-border) !important;
 }
 
 .leaflet-control-zoom a:hover {
-  background: var(--color-cyber-dark) !important;
+  background: var(--color-muted) !important;
 }
 
 .leaflet-control-attribution {
-  background: var(--color-cyber-dark) !important;
-  color: #B0B9C1 !important;
+  background: var(--color-muted) !important;
+  color: var(--color-muted-foreground) !important;
 }
 
 .leaflet-control-attribution a {
-  color: var(--color-cyber-cyan) !important;
+  color: var(--color-accent) !important;
 }
 
 /* Shimmer animation */
@@ -394,10 +399,10 @@ button:not(:disabled):hover {
 /* Marker glow */
 @keyframes marker-glow {
   0%, 100% {
-    filter: drop-shadow(0 0 5px var(--color-cyber-yellow));
+    filter: drop-shadow(0 0 5px var(--color-primary));
   }
   50% {
-    filter: drop-shadow(0 0 15px var(--color-cyber-yellow)) drop-shadow(0 0 25px var(--color-cyber-yellow));
+    filter: drop-shadow(0 0 15px var(--color-primary)) drop-shadow(0 0 25px var(--color-primary));
   }
 }
 
@@ -414,9 +419,9 @@ button:not(:disabled):hover {
 .skeleton-shimmer {
   background: linear-gradient(
     90deg,
-    var(--color-cyber-dark) 25%,
-    #2A3055 37%,
-    var(--color-cyber-dark) 63%
+    var(--color-muted) 25%,
+    var(--color-border) 37%,
+    var(--color-muted) 63%
   );
   background-size: 400% 100%;
   animation: skeleton-shimmer 1.4s ease infinite;

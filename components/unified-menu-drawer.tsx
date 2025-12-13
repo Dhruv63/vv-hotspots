@@ -27,8 +27,8 @@ export function UnifiedMenuDrawer({
   onClear
 }: UnifiedMenuDrawerProps) {
   const { theme: currentTheme } = useTheme()
-  const theme = (currentTheme === "light" ? "light" : "dark") as keyof typeof THEME_COLORS
-  const colors = THEME_COLORS[theme]
+  const theme = currentTheme as keyof typeof THEME_COLORS
+  const colors = THEME_COLORS[theme] || THEME_COLORS.cyberpunk
 
   // Touch handling for swipe-down to close
   const touchStartY = useRef<number | null>(null)
@@ -102,13 +102,6 @@ export function UnifiedMenuDrawer({
     onApply(view, currentCategories)
   }
 
-  const activeColor = theme === 'dark' ? 'text-[#FFFF00]' : 'text-pink-500'
-  const activeBorder = theme === 'dark' ? 'border-[#FFFF00]' : 'border-pink-500'
-  const activeBg = theme === 'dark' ? 'bg-[#FFFF00]/10' : 'bg-pink-500/10'
-  const activeGlow = theme === 'dark' ? 'shadow-[0_0_10px_rgba(255,255,0,0.3)]' : 'shadow-[0_0_10px_rgba(255,20,147,0.3)]'
-  const activeCheckBg = theme === 'dark' ? 'bg-[#FFFF00]' : 'bg-pink-500'
-  const activeCheckText = theme === 'dark' ? 'text-black' : 'text-white'
-
   if (!isOpen) return null
 
   return (
@@ -124,7 +117,7 @@ export function UnifiedMenuDrawer({
       <div
         ref={drawerRef}
         className={`fixed inset-x-0 bottom-0 md:top-16 md:bottom-0 md:left-0 md:right-auto md:w-80 z-[100] md:z-[50]
-        bg-cyber-dark border-t-2 md:border-t-0 md:border-r border-cyber-primary md:border-cyber-gray
+        bg-card border-t-2 md:border-t-0 md:border-r border-primary md:border-border
         rounded-t-2xl md:rounded-none transition-transform duration-300 ease-out
         flex flex-col shadow-2xl
         ${isOpen ? "translate-y-0 md:translate-x-0" : "translate-y-full md:-translate-x-full"}`}
@@ -135,27 +128,27 @@ export function UnifiedMenuDrawer({
       >
         {/* Drag Handle for Mobile */}
         <div className="md:hidden w-full flex justify-center pt-3 pb-1" onClick={onClose}>
-            <div className="w-12 h-1.5 bg-cyber-gray/50 rounded-full"></div>
+            <div className="w-12 h-1.5 bg-muted-foreground/30 rounded-full"></div>
         </div>
 
-        <div className="flex items-center justify-between p-4 border-b border-cyber-gray/30">
+        <div className="flex items-center justify-between p-4 border-b border-border">
             <div className="flex items-center gap-3">
                 <button
                     onClick={onClose}
-                    className="md:hidden p-2 -ml-2 text-cyber-gray hover:text-cyber-primary transition-colors rounded-full hover:bg-cyber-gray/10"
+                    className="md:hidden p-2 -ml-2 text-muted-foreground hover:text-primary transition-colors rounded-full hover:bg-muted/10"
                 >
                     <ArrowLeft className="w-5 h-5" />
                 </button>
                 <div>
-                    <h2 className="text-cyber-primary font-mono text-lg font-bold tracking-wider">FILTERS</h2>
+                    <h2 className="text-primary font-mono text-lg font-bold tracking-wider">FILTERS</h2>
                     {currentCategories.length > 0 && (
-                        <p className="text-xs font-mono text-cyber-gray">{currentCategories.length} selected</p>
+                        <p className="text-xs font-mono text-muted-foreground">{currentCategories.length} selected</p>
                     )}
                 </div>
             </div>
           <button
             onClick={onClose}
-            className="hidden md:block p-2 text-cyber-gray hover:text-cyber-primary transition-colors rounded-full hover:bg-cyber-gray/10"
+            className="hidden md:block p-2 text-muted-foreground hover:text-primary transition-colors rounded-full hover:bg-muted/10"
           >
             <X className="w-6 h-6" />
           </button>
@@ -164,7 +157,7 @@ export function UnifiedMenuDrawer({
         <div className="flex-1 overflow-y-auto p-4 space-y-6">
             {/* View Options */}
             <section>
-                <h3 className="text-cyber-light/70 font-mono text-xs font-bold mb-3 uppercase tracking-wider">View Options</h3>
+                <h3 className="text-foreground/70 font-mono text-xs font-bold mb-3 uppercase tracking-wider">View Options</h3>
                 <div className="grid grid-cols-2 gap-2">
                     {viewOptions.map((option) => {
                         const isActive = currentView === option.value
@@ -174,8 +167,8 @@ export function UnifiedMenuDrawer({
                                 onClick={() => setView(option.value)}
                                 className={`flex items-center gap-2 p-3 rounded-lg border transition-all text-left duration-200
                                     ${isActive
-                                        ? `${activeBorder} ${activeBg} ${activeColor} ${activeGlow}`
-                                        : "border-cyber-gray/30 bg-cyber-black/30 text-cyber-light hover:border-cyber-gray"
+                                        ? "border-primary bg-primary/10 text-primary shadow-lg"
+                                        : "border-border bg-muted/30 text-foreground hover:border-muted-foreground"
                                     }
                                 `}
                             >
@@ -189,27 +182,27 @@ export function UnifiedMenuDrawer({
 
             {/* Social Filters */}
             <section>
-                 <h3 className="text-cyber-light/70 font-mono text-xs font-bold mb-3 uppercase tracking-wider">Social</h3>
+                 <h3 className="text-foreground/70 font-mono text-xs font-bold mb-3 uppercase tracking-wider">Social</h3>
                  <button
                     onClick={() => onToggleFriendsOnly(!showFriendsOnly)}
                     className={`flex items-center justify-between w-full p-3 rounded-lg border transition-all duration-200
                         ${showFriendsOnly
-                            ? `${activeBorder} ${activeBg}`
-                            : "border-cyber-gray/30 bg-cyber-black/30 hover:border-cyber-gray"
+                            ? "border-primary bg-primary/10"
+                            : "border-border bg-muted/30 hover:border-muted-foreground"
                         }
                     `}
                 >
                      <div className="flex items-center gap-3">
-                          <Users className={`w-4 h-4 ${showFriendsOnly ? activeColor : 'text-cyber-gray'}`} />
-                          <span className={`font-mono text-sm transition-colors ${showFriendsOnly ? "text-cyber-light font-bold" : "text-cyber-gray"}`}>
+                          <Users className={`w-4 h-4 ${showFriendsOnly ? "text-primary" : 'text-muted-foreground'}`} />
+                          <span className={`font-mono text-sm transition-colors ${showFriendsOnly ? "text-foreground font-bold" : "text-muted-foreground"}`}>
                                 Friends Only
                           </span>
                      </div>
                      <div className={`w-10 h-5 rounded-full border relative transition-colors duration-300
-                          ${showFriendsOnly ? `${activeBorder} ${activeBg}` : "border-cyber-gray bg-transparent"}
+                          ${showFriendsOnly ? "border-primary bg-primary/10" : "border-muted-foreground bg-transparent"}
                      `}>
                           <div className={`absolute top-0.5 bottom-0.5 w-3.5 h-3.5 rounded-full transition-all duration-300
-                               ${showFriendsOnly ? `right-0.5 ${activeColor.replace('text-', 'bg-')}` : "left-0.5 bg-cyber-gray"}
+                               ${showFriendsOnly ? "right-0.5 bg-primary" : "left-0.5 bg-muted-foreground"}
                           `} style={{ right: showFriendsOnly ? '2px' : 'auto', left: showFriendsOnly ? 'auto' : '2px' }} />
                      </div>
                 </button>
@@ -218,11 +211,11 @@ export function UnifiedMenuDrawer({
             {/* Filter Categories */}
              <section>
                 <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-cyber-light/70 font-mono text-xs font-bold uppercase tracking-wider">Categories</h3>
+                    <h3 className="text-foreground/70 font-mono text-xs font-bold uppercase tracking-wider">Categories</h3>
                     {currentCategories.length > 0 && (
                          <button
                             onClick={onClear}
-                            className="text-xs font-mono text-cyber-gray hover:text-cyber-primary underline decoration-dotted underline-offset-4"
+                            className="text-xs font-mono text-muted-foreground hover:text-primary underline decoration-dotted underline-offset-4"
                         >
                             Clear All
                         </button>
@@ -237,8 +230,8 @@ export function UnifiedMenuDrawer({
                                 onClick={() => toggleCategory(cat.value)}
                                 className={`flex items-center justify-between w-full p-3 rounded-lg border transition-all duration-200
                                     ${isSelected
-                                        ? `${activeBorder} ${activeBg}`
-                                        : "border-cyber-gray/30 bg-cyber-black/30 hover:border-cyber-gray"
+                                        ? "border-primary bg-primary/10"
+                                        : "border-border bg-muted/30 hover:border-muted-foreground"
                                     }
                                 `}
                             >
@@ -251,18 +244,18 @@ export function UnifiedMenuDrawer({
                                             transform: isSelected ? 'scale(1.2)' : 'scale(1)'
                                         }}
                                     />
-                                    <span className={`font-mono text-sm transition-colors ${isSelected ? "text-cyber-light font-bold" : "text-cyber-gray"}`}>
+                                    <span className={`font-mono text-sm transition-colors ${isSelected ? "text-foreground font-bold" : "text-muted-foreground"}`}>
                                         {cat.label}
                                     </span>
                                 </div>
 
                                 <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all duration-200
                                     ${isSelected
-                                        ? `${activeCheckBg} border-transparent`
-                                        : "border-cyber-gray bg-transparent"
+                                        ? "bg-primary border-transparent"
+                                        : "border-muted-foreground bg-transparent"
                                     }
                                 `}>
-                                    <Check className={`w-3.5 h-3.5 ${activeCheckText} transition-opacity duration-200 ${isSelected ? 'opacity-100' : 'opacity-0'}`} />
+                                    <Check className={`w-3.5 h-3.5 text-primary-foreground transition-opacity duration-200 ${isSelected ? 'opacity-100' : 'opacity-0'}`} />
                                 </div>
                             </button>
                         )

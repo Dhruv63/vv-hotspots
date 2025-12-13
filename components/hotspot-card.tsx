@@ -48,7 +48,7 @@ const getHotspotImage = (hotspot: Hotspot): string => {
 }
 
 const getCategoryColor = (category: string) => {
-  const common = "text-white dark:text-black"
+  const common = "text-white" // Keep text white for contrast against colored badges
   switch (category) {
     case "cafe":
       return `bg-cat-cafe border-cat-cafe shadow-[0_0_10px_var(--color-cat-cafe)] ${common}`
@@ -90,7 +90,7 @@ export function HotspotCard({
       stars.push(
         <Star
           key={`full-${i}`}
-          className="w-3.5 h-3.5 fill-cyber-primary text-cyber-primary"
+          className="w-3.5 h-3.5 fill-primary text-primary"
         />
       )
     }
@@ -99,8 +99,8 @@ export function HotspotCard({
     if (hasHalfStar) {
       stars.push(
         <div key="half" className="relative w-3.5 h-3.5">
-            <StarHalf className="absolute inset-0 w-3.5 h-3.5 fill-cyber-primary text-cyber-primary z-10" />
-            <Star className="absolute inset-0 w-3.5 h-3.5 text-cyber-gray/30" />
+            <StarHalf className="absolute inset-0 w-3.5 h-3.5 fill-primary text-primary z-10" />
+            <Star className="absolute inset-0 w-3.5 h-3.5 text-muted-foreground/30" />
         </div>
       )
     }
@@ -111,7 +111,7 @@ export function HotspotCard({
       stars.push(
         <Star
           key={`empty-${i}`}
-          className="w-3.5 h-3.5 text-cyber-gray/30"
+          className="w-3.5 h-3.5 text-muted-foreground/30"
         />
       )
     }
@@ -122,15 +122,15 @@ export function HotspotCard({
   return (
     <div
       onClick={onClick}
-      className={`group relative overflow-hidden rounded-lg cursor-pointer transition-all duration-200 ease-out bg-cyber-navy border flex flex-col h-full active:scale-[0.98] hover:scale-[1.02] hover:shadow-[0_8px_24px_rgba(232,255,0,0.15)] ${
+      className={`group relative overflow-hidden rounded-lg cursor-pointer transition-all duration-200 ease-out bg-card border flex flex-col h-full active:scale-[0.98] hover:scale-[1.02] hover:shadow-lg ${
         isSelected
-          ? "border-cyber-primary shadow-[0_0_20px_var(--color-cyber-primary)]"
-          : "border-white/10 hover:border-cyber-primary/50"
+          ? "border-primary shadow-lg"
+          : "border-border hover:border-primary/50"
       }`}
       style={{ width: "100%" }}
     >
       {/* Image section - Increased height to 150px */}
-      <div className="relative h-[150px] w-full shrink-0 bg-cyber-dark/50 overflow-hidden">
+      <div className="relative h-[150px] w-full shrink-0 bg-muted/50 overflow-hidden">
         <Image
           src={imageUrl || "/placeholder.svg"}
           alt={hotspot.name}
@@ -138,7 +138,7 @@ export function HotspotCard({
           className="object-cover transition-all duration-200 group-hover:brightness-105"
           sizes="(max-width: 768px) 100vw, 320px"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-cyber-black/80 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
 
         {/* Category badge */}
         <div className="absolute top-2 left-2 z-10">
@@ -152,7 +152,7 @@ export function HotspotCard({
         {/* Active users badge & Save Button */}
         <div className="absolute top-2 right-2 z-10 flex items-center gap-2">
           {activeCheckins > 0 && (
-            <div className="flex items-center gap-1 px-2 py-0.5 bg-cyber-black/80 border border-cyber-cyan text-cyber-cyan text-[10px] font-mono rounded">
+            <div className="flex items-center gap-1 px-2 py-0.5 bg-background/80 border border-accent text-accent text-[10px] font-mono rounded">
               <Users className="w-3 h-3" />
               <span>{activeCheckins}</span>
             </div>
@@ -160,9 +160,9 @@ export function HotspotCard({
           {onToggleSave && (
              <button
                 onClick={(e) => { e.stopPropagation(); onToggleSave(hotspot.id) }}
-                className={`p-1.5 rounded-full bg-cyber-black/80 border transition-colors ${isSaved ? "border-cyber-pink text-cyber-pink" : "border-white/20 text-white/50 hover:text-white hover:border-white"}`}
+                className={`p-1.5 rounded-full bg-background/80 border transition-colors ${isSaved ? "border-secondary text-secondary" : "border-white/20 text-white/50 hover:text-white hover:border-white"}`}
              >
-                <Heart className={`w-3.5 h-3.5 ${isSaved ? "fill-cyber-pink" : ""}`} />
+                <Heart className={`w-3.5 h-3.5 ${isSaved ? "fill-secondary" : ""}`} />
              </button>
           )}
         </div>
@@ -171,17 +171,17 @@ export function HotspotCard({
       {/* Content section */}
       <div className="p-3 flex flex-col flex-1 overflow-hidden">
         <div className="flex justify-between items-start mb-1 gap-2">
-            <h3 className="font-mono text-[16px] font-bold text-cyber-light leading-tight line-clamp-2 text-ellipsis">
+            <h3 className="font-mono text-[16px] font-bold text-foreground leading-tight line-clamp-2 text-ellipsis">
             {hotspot.name}
             </h3>
             {distance !== undefined && distance !== null && (
-                <span className="text-[10px] font-mono font-bold text-cyber-primary whitespace-nowrap bg-cyber-primary/10 px-1.5 py-0.5 rounded border border-cyber-primary/20">
+                <span className="text-[10px] font-mono font-bold text-primary whitespace-nowrap bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">
                     {distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)} km`}
                 </span>
             )}
         </div>
 
-        <div className="flex items-center gap-1 text-cyber-gray text-[12px] mb-2">
+        <div className="flex items-center gap-1 text-muted-foreground text-[12px] mb-2">
           <MapPin className="w-3 h-3 flex-shrink-0" />
           <span className="leading-tight line-clamp-1 text-ellipsis overflow-hidden">{hotspot.address}</span>
         </div>
@@ -193,10 +193,10 @@ export function HotspotCard({
                <div className="flex items-center">
                   {renderStars(averageRating)}
                </div>
-               <span className="text-cyber-gray text-xs font-mono">({ratingCount} ratings)</span>
+               <span className="text-muted-foreground text-xs font-mono">({ratingCount} ratings)</span>
             </div>
           ) : (
-            <span className="text-cyber-gray text-xs font-mono">No ratings yet</span>
+            <span className="text-muted-foreground text-xs font-mono">No ratings yet</span>
           )}
         </div>
 

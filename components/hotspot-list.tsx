@@ -85,12 +85,12 @@ export function HotspotList({
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'cafe': return <Coffee className="w-4 h-4 text-orange-400" />
-      case 'park': return <Trees className="w-4 h-4 text-green-400" />
-      case 'gaming': return <Gamepad2 className="w-4 h-4 text-purple-400" />
-      case 'food': return <Utensils className="w-4 h-4 text-red-400" />
-      case 'hangout': return <Beer className="w-4 h-4 text-pink-400" />
-      default: return <MapPin className="w-4 h-4 text-gray-400" />
+      case 'cafe': return <Coffee className="w-4 h-4 text-[var(--color-cat-cafe)]" />
+      case 'park': return <Trees className="w-4 h-4 text-[var(--color-cat-park)]" />
+      case 'gaming': return <Gamepad2 className="w-4 h-4 text-[var(--color-cat-gaming)]" />
+      case 'food': return <Utensils className="w-4 h-4 text-[var(--color-cat-food)]" />
+      case 'hangout': return <Beer className="w-4 h-4 text-[var(--color-cat-hangout)]" />
+      default: return <MapPin className="w-4 h-4 text-muted-foreground" />
     }
   }
 
@@ -111,21 +111,18 @@ export function HotspotList({
     return matchesSearch
   })
 
-  // Sort by distance if available? Or leave order? The prompt doesn't specify sort.
-  // "make search bar prominent..."
-
   return (
-    <div className="flex flex-col h-full bg-cyber-dark">
-      <div className="p-4 border-b border-cyber-gray space-y-4">
+    <div className="flex flex-col h-full bg-muted">
+      <div className="p-4 border-b border-border space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-mono text-base text-cyber-light">
-            <span className="text-cyber-primary">{">"}</span> HOTSPOTS
+          <h2 className="font-mono text-base text-foreground">
+            <span className="text-primary">{">"}</span> HOTSPOTS
           </h2>
         </div>
 
         <div className="flex gap-2">
           <div className="relative group z-20 flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-cyber-gray group-focus-within:scale-110 group-focus-within:text-cyber-primary transition-all duration-200 pointer-events-none" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:scale-110 group-focus-within:text-primary transition-all duration-200 pointer-events-none" />
             <Input
               ref={inputRef}
               placeholder="Search cafes, beaches, parks..."
@@ -136,28 +133,28 @@ export function HotspotList({
               }}
               onFocus={() => setShowSuggestions(true)}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-              className="pl-12 pr-12 h-14 text-lg rounded-xl bg-cyber-navy border-cyber-gray text-cyber-light placeholder:text-cyber-gray/50 transition-all duration-200 focus:border-cyber-primary focus:ring-cyber-primary/20 focus:shadow-[0_0_12px_rgba(232,255,0,0.3)] shadow-inner"
+              className="pl-12 pr-12 h-14 text-lg rounded-xl bg-card border-border text-foreground placeholder:text-muted-foreground/50 transition-all duration-200 focus:border-primary focus:ring-primary/20 focus:shadow-lg shadow-inner"
             />
             <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
-              <kbd className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded bg-cyber-black border border-cyber-gray text-[10px] font-mono text-cyber-gray">
+              <kbd className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded bg-background border border-muted-foreground/30 text-[10px] font-mono text-muted-foreground">
                 <span className="text-xs">⌘</span>K
               </kbd>
             </div>
 
             {/* Autocomplete / Recent Searches Dropdown */}
             {showSuggestions && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-cyber-navy border border-cyber-primary/30 rounded-lg shadow-[0_0_20px_rgba(0,0,0,0.5)] overflow-hidden animate-in fade-in zoom-in-95 duration-100 max-h-[300px] overflow-y-auto z-50">
+              <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-primary/30 rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100 max-h-[300px] overflow-y-auto z-50">
                 {search.trim() === '' ? (
                   recentSearches.length > 0 && (
                     <div className="p-2">
-                      <p className="text-xs font-mono text-cyber-gray px-2 py-1">RECENT SEARCHES</p>
+                      <p className="text-xs font-mono text-muted-foreground px-2 py-1">RECENT SEARCHES</p>
                       {recentSearches.map(term => (
                         <button
                           key={term}
                           onClick={() => { setSearch(term); }}
-                          className="w-full text-left px-3 py-2 hover:bg-cyber-gray/10 rounded flex items-center gap-2 text-cyber-light transition-colors"
+                          className="w-full text-left px-3 py-2 hover:bg-muted/50 rounded flex items-center gap-2 text-foreground transition-colors"
                         >
-                          <Clock className="w-4 h-4 text-cyber-gray" />
+                          <Clock className="w-4 h-4 text-muted-foreground" />
                           <span className="font-mono text-sm">{term}</span>
                         </button>
                       ))}
@@ -169,19 +166,19 @@ export function HotspotList({
                         <button
                           key={hotspot.id}
                           onClick={() => handleSuggestionClick(hotspot)}
-                          className="w-full text-left px-3 py-2 hover:bg-cyber-gray/10 rounded flex items-center gap-3 text-cyber-light group/item transition-colors"
+                          className="w-full text-left px-3 py-2 hover:bg-muted/50 rounded flex items-center gap-3 text-foreground group/item transition-colors"
                         >
-                          <div className={`p-1.5 rounded-full bg-cyber-black border border-cyber-gray group-hover/item:border-cyber-primary transition-colors`}>
+                          <div className={`p-1.5 rounded-full bg-background border border-border group-hover/item:border-primary transition-colors`}>
                               {getCategoryIcon(hotspot.category)}
                           </div>
                           <div className="flex-1 overflow-hidden">
                               <p className="font-bold font-mono text-sm truncate">{hotspot.name}</p>
-                              <p className="text-xs text-cyber-gray truncate">{hotspot.address}</p>
+                              <p className="text-xs text-muted-foreground truncate">{hotspot.address}</p>
                           </div>
                         </button>
                     ))}
                     {filteredHotspots.length === 0 && (
-                        <div className="p-4 text-center text-cyber-gray text-sm font-mono">
+                        <div className="p-4 text-center text-muted-foreground text-sm font-mono">
                           No matches found
                         </div>
                     )}
@@ -195,11 +192,11 @@ export function HotspotList({
             <button
               onClick={onOpenFilter}
               className={`
-                h-14 px-4 rounded-xl border border-cyber-gray
+                h-14 px-4 rounded-xl border border-border
                 flex items-center gap-2 transition-all duration-200
                 ${activeFilterCount > 0
-                  ? "bg-cyber-primary/10 text-cyber-primary border-cyber-primary shadow-[0_0_10px_rgba(255,255,0,0.2)]"
-                  : "bg-cyber-navy text-cyber-gray hover:text-cyber-light hover:border-cyber-light"
+                  ? "bg-primary/10 text-primary border-primary shadow-lg"
+                  : "bg-card text-muted-foreground hover:text-foreground hover:border-foreground"
                 }
               `}
             >
@@ -208,7 +205,7 @@ export function HotspotList({
                 {activeFilterCount > 0 ? `Filters (${activeFilterCount})` : 'Filters'}
               </span>
               {activeFilterCount > 0 && (
-                <span className="md:hidden w-5 h-5 flex items-center justify-center bg-cyber-primary text-black text-[10px] font-bold rounded-full">
+                <span className="md:hidden w-5 h-5 flex items-center justify-center bg-primary text-primary-foreground text-[10px] font-bold rounded-full">
                   {activeFilterCount}
                 </span>
               )}
@@ -261,8 +258,8 @@ export function HotspotList({
                         disabled={isLoading}
                         className={`flex-1 py-2.5 px-2 font-mono text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 min-h-[40px] ${
                           isCheckedInHere
-                            ? "bg-cyber-pink text-white shadow-[0_0_15px_rgba(255,0,110,0.4)]"
-                            : "bg-cyber-primary text-black hover:bg-cyber-yellow hover:shadow-[0_0_15px_var(--color-cyber-primary)]"
+                            ? "bg-secondary text-secondary-foreground shadow-lg"
+                            : "bg-primary text-primary-foreground hover:bg-primary/80 hover:shadow-[0_0_15px_var(--color-primary)]"
                         } disabled:opacity-50 disabled:cursor-not-allowed active:scale-95`}
                       >
                         {isCheckedInHere ? (
@@ -288,11 +285,11 @@ export function HotspotList({
                         disabled={isLoading}
                         className={`flex-1 py-2.5 px-2 font-mono text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 min-h-[40px] ${
                           userRating
-                            ? "bg-yellow-400 text-black shadow-[0_0_15px_rgba(250,204,21,0.4)]"
-                            : "bg-cyber-secondary text-white hover:bg-cyber-pink hover:shadow-[0_0_15px_var(--color-cyber-secondary)]"
+                            ? "bg-accent text-accent-foreground shadow-lg"
+                            : "bg-muted text-muted-foreground hover:bg-secondary hover:text-secondary-foreground hover:shadow-[0_0_15px_var(--color-secondary)]"
                         } active:scale-95 disabled:opacity-50`}
                       >
-                        <Star className={`w-3.5 h-3.5 ${userRating ? "fill-black" : ""}`} />
+                        <Star className={`w-3.5 h-3.5 ${userRating ? "fill-current" : ""}`} />
                         {userRating ? `${userRating}★` : "RATE"}
                       </button>
                     )}
@@ -304,7 +301,7 @@ export function HotspotList({
         </div>
 
         {filteredHotspots.length === 0 && (
-          <div className="text-center py-12 text-cyber-gray">
+          <div className="text-center py-12 text-muted-foreground">
             <Filter className="w-12 h-12 mx-auto mb-4 opacity-50" />
             <p className="font-mono">No hotspots found</p>
             <p className="text-sm">Try adjusting your filters</p>
