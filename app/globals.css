@@ -533,3 +533,16 @@ button:not(:disabled):hover {
 .safe-area-pb {
   padding-bottom: env(safe-area-inset-bottom, 20px);
 }
+
+.vv-neon-dot { background: transparent; border: 0; }
+.vv-neon-dot__inner {
+  --dot: #0ABDC6;
+  width: 12px; height: 12px; border-radius: 9999px;
+  background: var(--dot);
+  border: 1px solid rgba(255,255,255,0.25);
+  box-shadow:
+    0 0 6px rgba(255,255,255,0.20),
+    0 0 10px color-mix(in srgb, var(--dot) 80%, transparent),
+    0 0 22px color-mix(in srgb, var(--dot) 55%, transparent),
+    0 0 36px color-mix(in srgb, var(--dot) 35%, transparent);
+}
