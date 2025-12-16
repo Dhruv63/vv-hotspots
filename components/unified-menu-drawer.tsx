@@ -94,6 +94,8 @@ export function UnifiedMenuDrawer({
                 <p className="text-xs font-mono text-muted-foreground uppercase tracking-wider mb-2">Account</p>
                 <Link
                     href="/profile"
+                    prefetch={true}
+                    onTouchStart={() => router.prefetch("/profile")}
                     onClick={onClose}
                     className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-muted transition-colors text-foreground font-medium"
                 >
@@ -104,6 +106,8 @@ export function UnifiedMenuDrawer({
                 </Link>
                 <Link
                     href="/profile/friends"
+                    prefetch={true}
+                    onTouchStart={() => router.prefetch("/profile/friends")}
                     onClick={onClose}
                     className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-muted transition-colors text-foreground font-medium"
                 >
@@ -114,6 +118,8 @@ export function UnifiedMenuDrawer({
                 </Link>
                 <Link
                     href="/settings"
+                    prefetch={true}
+                    onTouchStart={() => router.prefetch("/settings")}
                     onClick={onClose}
                     className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-muted transition-colors text-foreground font-medium"
                 >

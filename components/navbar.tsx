@@ -29,10 +29,17 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
+
+    // Prefetch main routes on mount
+    router.prefetch("/dashboard")
+    router.prefetch("/profile")
+    router.prefetch("/settings")
+    router.prefetch("/profile/friends")
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside)
     }
-  }, [])
+  }, [router])
 
   const handleSignOut = async () => {
     const supabase = createClient()
@@ -66,6 +73,8 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
           <div className="hidden md:flex items-center gap-8">
             <Link
               href="/dashboard"
+              prefetch={true}
+              onMouseEnter={() => router.prefetch("/dashboard")}
               className={`font-heading text-sm tracking-wider transition-all py-1 border-b-2 ${isActive("/dashboard")
                   ? "border-primary text-primary shadow-[var(--shadow-hover)]"
                   : "border-transparent text-foreground hover:text-accent hover:border-accent/50"
@@ -75,6 +84,8 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
             </Link>
             <Link
               href="/profile"
+              prefetch={true}
+              onMouseEnter={() => router.prefetch("/profile")}
               className={`font-heading text-sm tracking-wider transition-all py-1 border-b-2 ${isActive("/profile")
                   ? "border-primary text-primary shadow-[var(--shadow-hover)]"
                   : "border-transparent text-foreground hover:text-accent hover:border-accent/50"
@@ -84,6 +95,8 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
             </Link>
             <Link
               href="/profile/friends"
+              prefetch={true}
+              onMouseEnter={() => router.prefetch("/profile/friends")}
               className={`font-heading text-sm tracking-wider transition-all py-1 border-b-2 ${isActive("/profile/friends")
                   ? "border-primary text-primary shadow-[var(--shadow-hover)]"
                   : "border-transparent text-foreground hover:text-accent hover:border-accent/50"
@@ -198,6 +211,8 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
               <>
                 <Link
                   href="/dashboard"
+                  prefetch={true}
+                  onTouchStart={() => router.prefetch("/dashboard")}
                   onClick={() => setMobileMenuOpen(false)}
                   className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors font-heading min-h-[44px] ${isActive("/dashboard") ? "bg-primary/10 text-primary border border-primary" : "text-foreground hover:bg-accent/10"
                     }`}
@@ -207,6 +222,8 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
                 </Link>
                 <Link
                   href="/profile"
+                  prefetch={true}
+                  onTouchStart={() => router.prefetch("/profile")}
                   onClick={() => setMobileMenuOpen(false)}
                   className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors font-heading min-h-[44px] ${isActive("/profile") ? "bg-primary/10 text-primary border border-primary" : "text-foreground hover:bg-accent/10"
                     }`}
@@ -216,6 +233,8 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
                 </Link>
                 <Link
                   href="/profile/friends"
+                  prefetch={true}
+                  onTouchStart={() => router.prefetch("/profile/friends")}
                   onClick={() => setMobileMenuOpen(false)}
                   className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors font-heading min-h-[44px] ${isActive("/profile/friends") ? "bg-primary/10 text-primary border border-primary" : "text-foreground hover:bg-accent/10"
                     }`}
@@ -225,6 +244,8 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
                 </Link>
                 <Link
                   href="/settings"
+                  prefetch={true}
+                  onTouchStart={() => router.prefetch("/settings")}
                   onClick={() => setMobileMenuOpen(false)}
                   className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors font-heading min-h-[44px] ${isActive("/settings") ? "bg-primary/10 text-primary border border-primary" : "text-foreground hover:bg-accent/10"
                     }`}
