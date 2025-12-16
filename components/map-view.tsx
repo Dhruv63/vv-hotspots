@@ -1,17 +1,18 @@
 "use client"
 
-import { useEffect, useState, useRef, useCallback } from "react"
+import { useEffect, useState, useCallback } from "react"
 import L from "leaflet"
-import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl } from "react-leaflet"
+import { MapContainer, TileLayer, Marker, useMap, ZoomControl } from "react-leaflet"
 import "leaflet/dist/leaflet.css"
 import "leaflet.markercluster/dist/MarkerCluster.css"
 import "leaflet.markercluster/dist/MarkerCluster.Default.css"
 import type { Hotspot } from "@/lib/types"
 import { useTheme } from "next-themes"
 import { themes } from "@/lib/themes"
-import { Search, Navigation, Layers, Info } from "lucide-react"
+import { Search, Navigation, Layers, X } from "lucide-react"
 import { HotspotCard } from "@/components/hotspot-card"
 import MarkerClusterGroup from "@/components/ui/marker-cluster"
+import { isValidLatLng } from "@/lib/map-utils"
 
 // Fix for default marker icons in Next.js
 // @ts-ignore
@@ -32,27 +33,102 @@ interface MapViewProps {
   isLoading?: boolean
   onLocationUpdate?: (location: [number, number]) => void
   viewMode?: string
-  onSearchClick?: () => void // New prop for search trigger
+  onSearchClick?: () => void
 }
 
-function MapUpdater({ center, zoom }: { center: [number, number]; zoom: number }) {
+const CATEGORY_COLORS: Record<string, string> = {
+  cafe: "#00f0ff", // cyan
+  park: "#39ff14", // lime
+  gaming: "#b026ff", // purple
+  food: "#ff8d00", // orange
+  hangout: "#ff0099", // pink
+  other: "#cccccc",
+}
+
+const createCustomIcon = (hotspot: Hotspot, isActive: boolean, isSelected: boolean, activeUsers: number) => {
+  const color = CATEGORY_COLORS[hotspot.category] || CATEGORY_COLORS.other
+  const size = isSelected ? 48 : 36
+  const pulseClass = isActive || activeUsers > 0 ? "marker-pulse" : ""
+  const selectedClass = isSelected ? "marker-selected" : ""
+
+  return L.divIcon({
+    className: "custom-div-icon",
+    html: `
+      <div class="marker-wrapper ${pulseClass} ${selectedClass}" style="--marker-color: ${color}">
+        <div class="marker-pin" style="background-color: ${color}; width: ${size}px; height: ${size}px;">
+           ${activeUsers > 0 ? `<span class="marker-badge">${activeUsers}</span>` : ''}
+        </div>
+      </div>
+    `,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size],
+    popupAnchor: [0, -size],
+  })
+}
+
+const DEFAULT_CENTER: [number, number] = [19.3919, 72.8397] // Vasai-Virar
+const DEFAULT_ZOOM = 13
+
+// Component to handle map resizing when view mode changes
+function MapResizer({ viewMode }: { viewMode?: string }) {
   const map = useMap()
+
   useEffect(() => {
-    map.flyTo(center, zoom, { duration: 1.5 })
-  }, [center, zoom, map])
+    // Small delay to allow layout transition to complete
+    const timer = setTimeout(() => {
+      map.invalidateSize()
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [map, viewMode])
+
   return null
 }
 
-function RecenterControl({ onRecenter, isTracking }: { onRecenter: () => void, isTracking: boolean }) {
+// Component to update map center when selected hotspot changes
+function MapUpdater({ center, zoom }: { center: [number, number]; zoom: number }) {
+  const map = useMap()
+
+  useEffect(() => {
+    if (isValidLatLng(center[0], center[1])) {
+      map.flyTo(center, zoom, { duration: 1.5 })
+    }
+  }, [center, zoom, map])
+
+  return null
+}
+
+// Internal component for Recenter Control
+function RecenterControl({
+  userLocation,
+  defaultCenter,
+  isTracking,
+  onRecenter
+}: {
+  userLocation: [number, number] | null,
+  defaultCenter: [number, number],
+  isTracking: boolean,
+  onRecenter: () => void
+}) {
+    const map = useMap()
+
+    const handleClick = (e: React.MouseEvent) => {
+        e.stopPropagation() // Prevent map click
+        const target = userLocation || defaultCenter
+        if (isValidLatLng(target[0], target[1])) {
+             map.flyTo(target, userLocation ? 16 : DEFAULT_ZOOM, { duration: 1.5 })
+             onRecenter()
+        }
+    }
+
     return (
         <button
-            onClick={onRecenter}
+            onClick={handleClick}
             className={`leaflet-bar leaflet-control leaflet-control-custom p-2 bg-background border-2 rounded-lg shadow-lg transition-all active:scale-95 flex items-center justify-center ${
                 isTracking ? "border-primary text-primary" : "border-muted-foreground/30 text-muted-foreground"
             }`}
             style={{
                 position: 'absolute',
-                bottom: '80px', // Raised above bottom nav
+                bottom: '80px',
                 right: '16px',
                 zIndex: 400,
                 width: '44px',
@@ -68,7 +144,7 @@ function RecenterControl({ onRecenter, isTracking }: { onRecenter: () => void, i
 function SearchTrigger({ onClick }: { onClick: () => void }) {
     return (
         <button
-            onClick={onClick}
+            onClick={(e) => { e.stopPropagation(); onClick() }}
             className="md:hidden leaflet-bar leaflet-control leaflet-control-custom p-2 bg-background/90 backdrop-blur border-2 border-primary/20 rounded-full shadow-lg flex items-center gap-2 px-4"
             style={{
                 position: 'absolute',
@@ -88,11 +164,11 @@ function LegendControl({ isOpen, onToggle }: { isOpen: boolean, onToggle: () => 
     return (
         <>
             <button
-                onClick={onToggle}
+                onClick={(e) => { e.stopPropagation(); onToggle() }}
                 className={`leaflet-bar leaflet-control leaflet-control-custom p-2 bg-background border-2 border-muted-foreground/30 rounded-lg shadow-lg transition-all active:scale-95 flex items-center justify-center`}
                 style={{
                     position: 'absolute',
-                    bottom: '132px', // Above Recenter
+                    bottom: '132px',
                     right: '16px',
                     zIndex: 400,
                     width: '44px',
@@ -129,38 +205,48 @@ function LegendControl({ isOpen, onToggle }: { isOpen: boolean, onToggle: () => 
     )
 }
 
-const CATEGORY_COLORS: Record<string, string> = {
-  cafe: "#00f0ff", // cyan
-  park: "#39ff14", // lime
-  gaming: "#b026ff", // purple
-  food: "#ff8d00", // orange
-  hangout: "#ff0099", // pink
-  other: "#cccccc",
+function HotspotMarker({
+    hotspot,
+    isActive,
+    isSelected,
+    activeUsers,
+    onSelect
+}: {
+    hotspot: Hotspot,
+    isActive: boolean,
+    isSelected: boolean,
+    activeUsers: number,
+    onSelect: (h: Hotspot) => void
+}) {
+    const map = useMap()
+
+    // Validate coordinates
+    if (!isValidLatLng(hotspot.latitude, hotspot.longitude)) {
+        return null
+    }
+
+    const handleClick = () => {
+        const lat = Number(hotspot.latitude)
+        const lng = Number(hotspot.longitude)
+        // Adjust center slightly to show popup if needed, or just center
+        const latOffset = -0.005
+
+        if (isValidLatLng(lat, lng)) {
+             map.flyTo([lat + latOffset, lng], 16)
+        }
+        onSelect(hotspot)
+    }
+
+    return (
+        <Marker
+            position={[Number(hotspot.latitude), Number(hotspot.longitude)]}
+            icon={createCustomIcon(hotspot, isActive, isSelected, activeUsers)}
+            eventHandlers={{
+                click: handleClick,
+            }}
+        />
+    )
 }
-
-const createCustomIcon = (hotspot: Hotspot, isActive: boolean, isSelected: boolean, activeUsers: number) => {
-  const color = CATEGORY_COLORS[hotspot.category] || CATEGORY_COLORS.other
-  const size = isSelected ? 48 : 36
-  const pulseClass = isActive || activeUsers > 0 ? "marker-pulse" : ""
-  const selectedClass = isSelected ? "marker-selected" : ""
-
-  return L.divIcon({
-    className: "custom-div-icon",
-    html: `
-      <div class="marker-wrapper ${pulseClass} ${selectedClass}" style="--marker-color: ${color}">
-        <div class="marker-pin" style="background-color: ${color}; width: ${size}px; height: ${size}px;">
-           ${activeUsers > 0 ? `<span class="marker-badge">${activeUsers}</span>` : ''}
-        </div>
-      </div>
-    `,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size],
-    popupAnchor: [0, -size],
-  })
-}
-
-const DEFAULT_CENTER: [number, number] = [19.3919, 72.8397] // Vasai-Virar
-const DEFAULT_ZOOM = 13
 
 export function MapView({
   hotspots,
@@ -175,10 +261,9 @@ export function MapView({
   onSearchClick
 }: MapViewProps) {
   const { theme } = useTheme()
-  const mapRef = useRef<L.Map | null>(null)
+  // Removed mapRef to avoid container reuse issues
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null)
   const [isTracking, setIsTracking] = useState(false)
-  const [mapReady, setMapReady] = useState(false)
   const [previewHotspot, setPreviewHotspot] = useState<Hotspot | null>(null)
   const [showLegend, setShowLegend] = useState(false)
 
@@ -196,14 +281,14 @@ export function MapView({
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
         const { latitude, longitude } = position.coords
-        const newLoc: [number, number] = [latitude, longitude]
-        setUserLocation(newLoc)
-        if (onLocationUpdate) onLocationUpdate(newLoc)
-
-        // Initial center
-        if (!mapReady && mapRef.current) {
-             mapRef.current.setView(newLoc, 15)
-             setMapReady(true)
+        if (isValidLatLng(latitude, longitude)) {
+            const newLoc: [number, number] = [latitude, longitude]
+            setUserLocation(newLoc)
+            if (onLocationUpdate) onLocationUpdate(newLoc)
+            // Note: Auto-centering on first location update is removed to prevent jumpiness,
+            // or should be handled by a specific 'initialCenter' logic if desired.
+            // But relying on user action (Recenter) is often better for UX.
+            // If we want initial center, we can do it once.
         }
       },
       (error) => {
@@ -214,36 +299,18 @@ export function MapView({
     )
 
     return () => navigator.geolocation.clearWatch(watchId)
-  }, [onLocationUpdate, mapReady])
+  }, [onLocationUpdate])
 
-  // Recenter function
-  const handleRecenter = () => {
-    if (userLocation && mapRef.current) {
-      mapRef.current.flyTo(userLocation, 16, { duration: 1.5 })
+  // Recenter trigger
+  const handleRecenterTrigger = useCallback(() => {
       setIsTracking(true)
-    } else {
-        mapRef.current?.flyTo(DEFAULT_CENTER, DEFAULT_ZOOM)
-    }
-  }
+  }, [])
 
-  // Handle Marker Click
-  const handleMarkerClick = (hotspot: Hotspot) => {
+  const handleHotspotSelectWrapper = (hotspot: Hotspot) => {
       setPreviewHotspot(hotspot)
       onHotspotSelect(hotspot)
-      if (mapRef.current) {
-          const latOffset = -0.005
-          mapRef.current.flyTo([Number(hotspot.latitude) + latOffset, Number(hotspot.longitude)], 16)
-      }
+      // flyTo is handled in HotspotMarker
   }
-
-  // Handle map resizing
-  useEffect(() => {
-    if (mapRef.current) {
-        setTimeout(() => {
-            mapRef.current?.invalidateSize()
-        }, 300)
-    }
-  }, [viewMode])
 
   const activeTheme = (theme as keyof typeof themes) || "cyberpunk"
   const tileLayerUrl = activeTheme === 'genshin'
@@ -260,9 +327,12 @@ export function MapView({
         center={DEFAULT_CENTER}
         zoom={DEFAULT_ZOOM}
         className="w-full h-full outline-none"
-        ref={mapRef}
         zoomControl={false}
+        // Key ensures if important props change, we can force remount (optional, usually not needed if lifecycle is clean)
+        // Removed ref={mapRef}
       >
+        <MapResizer viewMode={viewMode} />
+
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
           url={tileLayerUrl}
@@ -271,11 +341,17 @@ export function MapView({
 
         <ZoomControl position="bottomright" />
 
-        <RecenterControl onRecenter={handleRecenter} isTracking={isTracking} />
+        <RecenterControl
+            userLocation={userLocation}
+            defaultCenter={DEFAULT_CENTER}
+            isTracking={isTracking}
+            onRecenter={handleRecenterTrigger}
+        />
+
         <LegendControl isOpen={showLegend} onToggle={() => setShowLegend(!showLegend)} />
         <SearchTrigger onClick={() => onSearchClick?.()} />
 
-        {userLocation && (
+        {userLocation && isValidLatLng(userLocation[0], userLocation[1]) && (
              <Marker
                 position={userLocation}
                 icon={L.divIcon({
@@ -305,24 +381,26 @@ export function MapView({
                 }}
             >
                 {hotspots.map((hotspot) => (
-                    <Marker
+                    <HotspotMarker
                         key={hotspot.id}
-                        position={[Number(hotspot.latitude), Number(hotspot.longitude)]}
-                        icon={createCustomIcon(
-                            hotspot,
-                            userCurrentCheckin === hotspot.id,
-                            selectedHotspot?.id === hotspot.id,
-                            activeCheckins[hotspot.id] || 0
-                        )}
-                        eventHandlers={{
-                            click: () => handleMarkerClick(hotspot),
-                        }}
+                        hotspot={hotspot}
+                        isActive={userCurrentCheckin === hotspot.id}
+                        isSelected={selectedHotspot?.id === hotspot.id}
+                        activeUsers={activeCheckins[hotspot.id] || 0}
+                        onSelect={handleHotspotSelectWrapper}
                     />
                 ))}
             </MarkerClusterGroup>
         )}
 
-        <MapUpdater center={selectedHotspot ? [Number(selectedHotspot.latitude), Number(selectedHotspot.longitude)] : (userLocation || DEFAULT_CENTER)} zoom={selectedHotspot ? 16 : DEFAULT_ZOOM} />
+        <MapUpdater
+            center={
+                selectedHotspot
+                ? [Number(selectedHotspot.latitude), Number(selectedHotspot.longitude)]
+                : (userLocation || DEFAULT_CENTER)
+            }
+            zoom={selectedHotspot ? 16 : DEFAULT_ZOOM}
+        />
       </MapContainer>
 
       {/* Mobile Bottom Sheet Preview */}
@@ -335,9 +413,7 @@ export function MapView({
                       isSelected={false}
                       variant="compact"
                       onClick={() => {
-                         // Click to view details? Or maybe the preview is enough?
-                         // Let's assume clicking it does nothing or opens full detail if needed.
-                         // For now, buttons inside handle actions.
+                          // Allow click to potentially do nothing or expand
                       }}
                   >
                      <div className="flex gap-2 mt-2">
@@ -353,19 +429,7 @@ export function MapView({
                         <button
                              onClick={(e) => {
                                  e.stopPropagation()
-                                 // Close preview to show map? Or open Details modal?
-                                 // The modal logic is in parent. We need a way to open it.
-                                 // Since onHotspotSelect sets selectedHotspot, the parent opens HotspotDetail automatically if logic dictates.
-                                 // But in DashboardClient, HotspotDetail is rendered if selectedHotspot is set.
-                                 // Wait, if HotspotDetail is open, it might cover the map.
-                                 // Let's assume 'Details' button just ensures selectedHotspot is set and maybe closes preview?
-                                 // Actually preview is shown *because* selectedHotspot is set.
-                                 // So HotspotDetail might already be open or hidden.
-                                 // In DashboardClient, `selectedHotspot && <HotspotDetail ...>`
-                                 // So selecting a hotspot opens the detail modal.
-                                 // But here we want a preview sheet INSTEAD of the full modal on map click?
-                                 // If so, we need to distinguish "Preview" vs "Full Detail".
-                                 // But for now, let's keep it simple: Preview is shown.
+                                 onHotspotSelect(previewHotspot) // Opens detail
                              }}
                              className="flex-1 bg-secondary/20 text-secondary py-2 text-xs font-bold font-mono rounded hover:bg-secondary/30"
                         >
@@ -376,27 +440,14 @@ export function MapView({
                   <button
                       onClick={() => {
                           setPreviewHotspot(null)
-                          // Also deselect?
-                          // onHotspotSelect(null) - type doesn't allow null if strict, but let's see.
-                          // It expects Hotspot. So we can't deselect via this prop if it's strictly Hotspot.
-                          // But we can just hide the preview locally.
                       }}
                       className="absolute top-2 right-2 p-1 rounded-full bg-black/50 text-white hover:bg-black/70"
                   >
-                      <XIcon className="w-4 h-4" />
+                      <X className="w-4 h-4" />
                   </button>
               </div>
           </div>
       )}
     </div>
   )
-}
-
-function XIcon({ className }: { className?: string }) {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-            <path d="M18 6 6 18" />
-            <path d="m6 6 12 12" />
-        </svg>
-    )
 }
