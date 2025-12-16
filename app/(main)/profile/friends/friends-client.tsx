@@ -1,15 +1,15 @@
 "use client"
 
-import { useState, useEffect, memo, useCallback } from "react"
+import { useState, memo, useCallback } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useSearchParams, useRouter } from "next/navigation"
-import { CyberCard } from "@/components/ui/cyber-card"
 import { CyberButton } from "@/components/ui/cyber-button"
 import { UserMinus, Check, X, MapPin, User, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { removeFriend, acceptFriendRequest, rejectFriendRequest, cancelFriendRequest, getFriends, getRequests } from "@/app/actions/friends"
 import { formatDistanceToNow } from "date-fns"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 
 interface Friend {
   friendshipId: string
@@ -35,18 +35,16 @@ interface FriendsClientProps {
 // Extracted and memoized FriendCard component
 const FriendCard = memo(function FriendCard({
   item,
-  loadingId,
+  isRemoving,
   onRemove
 }: {
   item: Friend
-  loadingId: string | null
+  isRemoving: boolean
   onRemove: (friendshipId: string, friendUserId: string) => void
 }) {
   const router = useRouter()
   const friend = item.friend;
   if (!friend) return null;
-
-  const isLoading = loadingId === item.friendshipId;
 
   return (
     <div
@@ -108,11 +106,11 @@ const FriendCard = memo(function FriendCard({
             e.stopPropagation()
             onRemove(item.friendshipId, friend.id)
           }}
-          disabled={isLoading}
+          disabled={isRemoving}
           className="p-2 rounded border border-red-500/50 text-red-500 hover:bg-red-500/10 hover:border-red-500 transition-colors"
           title="Remove Friend"
         >
-          {isLoading ? (
+          {isRemoving ? (
             <Loader2 className="w-5 h-5 animate-spin" />
           ) : (
             <UserMinus className="w-5 h-5" />
@@ -124,108 +122,162 @@ const FriendCard = memo(function FriendCard({
 })
 
 export const FriendsClient = memo(function FriendsClient({ initialFriends, incoming, sent, disableAutoFetch = false }: FriendsClientProps) {
+  const queryClient = useQueryClient()
   const searchParams = useSearchParams()
   const router = useRouter()
-  const tab = searchParams.get('tab') || 'friends'
-  const [loadingId, setLoadingId] = useState<string | null>(null)
 
-  const [friendsList, setFriendsList] = useState<Friend[]>(initialFriends as Friend[])
-  const [requestsList, setRequestsList] = useState(incoming)
-  const [sentList, setSentList] = useState(sent)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  // Local state for tab, initialized from URL
+  const [tab, setTab] = useState(searchParams.get('tab') || 'friends')
+  const [processingId, setProcessingId] = useState<string | null>(null)
 
-  // Explicitly fetch data on client mount/update to ensure synchronization, unless disabled
-  useEffect(() => {
-    if (disableAutoFetch) return;
-
-    const refreshData = async () => {
-       // Only show loading spinner if we don't have data, otherwise do silent update
-       if (friendsList.length === 0 && requestsList.length === 0 && sentList.length === 0) {
-           setIsLoading(true);
-       }
-
-       try {
-           const [freshFriends, freshRequests] = await Promise.all([
-               getFriends(),
-               getRequests()
-           ]);
-           setFriendsList(freshFriends as Friend[]);
-           setRequestsList(freshRequests.incoming);
-           setSentList(freshRequests.sent);
-           setError(null);
-       } catch (error) {
-           console.error("Failed to refresh friend data:", error);
-           setError("Failed to load latest data. Please refresh.");
-           toast.error("Failed to refresh friend data. Please try again.");
-       } finally {
-           setIsLoading(false);
-       }
-    }
-
-    refreshData();
-  }, [disableAutoFetch]);
-
-
+  // Sync tab with URL without triggering server navigation
   const handleTabChange = (t: string) => {
-    const params = new URLSearchParams(searchParams)
-    params.set('tab', t)
-    router.push(`?${params.toString()}`)
+    setTab(t)
+    const url = new URL(window.location.href)
+    url.searchParams.set('tab', t)
+    window.history.replaceState({}, '', url)
   }
 
-  const handleAction = async (action: Function, id: string, successMsg: string, context?: 'friend' | 'request' | 'sent') => {
-    setLoadingId(id)
-    try {
-      const res = await action(id)
-      if (res.error) {
-        toast.error(res.error)
-      } else {
-        toast.success(successMsg)
-        router.refresh() // Ensure server state is refreshed
+  // Queries
+  const { data: friendsList } = useQuery({
+    queryKey: ['friends'],
+    queryFn: () => getFriends(),
+    initialData: initialFriends,
+    staleTime: 60 * 1000,
+    enabled: !disableAutoFetch,
+  })
 
-        // Optimistic Update
-        if (context === 'friend') {
-            setFriendsList(prev => prev.filter(f => f.friendshipId !== id));
-        } else if (context === 'request') {
-            setRequestsList(prev => prev.filter(r => r.id !== id));
-        } else if (context === 'sent') {
-            setSentList(prev => prev.filter(s => s.id !== id));
-        }
-      }
-    } catch (e) {
-      toast.error("An error occurred")
-    } finally {
-      setLoadingId(null)
-    }
-  }
+  const { data: requestsData } = useQuery({
+    queryKey: ['friend-requests'],
+    queryFn: () => getRequests(),
+    initialData: { incoming, sent },
+    staleTime: 60 * 1000,
+    enabled: !disableAutoFetch,
+  })
 
-  // Memoized handler for removing friends to ensure FriendCard stability
-  const handleRemoveFriend = useCallback(async (friendshipId: string, friendUserId: string) => {
+  const incomingRequests = requestsData?.incoming || []
+  const sentRequests = requestsData?.sent || []
+
+  // Mutations
+  const removeFriendMutation = useMutation({
+    mutationFn: async ({ friendshipId, friendUserId }: { friendshipId: string, friendUserId: string }) => {
+        const res = await removeFriend(friendshipId, friendUserId);
+        if (res.error) throw new Error(res.error);
+        return res;
+    },
+    onMutate: async ({ friendshipId }) => {
+        setProcessingId(friendshipId)
+        await queryClient.cancelQueries({ queryKey: ['friends'] })
+        const previousFriends = queryClient.getQueryData(['friends'])
+        queryClient.setQueryData(['friends'], (old: any[]) => old?.filter(f => f.friendshipId !== friendshipId))
+        return { previousFriends }
+    },
+    onError: (err, variables, context) => {
+        queryClient.setQueryData(['friends'], context?.previousFriends)
+        toast.error(err.message || "Failed to remove friend")
+    },
+    onSuccess: () => {
+        toast.success("Friend removed")
+        queryClient.invalidateQueries({ queryKey: ['friends'] })
+        queryClient.invalidateQueries({ queryKey: ['friend-requests'] })
+    },
+    onSettled: () => setProcessingId(null)
+  })
+
+  const acceptRequestMutation = useMutation({
+    mutationFn: async (id: string) => {
+        const res = await acceptFriendRequest(id)
+        if (res.error) throw new Error(res.error)
+        return res
+    },
+    onMutate: async (id) => {
+        setProcessingId(id)
+        await queryClient.cancelQueries({ queryKey: ['friend-requests'] })
+        const previousRequests = queryClient.getQueryData(['friend-requests'])
+
+        queryClient.setQueryData(['friend-requests'], (old: any) => ({
+            ...old,
+            incoming: old?.incoming?.filter((r: any) => r.id !== id)
+        }))
+
+        return { previousRequests }
+    },
+    onError: (err, variables, context) => {
+        queryClient.setQueryData(['friend-requests'], context?.previousRequests)
+        toast.error(err.message || "Failed to accept request")
+    },
+    onSuccess: () => {
+        toast.success("Friend request accepted")
+        queryClient.invalidateQueries({ queryKey: ['friends'] })
+        queryClient.invalidateQueries({ queryKey: ['friend-requests'] })
+    },
+    onSettled: () => setProcessingId(null)
+  })
+
+  const rejectRequestMutation = useMutation({
+    mutationFn: async (id: string) => {
+        const res = await rejectFriendRequest(id)
+        if (res.error) throw new Error(res.error)
+        return res
+    },
+    onMutate: async (id) => {
+        setProcessingId(id)
+        await queryClient.cancelQueries({ queryKey: ['friend-requests'] })
+        const previousRequests = queryClient.getQueryData(['friend-requests'])
+
+        queryClient.setQueryData(['friend-requests'], (old: any) => ({
+            ...old,
+            incoming: old?.incoming?.filter((r: any) => r.id !== id)
+        }))
+
+        return { previousRequests }
+    },
+    onError: (err, variables, context) => {
+        queryClient.setQueryData(['friend-requests'], context?.previousRequests)
+        toast.error(err.message || "Failed to reject request")
+    },
+    onSuccess: () => {
+        toast.success("Friend request rejected")
+        queryClient.invalidateQueries({ queryKey: ['friend-requests'] })
+    },
+    onSettled: () => setProcessingId(null)
+  })
+
+  const cancelRequestMutation = useMutation({
+    mutationFn: async (id: string) => {
+        const res = await cancelFriendRequest(id)
+        if (res.error) throw new Error(res.error)
+        return res
+    },
+    onMutate: async (id) => {
+        setProcessingId(id)
+        await queryClient.cancelQueries({ queryKey: ['friend-requests'] })
+        const previousRequests = queryClient.getQueryData(['friend-requests'])
+
+        queryClient.setQueryData(['friend-requests'], (old: any) => ({
+            ...old,
+            sent: old?.sent?.filter((r: any) => r.id !== id)
+        }))
+
+        return { previousRequests }
+    },
+    onError: (err, variables, context) => {
+        queryClient.setQueryData(['friend-requests'], context?.previousRequests)
+        toast.error(err.message || "Failed to cancel request")
+    },
+    onSuccess: () => {
+        toast.success("Request cancelled")
+        queryClient.invalidateQueries({ queryKey: ['friend-requests'] })
+    },
+    onSettled: () => setProcessingId(null)
+  })
+
+  // Handlers
+  const handleRemoveFriend = useCallback((friendshipId: string, friendUserId: string) => {
     if (window.confirm("Are you sure you want to remove this friend?")) {
-      // Inline the logic of handleAction to avoid dependency complexity or just call it if stable
-      // But handleAction depends on state setters, so we need to be careful.
-      // Easiest is to just replicate logic or use a ref for handleAction?
-      // Actually, since handleAction is defined in render, it changes every render.
-      // Let's redefine handleRemoveFriend to be self-contained or use a memoized handleAction.
-      // For simplicity here, I'll inline the core logic or use refs if needed.
-      // But actually, since we reload the page, state updates matter less, but for consistency:
-
-      setLoadingId(friendshipId)
-      try {
-        const res = await removeFriend(friendshipId, friendUserId)
-        if (res.error) {
-          toast.error(res.error)
-        } else {
-          toast.success("Friend removed")
-          window.location.reload() // Force full page refresh
-        }
-      } catch (e) {
-        toast.error("An error occurred")
-      } finally {
-        setLoadingId(null)
-      }
+        removeFriendMutation.mutate({ friendshipId, friendUserId })
     }
-  }, [])
+  }, [removeFriendMutation])
 
   return (
     <>
@@ -239,7 +291,7 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
                   : 'text-cyber-gray hover:text-cyber-light'
               }`}
             >
-              Friends ({friendsList.length})
+              Friends ({friendsList?.length || 0})
             </button>
             <button
               onClick={() => handleTabChange('requests')}
@@ -249,7 +301,7 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
                   : 'text-cyber-gray hover:text-cyber-light'
               }`}
             >
-              Requests ({incoming?.length || 0})
+              Requests ({incomingRequests.length})
             </button>
             <button
               onClick={() => handleTabChange('sent')}
@@ -259,31 +311,20 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
                   : 'text-cyber-gray hover:text-cyber-light'
               }`}
             >
-              Sent ({sent?.length || 0})
+              Sent ({sentRequests.length})
             </button>
           </div>
         </div>
 
-        {error && (
-            <div className="mb-4 p-3 bg-red-500/10 border border-red-500 rounded text-red-500 text-sm text-center">
-                {error}
-            </div>
-        )}
-
         <div className="space-y-4">
           {tab === 'friends' && (
-            isLoading && friendsList.length === 0 ? (
-              <div className="flex justify-center py-20">
-                <Loader2 className="w-8 h-8 text-cyber-cyan animate-spin" />
-              </div>
-            ) : (
-              friendsList.length > 0 ? (
+             (friendsList && friendsList.length > 0) ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {friendsList.map((item) => (
+                  {friendsList.map((item: Friend) => (
                     <FriendCard
                       key={item.friendshipId}
                       item={item}
-                      loadingId={loadingId}
+                      isRemoving={processingId === item.friendshipId}
                       onRemove={handleRemoveFriend}
                     />
                   ))}
@@ -297,13 +338,12 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
                   </Link>
                 </div>
               )
-            )
           )}
 
           {tab === 'requests' && (
-            incoming?.length > 0 ? (
+            incomingRequests.length > 0 ? (
               <div className="space-y-4">
-                {incoming?.map((req: any) => (
+                {incomingRequests.map((req: any) => (
                   <div key={req.id} className="card-theme p-4 flex items-center gap-4 border-l-4 border-l-primary">
                     <div
                       onMouseEnter={() => router.prefetch(`/users/${req.sender.username}`)}
@@ -354,17 +394,18 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
                         variant="ghost"
                         size="sm"
                         className="bg-primary text-primary-foreground hover:bg-primary/90"
-                        onClick={() => handleAction(acceptFriendRequest, req.id, "Friend request accepted", 'request')}
-                        disabled={loadingId === req.id}
+                        onClick={() => acceptRequestMutation.mutate(req.id)}
+                        disabled={processingId === req.id}
                       >
-                        <Check className="w-4 h-4 mr-1" /> Accept
+                        {processingId === req.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4 mr-1" />}
+                        Accept
                       </CyberButton>
                       <CyberButton
                         variant="ghost"
                         size="sm"
                         className="text-red-500 hover:text-red-400 hover:bg-red-500/10"
-                        onClick={() => handleAction(rejectFriendRequest, req.id, "Friend request rejected", 'request')}
-                        disabled={loadingId === req.id}
+                        onClick={() => rejectRequestMutation.mutate(req.id)}
+                        disabled={processingId === req.id}
                       >
                         <X className="w-4 h-4" />
                       </CyberButton>
@@ -380,9 +421,9 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
           )}
 
           {tab === 'sent' && (
-            sent?.length > 0 ? (
+            sentRequests.length > 0 ? (
               <div className="space-y-4">
-                {sent?.map((req: any) => (
+                {sentRequests.map((req: any) => (
                   <div key={req.id} className="card-theme p-4 flex items-center gap-4 opacity-80">
                     <div
                       onMouseEnter={() => router.prefetch(`/users/${req.receiver.username}`)}
@@ -393,8 +434,7 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault()
-                          router.push(`/users/${req.receiver.username}`)
-                        }
+                          router.push(`/users/${req.receiver.username}`)}
                       }}
                     >
                       <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-muted-foreground bg-muted relative">
@@ -432,10 +472,10 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
                       variant="outline"
                       size="sm"
                       className="text-muted-foreground hover:text-destructive hover:border-destructive font-heading"
-                      onClick={() => handleAction(cancelFriendRequest, req.id, "Request cancelled", 'sent')}
-                      disabled={loadingId === req.id}
+                      onClick={() => cancelRequestMutation.mutate(req.id)}
+                      disabled={processingId === req.id}
                     >
-                      Cancel
+                      {processingId === req.id ? <Loader2 className="w-4 h-4 animate-spin" /> : "Cancel"}
                     </CyberButton>
                   </div>
                 ))}

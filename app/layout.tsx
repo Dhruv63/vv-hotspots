@@ -34,6 +34,7 @@ export const viewport: Viewport = {
 
 import { ServiceWorkerRegistration } from "@/components/service-worker-registration"
 import { NotificationPermissionModal } from "@/components/notification-permission-modal"
+import { QueryProvider } from "@/components/query-provider"
 
 export default function RootLayout({
   children,
@@ -45,10 +46,12 @@ export default function RootLayout({
       <body className={`${inter.variable} ${firaCode.variable} font-sans antialiased`}>
         <ServiceWorkerRegistration />
         <NotificationPermissionModal />
-        <ThemeProvider>
-          {children}
-          <Toaster position="top-center" theme="system" />
-        </ThemeProvider>
+        <QueryProvider>
+          <ThemeProvider>
+            {children}
+            <Toaster position="top-center" theme="system" />
+          </ThemeProvider>
+        </QueryProvider>
         <Analytics />
         <SpeedInsights />
       </body>
