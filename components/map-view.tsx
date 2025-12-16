@@ -182,6 +182,15 @@ export function MapView({
   const [mapReady, setMapReady] = useState(false)
   const [previewHotspot, setPreviewHotspot] = useState<Hotspot | null>(null)
   const [showLegend, setShowLegend] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Client-side mobile detection
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    checkMobile()
+    window.addEventListener("resize", checkMobile)
+    return () => window.removeEventListener("resize", checkMobile)
+  }, [])
 
   // Sync selectedHotspot with preview
   useEffect(() => {
@@ -274,7 +283,7 @@ export function MapView({
     : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
 
   return (
-    <div className="relative w-full h-full bg-muted z-0">
+    <div className={`relative w-full h-full bg-muted z-0 ${isMobile ? "mobile-map-view" : "desktop-map-view"}`}>
       <MapContainer
         center={DEFAULT_CENTER}
         zoom={DEFAULT_ZOOM}
