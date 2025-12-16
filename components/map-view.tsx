@@ -33,6 +33,32 @@ const isValidLatLng = (lat: any, lng: any): boolean => {
   )
 }
 
+// Lifecycle component to handle map cleanup
+function MapLifecycle() {
+  const map = useMap()
+
+  useEffect(() => {
+    return () => {
+      try {
+        // Aggressive cleanup to prevent container reuse errors
+        map.off()
+        map.remove()
+        const container = map.getContainer()
+        if (container) {
+          // Reset internal Leaflet ID
+          delete (container as any)._leaflet_id
+          // clear inner HTML to remove any artifacts
+          container.innerHTML = ""
+        }
+      } catch (e) {
+        console.warn("Map cleanup error:", e)
+      }
+    }
+  }, [map])
+
+  return null
+}
+
 interface MapViewProps {
   hotspots: Hotspot[]
   selectedHotspot: Hotspot | null
@@ -43,7 +69,7 @@ interface MapViewProps {
   isLoading?: boolean
   onLocationUpdate?: (location: [number, number]) => void
   viewMode?: string
-  onSearchClick?: () => void // New prop for search trigger
+  onSearchClick?: () => void
 }
 
 function MapUpdater({ center, zoom }: { center: [number, number]; zoom: number }) {
@@ -194,16 +220,8 @@ export function MapView({
   const [mapReady, setMapReady] = useState(false)
   const [previewHotspot, setPreviewHotspot] = useState<Hotspot | null>(null)
   const [showLegend, setShowLegend] = useState(false)
-
-  // Cleanup map instance on unmount to prevent "Map container is being reused" error
-  useEffect(() => {
-    return () => {
-      if (mapRef.current) {
-        mapRef.current.remove()
-        mapRef.current = null
-      }
-    }
-  }, [])
+  // Ensure a fresh container on each mount
+  const [mountId] = useState(() => `map-${Math.random().toString(36).substr(2, 9)}`)
 
   // Sync selectedHotspot with preview
   useEffect(() => {
@@ -279,82 +297,85 @@ export function MapView({
 
   return (
     <div className="relative w-full h-full bg-muted z-0">
-      <MapContainer
-        center={DEFAULT_CENTER}
-        zoom={DEFAULT_ZOOM}
-        className="w-full h-full outline-none"
-        ref={mapRef}
-        zoomControl={false}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url={tileLayerUrl}
-          maxZoom={20}
-        />
+      <div key={mountId} id="map-root" className="w-full h-full">
+        <MapContainer
+            center={DEFAULT_CENTER}
+            zoom={DEFAULT_ZOOM}
+            className="w-full h-full outline-none"
+            ref={mapRef}
+            zoomControl={false}
+        >
+            <MapLifecycle />
+            <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            url={tileLayerUrl}
+            maxZoom={20}
+            />
 
-        <ZoomControl position="bottomright" />
+            <ZoomControl position="bottomright" />
 
-        <RecenterControl onRecenter={handleRecenter} isTracking={isTracking} />
-        <LegendControl isOpen={showLegend} onToggle={() => setShowLegend(!showLegend)} />
-        <SearchTrigger onClick={() => onSearchClick?.()} />
+            <RecenterControl onRecenter={handleRecenter} isTracking={isTracking} />
+            <LegendControl isOpen={showLegend} onToggle={() => setShowLegend(!showLegend)} />
+            <SearchTrigger onClick={() => onSearchClick?.()} />
 
-        {userLocation && (
-             <Marker
-                position={userLocation}
-                icon={L.divIcon({
-                    className: 'user-location-marker',
-                    html: '<div class="w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-lg pulse-ring"></div>',
-                    iconSize: [16, 16]
-                })}
-             />
-        )}
+            {userLocation && (
+                <Marker
+                    position={userLocation}
+                    icon={L.divIcon({
+                        className: 'user-location-marker',
+                        html: '<div class="w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-lg pulse-ring"></div>',
+                        iconSize: [16, 16]
+                    })}
+                />
+            )}
 
-        {typeof window !== "undefined" && (
-            <MarkerClusterGroup
-                showCoverageOnHover={false}
-                maxClusterRadius={40}
-                spiderfyOnMaxZoom={true}
-                iconCreateFunction={(cluster: any) => {
-                    const count = cluster.getChildCount()
-                    let size = 'small'
-                    if (count > 10) size = 'medium'
-                    if (count > 50) size = 'large'
+            {typeof window !== "undefined" && (
+                <MarkerClusterGroup
+                    showCoverageOnHover={false}
+                    maxClusterRadius={40}
+                    spiderfyOnMaxZoom={true}
+                    iconCreateFunction={(cluster: any) => {
+                        const count = cluster.getChildCount()
+                        let size = 'small'
+                        if (count > 10) size = 'medium'
+                        if (count > 50) size = 'large'
 
-                    return L.divIcon({
-                        html: `<div class="cyber-cluster cluster-${size}"><span>${count}</span></div>`,
-                        className: 'cyber-cluster-icon',
-                        iconSize: [40, 40]
-                    })
-                }}
-            >
-                {hotspots
-                  .filter(h => isValidLatLng(h.latitude, h.longitude))
-                  .map((hotspot) => (
-                    <Marker
-                        key={hotspot.id}
-                        position={[Number(hotspot.latitude), Number(hotspot.longitude)]}
-                        icon={createCustomIcon(
-                            hotspot,
-                            userCurrentCheckin === hotspot.id,
-                            selectedHotspot?.id === hotspot.id,
-                            activeCheckins[hotspot.id] || 0
-                        )}
-                        eventHandlers={{
-                            click: () => handleMarkerClick(hotspot),
-                        }}
-                    />
-                ))}
-            </MarkerClusterGroup>
-        )}
+                        return L.divIcon({
+                            html: `<div class="cyber-cluster cluster-${size}"><span>${count}</span></div>`,
+                            className: 'cyber-cluster-icon',
+                            iconSize: [40, 40]
+                        })
+                    }}
+                >
+                    {hotspots
+                    .filter(h => isValidLatLng(h.latitude, h.longitude))
+                    .map((hotspot) => (
+                        <Marker
+                            key={hotspot.id}
+                            position={[Number(hotspot.latitude), Number(hotspot.longitude)]}
+                            icon={createCustomIcon(
+                                hotspot,
+                                userCurrentCheckin === hotspot.id,
+                                selectedHotspot?.id === hotspot.id,
+                                activeCheckins[hotspot.id] || 0
+                            )}
+                            eventHandlers={{
+                                click: () => handleMarkerClick(hotspot),
+                            }}
+                        />
+                    ))}
+                </MarkerClusterGroup>
+            )}
 
-        <MapUpdater
-            center={selectedHotspot && isValidLatLng(selectedHotspot.latitude, selectedHotspot.longitude)
-                ? [Number(selectedHotspot.latitude), Number(selectedHotspot.longitude)]
-                : (userLocation && isValidLatLng(userLocation[0], userLocation[1]) ? userLocation : DEFAULT_CENTER)
-            }
-            zoom={selectedHotspot ? 16 : DEFAULT_ZOOM}
-        />
-      </MapContainer>
+            <MapUpdater
+                center={selectedHotspot && isValidLatLng(selectedHotspot.latitude, selectedHotspot.longitude)
+                    ? [Number(selectedHotspot.latitude), Number(selectedHotspot.longitude)]
+                    : (userLocation && isValidLatLng(userLocation[0], userLocation[1]) ? userLocation : DEFAULT_CENTER)
+                }
+                zoom={selectedHotspot ? 16 : DEFAULT_ZOOM}
+            />
+        </MapContainer>
+      </div>
 
       {/* Mobile Bottom Sheet Preview */}
       {previewHotspot && (
@@ -366,9 +387,7 @@ export function MapView({
                       isSelected={false}
                       variant="compact"
                       onClick={() => {
-                         // Click to view details? Or maybe the preview is enough?
-                         // Let's assume clicking it does nothing or opens full detail if needed.
-                         // For now, buttons inside handle actions.
+                         // Click logic...
                       }}
                   >
                      <div className="flex gap-2 mt-2">
@@ -384,19 +403,7 @@ export function MapView({
                         <button
                              onClick={(e) => {
                                  e.stopPropagation()
-                                 // Close preview to show map? Or open Details modal?
-                                 // The modal logic is in parent. We need a way to open it.
-                                 // Since onHotspotSelect sets selectedHotspot, the parent opens HotspotDetail automatically if logic dictates.
-                                 // But in DashboardClient, HotspotDetail is rendered if selectedHotspot is set.
-                                 // Wait, if HotspotDetail is open, it might cover the map.
-                                 // Let's assume 'Details' button just ensures selectedHotspot is set and maybe closes preview?
-                                 // Actually preview is shown *because* selectedHotspot is set.
-                                 // So HotspotDetail might already be open or hidden.
-                                 // In DashboardClient, `selectedHotspot && <HotspotDetail ...>`
-                                 // So selecting a hotspot opens the detail modal.
-                                 // But here we want a preview sheet INSTEAD of the full modal on map click?
-                                 // If so, we need to distinguish "Preview" vs "Full Detail".
-                                 // But for now, let's keep it simple: Preview is shown.
+                                 // Details logic...
                              }}
                              className="flex-1 bg-secondary/20 text-secondary py-2 text-xs font-bold font-mono rounded hover:bg-secondary/30"
                         >
@@ -407,10 +414,6 @@ export function MapView({
                   <button
                       onClick={() => {
                           setPreviewHotspot(null)
-                          // Also deselect?
-                          // onHotspotSelect(null) - type doesn't allow null if strict, but let's see.
-                          // It expects Hotspot. So we can't deselect via this prop if it's strictly Hotspot.
-                          // But we can just hide the preview locally.
                       }}
                       className="absolute top-2 right-2 p-1 rounded-full bg-black/50 text-white hover:bg-black/70"
                   >
