@@ -67,29 +67,36 @@ function PersistentMapShell({
   return (
     <div className="relative w-full h-full overflow-hidden bg-background/0">
         {/* Persistent Map Layer */}
-        <div
-            className="absolute inset-0 z-0"
-            style={{
-                visibility: shouldShowMap ? 'visible' : 'hidden',
-                pointerEvents: shouldShowMap ? 'auto' : 'none'
-            }}
-        >
-             <MapView
-                hotspots={filteredHotspots}
-                selectedHotspot={selectedHotspot}
-                onHotspotSelect={handleHotspotSelect}
-                activeCheckins={activeCheckins}
-                userCurrentCheckin={userCurrentCheckin}
-                onCheckIn={(h) => {
-                    setActionHotspot(h)
-                    setIsCheckInModalOpen(true)
+        {/*
+            NOTE: Conditional rendering ensures the MapView unmounts when leaving the dashboard,
+            preventing potential conflicts with other map instances (e.g., "Map container is being reused" errors).
+            While this sacrifices state persistence across routes, it ensures stability.
+        */}
+        {shouldShowMap && (
+            <div
+                className="absolute inset-0 z-0"
+                style={{
+                    visibility: 'visible',
+                    pointerEvents: 'auto'
                 }}
-                isLoading={false}
-                onLocationUpdate={setUserLocation}
-                viewMode={viewMode}
-                isVisible={shouldShowMap}
-            />
-        </div>
+            >
+                 <MapView
+                    hotspots={filteredHotspots}
+                    selectedHotspot={selectedHotspot}
+                    onHotspotSelect={handleHotspotSelect}
+                    activeCheckins={activeCheckins}
+                    userCurrentCheckin={userCurrentCheckin}
+                    onCheckIn={(h) => {
+                        setActionHotspot(h)
+                        setIsCheckInModalOpen(true)
+                    }}
+                    isLoading={false}
+                    onLocationUpdate={setUserLocation}
+                    viewMode={viewMode}
+                    isVisible={true}
+                />
+            </div>
+        )}
 
         {/* Page Content Layer */}
         <div className="relative z-10 w-full h-full pointer-events-none">
