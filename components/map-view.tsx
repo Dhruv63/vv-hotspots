@@ -182,6 +182,26 @@ export function MapView({
   const [mapReady, setMapReady] = useState(false)
   const [previewHotspot, setPreviewHotspot] = useState<Hotspot | null>(null)
   const [showLegend, setShowLegend] = useState(false)
+  const isMounted = useRef(true)
+
+  const setMap = useCallback((map: L.Map | null) => {
+    if (map) {
+      mapRef.current = map
+    }
+  }, [])
+
+  useEffect(() => {
+    isMounted.current = true
+    return () => {
+      isMounted.current = false
+      // Cleanup Leaflet instance
+      if (mapRef.current) {
+        mapRef.current.off()
+        mapRef.current.remove()
+        mapRef.current = null
+      }
+    }
+  }, [])
 
   // Sync selectedHotspot with preview
   useEffect(() => {
@@ -196,6 +216,7 @@ export function MapView({
 
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
+        if (!isMounted.current) return
         const { latitude, longitude } = position.coords
         const newLoc: [number, number] = [latitude, longitude]
         setUserLocation(newLoc)
@@ -208,6 +229,7 @@ export function MapView({
         }
       },
       (error) => {
+        if (!isMounted.current) return
         console.error("Geolocation error:", error)
         setIsTracking(false)
       },
@@ -239,11 +261,15 @@ export function MapView({
 
   // Handle map resizing and visibility changes
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout
     if (mapRef.current && isVisible) {
-        setTimeout(() => {
-            mapRef.current?.invalidateSize()
+        timeoutId = setTimeout(() => {
+            if (isMounted.current && mapRef.current) {
+                mapRef.current.invalidateSize()
+            }
         }, 300)
     }
+    return () => clearTimeout(timeoutId)
   }, [viewMode, isVisible])
 
   const activeTheme = (theme as keyof typeof themes) || "cyberpunk"
@@ -261,7 +287,7 @@ export function MapView({
         center={DEFAULT_CENTER}
         zoom={DEFAULT_ZOOM}
         className="w-full h-full outline-none"
-        ref={mapRef}
+        ref={setMap}
         zoomControl={false}
       >
         <TileLayer
