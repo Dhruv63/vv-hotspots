@@ -9,6 +9,7 @@ import "leaflet.markercluster/dist/MarkerCluster.Default.css"
 import type { Hotspot } from "@/lib/types"
 import { useTheme } from "next-themes"
 import { themes } from "@/lib/themes"
+import { CATEGORY_COLOR } from "@/lib/constants"
 import { Search, Navigation, Layers, Info } from "lucide-react"
 import { HotspotCard } from "@/components/hotspot-card"
 import MarkerClusterGroup from "@/components/ui/marker-cluster"
@@ -130,7 +131,7 @@ function LegendControl({ isOpen, onToggle }: { isOpen: boolean, onToggle: () => 
                  >
                     <p className="text-xs font-bold font-mono mb-2 text-muted-foreground uppercase">Categories</p>
                     <div className="space-y-1.5">
-                        {Object.entries(CATEGORY_COLORS).map(([key, color]) => (
+                        {Object.entries(CATEGORY_COLOR).map(([key, color]) => (
                             <div key={key} className="flex items-center gap-2">
                                 <span className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></span>
                                 <span className="text-xs font-medium capitalize">{key}</span>
@@ -143,34 +144,19 @@ function LegendControl({ isOpen, onToggle }: { isOpen: boolean, onToggle: () => 
     )
 }
 
-const CATEGORY_COLORS: Record<string, string> = {
-  cafe: "#00f0ff", // cyan
-  park: "#39ff14", // lime
-  gaming: "#b026ff", // purple
-  food: "#ff8d00", // orange
-  hangout: "#ff0099", // pink
-  other: "#cccccc",
-}
-
-const createCustomIcon = (hotspot: Hotspot, isActive: boolean, isSelected: boolean, activeUsers: number) => {
-  const color = CATEGORY_COLORS[hotspot.category] || CATEGORY_COLORS.other
-  const size = isSelected ? 48 : 36
-  const pulseClass = isActive || activeUsers > 0 ? "marker-pulse" : ""
-  const selectedClass = isSelected ? "marker-selected" : ""
-
-  return L.divIcon({
-    className: "custom-div-icon",
-    html: `
-      <div class="marker-wrapper ${pulseClass} ${selectedClass}" style="--marker-color: ${color}">
-        <div class="marker-pin" style="background-color: ${color}; width: ${size}px; height: ${size}px;">
-           ${activeUsers > 0 ? `<span class="marker-badge">${activeUsers}</span>` : ''}
-        </div>
-      </div>
-    `,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size],
-    popupAnchor: [0, -size],
-  })
+const iconCache = new Map<string, L.DivIcon>();
+function getNeonDotIcon(color: string) {
+  const key = color.toLowerCase();
+  const cached = iconCache.get(key);
+  if (cached) return cached;
+  const icon = L.divIcon({
+    className: "vv-neon-dot",
+    html: `<div class="vv-neon-dot__inner" style="--dot:${key}"></div>`,
+    iconSize: [18, 18],      // larger tap target
+    iconAnchor: [9, 9],      // center anchor
+  });
+  iconCache.set(key, icon);
+  return icon;
 }
 
 const DEFAULT_CENTER: [number, number] = [19.3919, 72.8397] // Vasai-Virar
@@ -325,12 +311,7 @@ export function MapView({
                     <Marker
                         key={hotspot.id}
                         position={[Number(hotspot.latitude), Number(hotspot.longitude)]}
-                        icon={createCustomIcon(
-                            hotspot,
-                            userCurrentCheckin === hotspot.id,
-                            selectedHotspot?.id === hotspot.id,
-                            activeCheckins[hotspot.id] || 0
-                        )}
+                        icon={getNeonDotIcon(CATEGORY_COLOR[hotspot.category] ?? CATEGORY_COLOR.other)}
                         eventHandlers={{
                             click: () => handleMarkerClick(hotspot),
                         }}
