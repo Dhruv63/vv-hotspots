@@ -246,6 +246,16 @@ export function MapView({
     }
   }, [viewMode, isVisible])
 
+  // Cleanup map instance on unmount to prevent "Map container is being reused" error
+  useEffect(() => {
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove()
+        mapRef.current = null
+      }
+    }
+  }, [])
+
   const activeTheme = (theme as keyof typeof themes) || "cyberpunk"
   const tileLayerUrl = activeTheme === 'genshin'
     ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
