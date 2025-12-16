@@ -71,7 +71,7 @@ export function EditProfileForm({ user, profile }: EditProfileFormProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0E27] p-4 md:p-8 flex items-center justify-center">
+    <div className="min-h-screen bg-[#0A0E27] p-4 md:p-8 flex items-center justify-center pointer-events-auto">
       <div className="w-full max-w-2xl bg-[#1A1F3A] rounded-xl border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.3)] overflow-hidden">
 
         {/* Header */}

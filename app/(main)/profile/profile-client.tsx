@@ -60,7 +60,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
   }
 
   return (
-    <div className="min-h-screen bg-background pb-12">
+    <div className="min-h-screen bg-background pb-12 pointer-events-auto">
       <Navbar user={user} />
 
       <main className="pt-20 px-4 max-w-4xl mx-auto">

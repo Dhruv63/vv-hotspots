@@ -43,7 +43,8 @@ interface MapViewProps {
   isLoading?: boolean
   onLocationUpdate?: (location: [number, number]) => void
   viewMode?: string
-  onSearchClick?: () => void // New prop for search trigger
+  onSearchClick?: () => void
+  isVisible?: boolean
 }
 
 function MapUpdater({ center, zoom }: { center: [number, number]; zoom: number }) {
@@ -185,7 +186,8 @@ export function MapView({
   isLoading,
   onLocationUpdate,
   viewMode,
-  onSearchClick
+  onSearchClick,
+  isVisible = true
 }: MapViewProps) {
   const { theme } = useTheme()
   const mapRef = useRef<L.Map | null>(null)
@@ -194,16 +196,6 @@ export function MapView({
   const [mapReady, setMapReady] = useState(false)
   const [previewHotspot, setPreviewHotspot] = useState<Hotspot | null>(null)
   const [showLegend, setShowLegend] = useState(false)
-
-  // Cleanup map instance on unmount to prevent "Map container is being reused" error
-  useEffect(() => {
-    return () => {
-      if (mapRef.current) {
-        mapRef.current.remove()
-        mapRef.current = null
-      }
-    }
-  }, [])
 
   // Sync selectedHotspot with preview
   useEffect(() => {
@@ -259,14 +251,14 @@ export function MapView({
       }
   }
 
-  // Handle map resizing
+  // Handle map resizing and visibility changes
   useEffect(() => {
-    if (mapRef.current) {
+    if (mapRef.current && isVisible) {
         setTimeout(() => {
             mapRef.current?.invalidateSize()
         }, 300)
     }
-  }, [viewMode])
+  }, [viewMode, isVisible])
 
   const activeTheme = (theme as keyof typeof themes) || "cyberpunk"
   const tileLayerUrl = activeTheme === 'genshin'

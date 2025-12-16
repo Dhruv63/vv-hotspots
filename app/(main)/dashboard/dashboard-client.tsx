@@ -12,20 +12,12 @@ import { UnifiedMenuDrawer } from "@/components/unified-menu-drawer"
 import { OnboardingFlow } from "@/components/onboarding-flow"
 import { CheckInModal } from "@/components/check-in-modal"
 import { RateReviewModal } from "@/components/rate-review-modal"
-import { BottomNav } from "@/components/bottom-nav" // New Import
-import { MobileSearchBar } from "@/components/mobile-search-bar" // New Import
+import { BottomNav } from "@/components/bottom-nav"
+import { MobileSearchBar } from "@/components/mobile-search-bar"
 import { sanitizeInput, checkRateLimit } from "@/lib/security"
+import { useAppContext } from "@/context/app-context"
 import type { Hotspot, ActivityFeedItem } from "@/lib/types"
 import type { User } from "@supabase/supabase-js"
-
-const MapView = dynamic(() => import("@/components/map-view").then((mod) => mod.MapView), {
-  ssr: false,
-  loading: () => (
-    <div className="h-full w-full flex items-center justify-center bg-muted text-accent font-mono animate-pulse">
-      Loading Map...
-    </div>
-  ),
-})
 
 const HotspotDetail = dynamic(() => import("@/components/hotspot-detail").then((mod) => mod.HotspotDetail), {
   loading: () => null,
@@ -63,7 +55,27 @@ export function DashboardClient({
   friendVisitedHotspotIds
 }: DashboardClientProps) {
   const router = useRouter()
-  const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null)
+  // Use Context
+  const {
+      selectedHotspot,
+      setSelectedHotspot,
+      viewMode,
+      setViewMode,
+      userLocation,
+      filterCategories, setFilterCategories,
+      searchTerm, setSearchTerm,
+      showFriendsOnly, setShowFriendsOnly,
+      setFriendVisitedHotspotIds,
+      isCheckInModalOpen, setIsCheckInModalOpen,
+      isRateModalOpen, setIsRateModalOpen,
+      actionHotspot, setActionHotspot
+  } = useAppContext()
+
+  // Sync friendVisitedHotspotIds to Context
+  useEffect(() => {
+      setFriendVisitedHotspotIds(friendVisitedHotspotIds)
+  }, [friendVisitedHotspotIds, setFriendVisitedHotspotIds])
+
   const [localSavedIds, setLocalSavedIds] = useState<Set<string>>(new Set(savedHotspotIds))
 
   useEffect(() => {
@@ -102,10 +114,6 @@ export function DashboardClient({
 
   // New State for Unified Menu
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [viewMode, setViewMode] = useState<string>("map") // Default to map
-  const [filterCategories, setFilterCategories] = useState<string[]>([])
-  const [showFriendsOnly, setShowFriendsOnly] = useState(false)
-  const [searchTerm, setSearchTerm] = useState("") // Unified search state for mobile
 
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(initError || null)
@@ -120,25 +128,11 @@ export function DashboardClient({
   const [userRatings, setUserRatings] = useState(initialUserRatings)
   const [userReviews, setUserReviews] = useState(initialUserReviews)
   const [isMobile, setIsMobile] = useState(false)
-  const [userLocation, setUserLocation] = useState<[number, number] | null>(null)
 
-  const [checkInModalOpen, setCheckInModalOpen] = useState(false)
-  const [rateModalOpen, setRateModalOpen] = useState(false)
-  const [actionHotspot, setActionHotspot] = useState<Hotspot | null>(null)
-
-  // Initialize viewMode from localStorage
-  useEffect(() => {
-    const savedView = localStorage.getItem('vv-view-mode')
-    if (savedView) {
-        setViewMode(savedView)
-    }
-  }, [])
-
-  // Persist viewMode
+  // handleViewChange via Context
   const handleViewChange = useCallback((newView: string) => {
       setViewMode(newView)
-      localStorage.setItem('vv-view-mode', newView)
-  }, [])
+  }, [setViewMode])
 
   // Sync state with props
   useEffect(() => { setActiveCheckins(initialActiveCheckins) }, [initialActiveCheckins])
@@ -162,7 +156,6 @@ export function DashboardClient({
   useEffect(() => {
     const checkMobile = () => {
         setIsMobile(window.innerWidth < 768)
-        // Set default view for desktop if needed, but 'map' is fine
     }
     checkMobile()
     window.addEventListener("resize", checkMobile)
@@ -221,7 +214,7 @@ export function DashboardClient({
 
   const handleHotspotSelect = useCallback((hotspot: Hotspot) => {
     setSelectedHotspot(hotspot)
-  }, [])
+  }, [setSelectedHotspot])
 
   const handleCheckInSuccess = useCallback((hotspotId: string) => {
     setUserCurrentCheckin(hotspotId)
@@ -242,8 +235,8 @@ export function DashboardClient({
           return
       }
       setActionHotspot(targetHotspot)
-      setCheckInModalOpen(true)
-  }, [selectedHotspot])
+      setIsCheckInModalOpen(true)
+  }, [selectedHotspot, setActionHotspot, setIsCheckInModalOpen])
 
   const handleCheckOut = useCallback(async () => {
     if (!userCurrentCheckin) return
@@ -327,32 +320,24 @@ export function DashboardClient({
 
   const handleRateHotspot = useCallback((hotspot: Hotspot) => {
       setActionHotspot(hotspot)
-      setRateModalOpen(true)
-  }, [])
+      setIsRateModalOpen(true)
+  }, [setActionHotspot, setIsRateModalOpen])
 
   const handleRateDetail = useCallback((rating: number) => {
       if (selectedHotspot) {
           setActionHotspot(selectedHotspot)
-          setRateModalOpen(true)
+          setIsRateModalOpen(true)
       }
-  }, [selectedHotspot])
+  }, [selectedHotspot, setActionHotspot, setIsRateModalOpen])
 
   const handleCloseDetail = useCallback(() => {
     setSelectedHotspot(null)
-  }, [])
-
-  const handleRetry = useCallback(() => {
-    router.refresh()
-  }, [router])
-
-  const currentCheckinHotspot = userCurrentCheckin ? hotspots.find((h) => h.id === userCurrentCheckin) : null
+  }, [setSelectedHotspot])
 
   // Filter Logic
   const filteredHotspots = hotspots.filter((h) => {
       if (filterCategories.length > 0 && !filterCategories.includes(h.category)) return false
       if (showFriendsOnly) return friendVisitedHotspotIds.includes(h.id)
-
-      // Filter by search term
       if (searchTerm) {
           const lowerTerm = searchTerm.toLowerCase()
           return h.name.toLowerCase().includes(lowerTerm) || h.address.toLowerCase().includes(lowerTerm)
@@ -360,28 +345,18 @@ export function DashboardClient({
       return true
   })
 
-  // Desktop always shows sidebar + feed for now, or adapt to full responsive?
-  // User requested mobile transformation. Desktop can stay similar or adopt the same logic.
-  // The existing logic was:
-  const showDesktopSidebar = true // Always show sidebar on desktop
-  const showDesktopFeed = true    // Always show feed on desktop
-
-  // Mobile View Logic
-  // Render based on `viewMode`: 'map', 'list', 'grid', 'feed'
-  // 'menu' is handled by `isMenuOpen`
-
   return (
-    <div className="h-screen flex flex-col bg-background overflow-hidden pb-16 md:pb-0">
-      <OnboardingFlow />
+    <div className="h-screen flex flex-col bg-transparent overflow-hidden pb-16 md:pb-0 pointer-events-none">
+      <div className="pointer-events-auto">
+          <OnboardingFlow />
+      </div>
 
-      {/* Hide standard Navbar on Mobile if using BottomNav + SearchBar */}
-      <div className="hidden md:block">
+      <div className="hidden md:block pointer-events-auto bg-background">
         <Navbar user={user} onMenuClick={() => setIsMenuOpen(true)} />
       </div>
 
-      {/* Mobile Search Bar - Visible on List/Grid views */}
       {(viewMode === 'list' || viewMode === 'grid') && (
-        <div className="md:hidden">
+        <div className="md:hidden pointer-events-auto">
              <MobileSearchBar
                 searchTerm={searchTerm}
                 onSearchChange={setSearchTerm}
@@ -392,35 +367,32 @@ export function DashboardClient({
       )}
 
       {isOffline && (
-        <div className="fixed top-16 left-0 right-0 z-[300] bg-yellow-500/90 text-background py-2 px-4 flex items-center justify-center gap-2 font-mono text-sm">
+        <div className="fixed top-16 left-0 right-0 z-[300] bg-yellow-500/90 text-background py-2 px-4 flex items-center justify-center gap-2 font-mono text-sm pointer-events-auto">
           <WifiOff className="w-4 h-4" />
           <span>You are offline. Some features may not work.</span>
         </div>
       )}
 
-      {/* ... (Rate Limit & Error Toasts omitted for brevity, same as before) ... */}
-
-      {/* Main Content Area */}
       <div className="flex-1 flex md:pt-16 relative overflow-hidden">
 
-        <UnifiedMenuDrawer
-            isOpen={isMenuOpen}
-            onClose={() => setIsMenuOpen(false)}
-            currentView={viewMode}
-            currentCategories={filterCategories}
-            showFriendsOnly={showFriendsOnly}
-            onToggleFriendsOnly={setShowFriendsOnly}
-            onApply={(view, cats) => {
-                // If switching view from menu, update viewMode
-                // But usually Menu is for filters/settings
-                if (view) handleViewChange(view)
-                setFilterCategories(cats)
-            }}
-            onClear={() => setFilterCategories([])}
-        />
+        <div className="pointer-events-auto">
+            <UnifiedMenuDrawer
+                isOpen={isMenuOpen}
+                onClose={() => setIsMenuOpen(false)}
+                currentView={viewMode}
+                currentCategories={filterCategories}
+                showFriendsOnly={showFriendsOnly}
+                onToggleFriendsOnly={setShowFriendsOnly}
+                onApply={(view, cats) => {
+                    if (view) handleViewChange(view)
+                    setFilterCategories(cats)
+                }}
+                onClear={() => setFilterCategories([])}
+            />
+        </div>
 
-        {/* Desktop Sidebar (Left) - Hidden on Mobile */}
-        <div className="hidden md:block md:w-[280px] lg:w-1/4 h-full bg-muted border-r border-border overflow-hidden">
+        {/* Desktop Sidebar (Left) */}
+        <div className="hidden md:block md:w-[280px] lg:w-1/4 h-full bg-muted border-r border-border overflow-hidden pointer-events-auto">
             <HotspotList
                 hotspots={filteredHotspots}
                 selectedHotspot={selectedHotspot}
@@ -442,29 +414,17 @@ export function DashboardClient({
             />
         </div>
 
-        {/* Center / Main Area (Map on Desktop, Dynamic on Mobile) */}
+        {/* Center / Main Area (Map Background) */}
         <div className={`flex-1 relative z-0 h-full ${viewMode !== 'map' ? 'hidden md:block' : 'block'}`}>
-          <MapView
-            hotspots={filteredHotspots}
-            selectedHotspot={selectedHotspot}
-            onHotspotSelect={handleHotspotSelect}
-            activeCheckins={activeCheckins}
-            userCurrentCheckin={userCurrentCheckin}
-            onCheckIn={handleCheckIn}
-            isLoading={isLoading}
-            onLocationUpdate={setUserLocation}
-            viewMode={viewMode}
-            onSearchClick={() => handleViewChange('list')}
-          />
-          {/* Floating Search Button for Mobile Map View is inside MapView now */}
+            {/* Map is in Layout, behind this. This div is transparent. */}
         </div>
 
-        {/* Mobile Views: List/Grid/Feed (Full Screen replacements for Map) */}
-        <div className={`md:hidden absolute inset-0 bg-background z-10 overflow-hidden ${viewMode === 'list' ? 'block' : 'hidden'}`}>
+        {/* Mobile Views: List/Grid/Feed (Overlay on Map) */}
+        <div className={`md:hidden absolute inset-0 bg-background z-10 overflow-hidden pointer-events-auto ${viewMode === 'list' ? 'block' : 'hidden'}`}>
              <HotspotList
                 hotspots={filteredHotspots}
                 selectedHotspot={selectedHotspot}
-                onHotspotSelect={(h) => { handleHotspotSelect(h); /* Maybe switch to map? or open detail? */ }}
+                onHotspotSelect={(h) => { handleHotspotSelect(h); /* switch to map? */ }}
                 activeCheckins={activeCheckins}
                 averageRatings={averageRatings}
                 userCurrentCheckin={userCurrentCheckin}
@@ -477,12 +437,10 @@ export function DashboardClient({
                 userLocation={userLocation}
                 savedHotspotIds={Array.from(localSavedIds)}
                 onToggleSave={handleToggleSave}
-                // No search bar inside here for mobile since we have the top bar
             />
         </div>
 
-        {/* ... Grid View ... */}
-        <div className={`md:hidden absolute inset-0 bg-background z-10 overflow-hidden ${viewMode === 'grid' ? 'block' : 'hidden'}`}>
+        <div className={`md:hidden absolute inset-0 bg-background z-10 overflow-hidden pointer-events-auto ${viewMode === 'grid' ? 'block' : 'hidden'}`}>
              <HotspotList
                 hotspots={filteredHotspots}
                 selectedHotspot={selectedHotspot}
@@ -502,8 +460,7 @@ export function DashboardClient({
             />
         </div>
 
-        {/* ... Feed View ... */}
-        <div className={`md:hidden absolute inset-0 bg-background z-10 overflow-hidden ${viewMode === 'feed' ? 'block' : 'hidden'}`}>
+        <div className={`md:hidden absolute inset-0 bg-background z-10 overflow-hidden pointer-events-auto ${viewMode === 'feed' ? 'block' : 'hidden'}`}>
              <ActivityFeed
                 initialActivities={initialActivityFeed}
                 todayCount={todayCheckinCount}
@@ -515,23 +472,25 @@ export function DashboardClient({
 
         {/* Detail Modal */}
         {selectedHotspot && (
-          <HotspotDetail
-            hotspot={selectedHotspot}
-            activeCheckins={activeCheckins[selectedHotspot.id] || 0}
-            averageRating={averageRatings[selectedHotspot.id] || 0}
-            userRating={userRatings[selectedHotspot.id] || null}
-            userReview={userReviews[selectedHotspot.id] || null}
-            isCheckedIn={userCurrentCheckin === selectedHotspot.id}
-            onClose={handleCloseDetail}
-            onCheckIn={() => handleCheckIn(selectedHotspot)}
-            onCheckOut={handleCheckOut}
-            onRate={handleRateDetail}
-            isLoading={isLoading || processingAction !== null}
-          />
+          <div className="pointer-events-auto">
+              <HotspotDetail
+                hotspot={selectedHotspot}
+                activeCheckins={activeCheckins[selectedHotspot.id] || 0}
+                averageRating={averageRatings[selectedHotspot.id] || 0}
+                userRating={userRatings[selectedHotspot.id] || null}
+                userReview={userReviews[selectedHotspot.id] || null}
+                isCheckedIn={userCurrentCheckin === selectedHotspot.id}
+                onClose={handleCloseDetail}
+                onCheckIn={() => handleCheckIn(selectedHotspot)}
+                onCheckOut={handleCheckOut}
+                onRate={handleRateDetail}
+                isLoading={isLoading || processingAction !== null}
+              />
+          </div>
         )}
 
         {/* Desktop Feed (Right) */}
-        <div className="hidden md:block md:w-[280px] lg:w-1/4 h-full bg-muted border-l border-border overflow-hidden">
+        <div className="hidden md:block md:w-[280px] lg:w-1/4 h-full bg-muted border-l border-border overflow-hidden pointer-events-auto">
           <ActivityFeed
             initialActivities={initialActivityFeed}
             todayCount={todayCheckinCount}
@@ -543,30 +502,31 @@ export function DashboardClient({
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <BottomNav
-        currentView={viewMode}
-        onViewChange={(view) => {
-            handleViewChange(view)
-            // Reset search if switching views? Maybe keep it.
-        }}
-        onMenuClick={() => setIsMenuOpen(true)}
-      />
+      <div className="pointer-events-auto bg-background">
+          <BottomNav
+            currentView={viewMode}
+            onViewChange={handleViewChange}
+            onMenuClick={() => setIsMenuOpen(true)}
+          />
+      </div>
 
-      <CheckInModal
-        isOpen={checkInModalOpen}
-        onClose={() => setCheckInModalOpen(false)}
-        hotspot={actionHotspot}
-        onCheckInSuccess={handleCheckInSuccess}
-      />
+      <div className="pointer-events-auto">
+          <CheckInModal
+            isOpen={isCheckInModalOpen}
+            onClose={() => setIsCheckInModalOpen(false)}
+            hotspot={actionHotspot}
+            onCheckInSuccess={handleCheckInSuccess}
+          />
 
-      <RateReviewModal
-        isOpen={rateModalOpen}
-        onClose={() => setRateModalOpen(false)}
-        hotspot={actionHotspot}
-        initialRating={actionHotspot ? (userRatings[actionHotspot.id] || 0) : 0}
-        initialReview={actionHotspot ? (userReviews[actionHotspot.id] || "") : ""}
-        onRate={(hotspot, rating, review) => performRate(hotspot, rating, review)}
-      />
+          <RateReviewModal
+            isOpen={isRateModalOpen}
+            onClose={() => setIsRateModalOpen(false)}
+            hotspot={actionHotspot}
+            initialRating={actionHotspot ? (userRatings[actionHotspot.id] || 0) : 0}
+            initialReview={actionHotspot ? (userReviews[actionHotspot.id] || "") : ""}
+            onRate={(hotspot, rating, review) => performRate(hotspot, rating, review)}
+          />
+      </div>
     </div>
   )
 }
