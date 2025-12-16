@@ -58,6 +58,15 @@ function MapUpdater({ center, zoom }: { center: [number, number]; zoom: number }
   return null
 }
 
+// Helper to signal map is ready
+function MapReadyHelper({ setReady }: { setReady: (ready: boolean) => void }) {
+  const map = useMap()
+  useEffect(() => {
+    if (map) setReady(true)
+  }, [map, setReady])
+  return null
+}
+
 function RecenterControl({ onRecenter, isTracking }: { onRecenter: () => void, isTracking: boolean }) {
     return (
         <button
@@ -177,15 +186,29 @@ export function MapView({
 }: MapViewProps) {
   const { theme } = useTheme()
   const mapRef = useRef<L.Map | null>(null)
+  const isMounted = useRef(true) // Track mount state for async safety
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null)
   const [isTracking, setIsTracking] = useState(false)
   const [mapReady, setMapReady] = useState(false)
   const [previewHotspot, setPreviewHotspot] = useState<Hotspot | null>(null)
   const [showLegend, setShowLegend] = useState(false)
 
+  // Cleanup on unmount to prevent "Map container is being reused"
+  useEffect(() => {
+    isMounted.current = true
+    return () => {
+      isMounted.current = false
+      if (mapRef.current) {
+        // Explicitly remove map instance if it exists
+        mapRef.current.remove()
+        mapRef.current = null
+      }
+    }
+  }, [])
+
   // Sync selectedHotspot with preview
   useEffect(() => {
-    if (selectedHotspot) {
+    if (selectedHotspot && isMounted.current) {
         setPreviewHotspot(selectedHotspot)
     }
   }, [selectedHotspot])
@@ -196,18 +219,20 @@ export function MapView({
 
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
+        if (!isMounted.current) return
         const { latitude, longitude } = position.coords
         const newLoc: [number, number] = [latitude, longitude]
         setUserLocation(newLoc)
         if (onLocationUpdate) onLocationUpdate(newLoc)
 
         // Initial center
-        if (!mapReady && mapRef.current) {
-             mapRef.current.setView(newLoc, 15)
-             setMapReady(true)
+        if (mapRef.current) {
+             // We don't setView here anymore to avoid fighting with MapUpdater or user interaction
+             // Only if we wanted to auto-center initially
         }
       },
       (error) => {
+        if (!isMounted.current) return
         console.error("Geolocation error:", error)
         setIsTracking(false)
       },
@@ -215,20 +240,22 @@ export function MapView({
     )
 
     return () => navigator.geolocation.clearWatch(watchId)
-  }, [onLocationUpdate, mapReady])
+  }, [onLocationUpdate])
 
   // Recenter function
   const handleRecenter = () => {
-    if (userLocation && isValidLatLng(userLocation[0], userLocation[1]) && mapRef.current) {
+    if (!mapRef.current) return
+    if (userLocation && isValidLatLng(userLocation[0], userLocation[1])) {
       mapRef.current.flyTo(userLocation, 16, { duration: 1.5 })
       setIsTracking(true)
     } else {
-        mapRef.current?.flyTo(DEFAULT_CENTER, DEFAULT_ZOOM)
+        mapRef.current.flyTo(DEFAULT_CENTER, DEFAULT_ZOOM)
     }
   }
 
   // Handle Marker Click
   const handleMarkerClick = (hotspot: Hotspot) => {
+      if (!isMounted.current) return
       setPreviewHotspot(hotspot)
       onHotspotSelect(hotspot)
       if (mapRef.current && isValidLatLng(hotspot.latitude, hotspot.longitude)) {
@@ -239,11 +266,15 @@ export function MapView({
 
   // Handle map resizing and visibility changes
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout
     if (mapRef.current && isVisible) {
-        setTimeout(() => {
-            mapRef.current?.invalidateSize()
+        timeoutId = setTimeout(() => {
+            if (isMounted.current && mapRef.current) {
+                mapRef.current.invalidateSize()
+            }
         }, 300)
     }
+    return () => clearTimeout(timeoutId)
   }, [viewMode, isVisible])
 
   const activeTheme = (theme as keyof typeof themes) || "cyberpunk"
@@ -264,6 +295,8 @@ export function MapView({
         ref={mapRef}
         zoomControl={false}
       >
+        <MapReadyHelper setReady={setMapReady} />
+
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
           url={tileLayerUrl}
@@ -287,7 +320,8 @@ export function MapView({
              />
         )}
 
-        {typeof window !== "undefined" && (
+        {/* Only render MarkerClusterGroup when map is ready and we have window (client) access */}
+        {mapReady && typeof window !== "undefined" && (
             <MarkerClusterGroup
                 showCoverageOnHover={false}
                 maxClusterRadius={40}
@@ -339,9 +373,7 @@ export function MapView({
                       isSelected={false}
                       variant="compact"
                       onClick={() => {
-                         // Click to view details? Or maybe the preview is enough?
-                         // Let's assume clicking it does nothing or opens full detail if needed.
-                         // For now, buttons inside handle actions.
+                         // Click to view details handled by parent
                       }}
                   >
                      <div className="flex gap-2 mt-2">
@@ -358,18 +390,6 @@ export function MapView({
                              onClick={(e) => {
                                  e.stopPropagation()
                                  // Close preview to show map? Or open Details modal?
-                                 // The modal logic is in parent. We need a way to open it.
-                                 // Since onHotspotSelect sets selectedHotspot, the parent opens HotspotDetail automatically if logic dictates.
-                                 // But in DashboardClient, HotspotDetail is rendered if selectedHotspot is set.
-                                 // Wait, if HotspotDetail is open, it might cover the map.
-                                 // Let's assume 'Details' button just ensures selectedHotspot is set and maybe closes preview?
-                                 // Actually preview is shown *because* selectedHotspot is set.
-                                 // So HotspotDetail might already be open or hidden.
-                                 // In DashboardClient, `selectedHotspot && <HotspotDetail ...>`
-                                 // So selecting a hotspot opens the detail modal.
-                                 // But here we want a preview sheet INSTEAD of the full modal on map click?
-                                 // If so, we need to distinguish "Preview" vs "Full Detail".
-                                 // But for now, let's keep it simple: Preview is shown.
                              }}
                              className="flex-1 bg-secondary/20 text-secondary py-2 text-xs font-bold font-mono rounded hover:bg-secondary/30"
                         >
@@ -380,10 +400,6 @@ export function MapView({
                   <button
                       onClick={() => {
                           setPreviewHotspot(null)
-                          // Also deselect?
-                          // onHotspotSelect(null) - type doesn't allow null if strict, but let's see.
-                          // It expects Hotspot. So we can't deselect via this prop if it's strictly Hotspot.
-                          // But we can just hide the preview locally.
                       }}
                       className="absolute top-2 right-2 p-1 rounded-full bg-black/50 text-white hover:bg-black/70"
                   >
