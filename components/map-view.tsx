@@ -237,12 +237,30 @@ export function MapView({
       }
   }
 
-  // Handle map resizing and visibility changes
+  // Handle map resizing, visibility changes, and CLEANUP
   useEffect(() => {
     if (mapRef.current && isVisible) {
         setTimeout(() => {
             mapRef.current?.invalidateSize()
         }, 300)
+    }
+
+    // Cleanup function to prevent "Map container is being reused" error
+    return () => {
+      if (mapRef.current) {
+        const map = mapRef.current
+        map.off()
+        map.remove()
+
+        // Explicitly clear Leaflet ID from the container
+        const container = map.getContainer()
+        if (container) {
+          // @ts-ignore
+          container._leaflet_id = null
+        }
+
+        mapRef.current = null
+      }
     }
   }, [viewMode, isVisible])
 
