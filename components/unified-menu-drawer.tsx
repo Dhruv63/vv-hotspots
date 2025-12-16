@@ -3,7 +3,7 @@
 import { X, SlidersHorizontal, Users, Shield, Settings, LogOut, User as UserIcon, List as ListIcon } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
-import { ThemeSelector } from "@/app/settings/theme-selector"
+import { ThemeSelector } from "@/app/(main)/settings/theme-selector"
 import Link from "next/link"
 
 interface UnifiedMenuDrawerProps {

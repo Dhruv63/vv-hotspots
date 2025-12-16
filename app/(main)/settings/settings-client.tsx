@@ -139,7 +139,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
     )
 
     return (
-        <div className="min-h-screen bg-background scanlines">
+        <div className="min-h-screen bg-background scanlines pointer-events-auto">
             <Navbar user={user} />
 
             <main className="pt-20 pb-12 px-4 max-w-3xl mx-auto">

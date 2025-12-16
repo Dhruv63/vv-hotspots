@@ -97,7 +97,7 @@ export function UserProfileClient({
   }
 
   return (
-    <div className="min-h-screen bg-cyber-black scanlines">
+    <div className="min-h-screen bg-cyber-black scanlines pointer-events-auto">
       <Navbar user={currentUser} />
 
       <main className="pt-20 pb-12 px-4 max-w-4xl mx-auto">
