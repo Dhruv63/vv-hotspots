@@ -10,6 +10,7 @@ import { ActiveUsersList } from "@/components/active-users-list"
 import { PhotoGallery } from "@/components/photo-gallery"
 import { ReviewsTab } from "@/components/reviews-tab"
 import { modalStack } from "@/lib/modal-stack"
+import { getSafeLatLng } from "@/lib/coords"
 import type { Hotspot } from "@/lib/types"
 
 interface HotspotDetailProps {
@@ -226,8 +227,13 @@ export function HotspotDetail({
   }
 
   const openInMaps = () => {
-    const url = `https://www.google.com/maps/search/?api=1&query=${hotspot.latitude},${hotspot.longitude}`
-    window.open(url, "_blank")
+    const safeLoc = getSafeLatLng(hotspot.latitude, hotspot.longitude, "HotspotDetail Maps Link")
+    if (safeLoc) {
+        const url = `https://www.google.com/maps/search/?api=1&query=${safeLoc[0]},${safeLoc[1]}`
+        window.open(url, "_blank")
+    } else {
+        toast.error("Location unavailable for this hotspot")
+    }
   }
 
   const imageUrl = getHotspotImage(hotspot)

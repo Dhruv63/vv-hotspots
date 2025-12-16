@@ -12,6 +12,7 @@ import { themes } from "@/lib/themes"
 import { Search, Navigation, Layers, Info } from "lucide-react"
 import { HotspotCard } from "@/components/hotspot-card"
 import MarkerClusterGroup from "@/components/ui/marker-cluster"
+import { isValidLatLng, getSafeLatLng, getSafeLatLngWithFallback, DEFAULT_CENTER } from "@/lib/coords"
 
 // Fix for default marker icons in Next.js
 // @ts-ignore
@@ -21,17 +22,6 @@ L.Icon.Default.mergeOptions({
   iconUrl: "/marker-icon.png",
   shadowUrl: "/marker-shadow.png",
 })
-
-const isValidLatLng = (lat: any, lng: any): boolean => {
-  const latitude = Number(lat)
-  const longitude = Number(lng)
-  return (
-    Number.isFinite(latitude) &&
-    Number.isFinite(longitude) &&
-    Math.abs(latitude) <= 90 &&
-    Math.abs(longitude) <= 180
-  )
-}
 
 interface MapViewProps {
   hotspots: Hotspot[]
@@ -49,8 +39,9 @@ interface MapViewProps {
 function MapUpdater({ center, zoom }: { center: [number, number]; zoom: number }) {
   const map = useMap()
   useEffect(() => {
-    if (isValidLatLng(center[0], center[1])) {
-      map.flyTo(center, zoom, { duration: 1.5 })
+    const safeCenter = getSafeLatLng(center[0], center[1], "MapUpdater center")
+    if (safeCenter) {
+      map.flyTo(safeCenter, zoom, { duration: 1.5 })
     }
   }, [center, zoom, map])
   return null
@@ -172,7 +163,6 @@ const createCustomIcon = (hotspot: Hotspot, isActive: boolean, isSelected: boole
   })
 }
 
-const DEFAULT_CENTER: [number, number] = [19.3919, 72.8397] // Vasai-Virar
 const DEFAULT_ZOOM = 13
 
 export function MapView({
@@ -219,14 +209,17 @@ export function MapView({
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
         const { latitude, longitude } = position.coords
-        const newLoc: [number, number] = [latitude, longitude]
-        setUserLocation(newLoc)
-        if (onLocationUpdate) onLocationUpdate(newLoc)
+        const safeLoc = getSafeLatLng(latitude, longitude, "Geolocation")
 
-        // Initial center
-        if (!mapReady && mapRef.current) {
-             mapRef.current.setView(newLoc, 15)
-             setMapReady(true)
+        if (safeLoc) {
+            setUserLocation(safeLoc)
+            if (onLocationUpdate) onLocationUpdate(safeLoc)
+
+            // Initial center
+            if (!mapReady && mapRef.current) {
+                 mapRef.current.setView(safeLoc, 15)
+                 setMapReady(true)
+            }
         }
       },
       (error) => {
@@ -241,8 +234,10 @@ export function MapView({
 
   // Recenter function
   const handleRecenter = () => {
-    if (userLocation && isValidLatLng(userLocation[0], userLocation[1]) && mapRef.current) {
-      mapRef.current.flyTo(userLocation, 16, { duration: 1.5 })
+    const safeLoc = userLocation ? getSafeLatLng(userLocation[0], userLocation[1], "Recenter userLocation") : null
+
+    if (safeLoc && mapRef.current) {
+      mapRef.current.flyTo(safeLoc, 16, { duration: 1.5 })
       setIsTracking(true)
     } else {
         mapRef.current?.flyTo(DEFAULT_CENTER, DEFAULT_ZOOM)
@@ -253,9 +248,12 @@ export function MapView({
   const handleMarkerClick = (hotspot: Hotspot) => {
       setPreviewHotspot(hotspot)
       onHotspotSelect(hotspot)
-      if (mapRef.current && isValidLatLng(hotspot.latitude, hotspot.longitude)) {
+
+      const safeLoc = getSafeLatLng(hotspot.latitude, hotspot.longitude, `Hotspot: ${hotspot.name}`)
+
+      if (mapRef.current && safeLoc) {
           const latOffset = -0.005
-          mapRef.current.flyTo([Number(hotspot.latitude) + latOffset, Number(hotspot.longitude)], 16)
+          mapRef.current.flyTo([safeLoc[0] + latOffset, safeLoc[1]], 16)
       }
   }
 
@@ -276,6 +274,17 @@ export function MapView({
     : activeTheme === 'rdr2'
     ? "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
     : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+
+  // Calculate Map Center safely
+  const safeSelectedHotspotLocation = selectedHotspot
+      ? getSafeLatLng(selectedHotspot.latitude, selectedHotspot.longitude, "selectedHotspot")
+      : null
+
+  const safeUserLocation = userLocation
+      ? getSafeLatLng(userLocation[0], userLocation[1], "userLocation")
+      : null
+
+  const mapCenter = safeSelectedHotspotLocation || safeUserLocation || DEFAULT_CENTER
 
   return (
     <div className="relative w-full h-full bg-muted z-0">
@@ -298,9 +307,9 @@ export function MapView({
         <LegendControl isOpen={showLegend} onToggle={() => setShowLegend(!showLegend)} />
         <SearchTrigger onClick={() => onSearchClick?.()} />
 
-        {userLocation && (
+        {safeUserLocation && (
              <Marker
-                position={userLocation}
+                position={safeUserLocation}
                 icon={L.divIcon({
                     className: 'user-location-marker',
                     html: '<div class="w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-lg pulse-ring"></div>',
@@ -329,29 +338,32 @@ export function MapView({
             >
                 {hotspots
                   .filter(h => isValidLatLng(h.latitude, h.longitude))
-                  .map((hotspot) => (
-                    <Marker
-                        key={hotspot.id}
-                        position={[Number(hotspot.latitude), Number(hotspot.longitude)]}
-                        icon={createCustomIcon(
-                            hotspot,
-                            userCurrentCheckin === hotspot.id,
-                            selectedHotspot?.id === hotspot.id,
-                            activeCheckins[hotspot.id] || 0
-                        )}
-                        eventHandlers={{
-                            click: () => handleMarkerClick(hotspot),
-                        }}
-                    />
-                ))}
+                  .map((hotspot) => {
+                      // Double check to be absolutely sure for rendering
+                      const safePos = getSafeLatLng(hotspot.latitude, hotspot.longitude, `Marker ${hotspot.id}`)
+                      if (!safePos) return null;
+
+                      return (
+                        <Marker
+                            key={hotspot.id}
+                            position={safePos}
+                            icon={createCustomIcon(
+                                hotspot,
+                                userCurrentCheckin === hotspot.id,
+                                selectedHotspot?.id === hotspot.id,
+                                activeCheckins[hotspot.id] || 0
+                            )}
+                            eventHandlers={{
+                                click: () => handleMarkerClick(hotspot),
+                            }}
+                        />
+                    )
+                  })}
             </MarkerClusterGroup>
         )}
 
         <MapUpdater
-            center={selectedHotspot && isValidLatLng(selectedHotspot.latitude, selectedHotspot.longitude)
-                ? [Number(selectedHotspot.latitude), Number(selectedHotspot.longitude)]
-                : (userLocation && isValidLatLng(userLocation[0], userLocation[1]) ? userLocation : DEFAULT_CENTER)
-            }
+            center={mapCenter}
             zoom={selectedHotspot ? 16 : DEFAULT_ZOOM}
         />
       </MapContainer>
@@ -366,9 +378,7 @@ export function MapView({
                       isSelected={false}
                       variant="compact"
                       onClick={() => {
-                         // Click to view details? Or maybe the preview is enough?
-                         // Let's assume clicking it does nothing or opens full detail if needed.
-                         // For now, buttons inside handle actions.
+                         // Click to view details
                       }}
                   >
                      <div className="flex gap-2 mt-2">
