@@ -22,6 +22,17 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "/marker-shadow.png",
 })
 
+const isValidLatLng = (lat: any, lng: any): boolean => {
+  const latitude = Number(lat)
+  const longitude = Number(lng)
+  return (
+    Number.isFinite(latitude) &&
+    Number.isFinite(longitude) &&
+    Math.abs(latitude) <= 90 &&
+    Math.abs(longitude) <= 180
+  )
+}
+
 interface MapViewProps {
   hotspots: Hotspot[]
   selectedHotspot: Hotspot | null
@@ -38,7 +49,9 @@ interface MapViewProps {
 function MapUpdater({ center, zoom }: { center: [number, number]; zoom: number }) {
   const map = useMap()
   useEffect(() => {
-    map.flyTo(center, zoom, { duration: 1.5 })
+    if (isValidLatLng(center[0], center[1])) {
+      map.flyTo(center, zoom, { duration: 1.5 })
+    }
   }, [center, zoom, map])
   return null
 }
@@ -182,6 +195,16 @@ export function MapView({
   const [previewHotspot, setPreviewHotspot] = useState<Hotspot | null>(null)
   const [showLegend, setShowLegend] = useState(false)
 
+  // Cleanup map instance on unmount to prevent "Map container is being reused" error
+  useEffect(() => {
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove()
+        mapRef.current = null
+      }
+    }
+  }, [])
+
   // Sync selectedHotspot with preview
   useEffect(() => {
     if (selectedHotspot) {
@@ -218,7 +241,7 @@ export function MapView({
 
   // Recenter function
   const handleRecenter = () => {
-    if (userLocation && mapRef.current) {
+    if (userLocation && isValidLatLng(userLocation[0], userLocation[1]) && mapRef.current) {
       mapRef.current.flyTo(userLocation, 16, { duration: 1.5 })
       setIsTracking(true)
     } else {
@@ -230,7 +253,7 @@ export function MapView({
   const handleMarkerClick = (hotspot: Hotspot) => {
       setPreviewHotspot(hotspot)
       onHotspotSelect(hotspot)
-      if (mapRef.current) {
+      if (mapRef.current && isValidLatLng(hotspot.latitude, hotspot.longitude)) {
           const latOffset = -0.005
           mapRef.current.flyTo([Number(hotspot.latitude) + latOffset, Number(hotspot.longitude)], 16)
       }
@@ -304,7 +327,9 @@ export function MapView({
                     })
                 }}
             >
-                {hotspots.map((hotspot) => (
+                {hotspots
+                  .filter(h => isValidLatLng(h.latitude, h.longitude))
+                  .map((hotspot) => (
                     <Marker
                         key={hotspot.id}
                         position={[Number(hotspot.latitude), Number(hotspot.longitude)]}
@@ -322,7 +347,13 @@ export function MapView({
             </MarkerClusterGroup>
         )}
 
-        <MapUpdater center={selectedHotspot ? [Number(selectedHotspot.latitude), Number(selectedHotspot.longitude)] : (userLocation || DEFAULT_CENTER)} zoom={selectedHotspot ? 16 : DEFAULT_ZOOM} />
+        <MapUpdater
+            center={selectedHotspot && isValidLatLng(selectedHotspot.latitude, selectedHotspot.longitude)
+                ? [Number(selectedHotspot.latitude), Number(selectedHotspot.longitude)]
+                : (userLocation && isValidLatLng(userLocation[0], userLocation[1]) ? userLocation : DEFAULT_CENTER)
+            }
+            zoom={selectedHotspot ? 16 : DEFAULT_ZOOM}
+        />
       </MapContainer>
 
       {/* Mobile Bottom Sheet Preview */}
