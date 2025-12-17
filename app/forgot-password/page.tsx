@@ -2,38 +2,42 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { ArrowLeft, Mail, CheckCircle, Loader2 } from "lucide-react"
+import { ArrowLeft, Mail, CheckCircle, Loader2, AlertCircle } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
-import { toast } from "sonner"
 import { CyberButton } from "@/components/ui/cyber-button"
 import { Input } from "@/components/ui/input"
 import { CyberCard } from "@/components/ui/cyber-card"
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [isSuccess, setIsSuccess] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState("")
+  const [error, setError] = useState("")
   const supabase = createClient()
 
-  const handleReset = async (e: React.FormEvent) => {
+  const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
+    setLoading(true)
+    setMessage('')
+    setError('')
 
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
-      })
+    console.log('Attempting password reset for:', email)
+    console.log('Redirect URL:', `${window.location.origin}/reset-password`)
 
-      if (error) {
-        throw error
-      }
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
 
-      setIsSuccess(true)
-      toast.success("Password reset link sent to your email")
-    } catch (error: any) {
-      toast.error(error.message || "Failed to send reset link")
-    } finally {
-      setIsLoading(false)
+    console.log('Supabase response:', { data, error })
+
+    setLoading(false)
+
+    if (error) {
+      console.error('FULL ERROR OBJECT:', JSON.stringify(error, null, 2))
+      setError(`Error: ${error.message} (Code: ${error.status || 'unknown'})`)
+    } else {
+      console.log('Success! Email should be sent')
+      setMessage('Check your email for the password reset link!')
     }
   }
 
@@ -53,15 +57,18 @@ export default function ForgotPassword() {
         </div>
 
         <CyberCard className="p-8 border-primary/20 bg-background/80 backdrop-blur-sm card-theme shadow-[0_0_50px_-12px_var(--color-primary)]">
-          {isSuccess ? (
+          {message ? (
             <div className="text-center py-6">
               <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6 text-green-500">
                 <CheckCircle className="w-8 h-8" />
               </div>
               <h2 className="text-xl font-bold mb-2">Check your email</h2>
               <p className="text-muted-foreground mb-6">
-                We've sent a password reset link to <span className="text-foreground font-medium">{email}</span>
+                {message}
               </p>
+              <div className="mb-6 text-sm text-muted-foreground">
+                <span className="text-foreground font-medium">{email}</span>
+              </div>
               <CyberButton size="md" variant="outline" className="w-full">
                 <Link href="/login" className="w-full h-full flex items-center justify-center">
                   Back to Login
@@ -69,7 +76,14 @@ export default function ForgotPassword() {
               </CyberButton>
             </div>
           ) : (
-            <form onSubmit={handleReset} className="space-y-6">
+            <form onSubmit={handleResetPassword} className="space-y-6">
+              {error && (
+                <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3 flex items-start gap-3 text-sm text-destructive">
+                  <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                  <div className="font-mono break-all">{error}</div>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <label htmlFor="email" className="text-sm font-medium">
                   Email Address
@@ -91,9 +105,9 @@ export default function ForgotPassword() {
               <CyberButton
                 type="submit"
                 className="w-full font-bold relative overflow-hidden group"
-                disabled={isLoading}
+                disabled={loading}
               >
-                {isLoading ? (
+                {loading ? (
                   <span className="flex items-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin" />
                     Sending Link...
