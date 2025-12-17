@@ -184,12 +184,27 @@ export function MapView({
   const [showLegend, setShowLegend] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
 
-  // Client-side mobile detection
+  // Stabilized mobile detection (Solution B)
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    const checkMobile = () => {
+        const mobile = window.innerWidth < 768
+        setIsMobile(mobile)
+    }
+
+    // Initial check
     checkMobile()
-    window.addEventListener("resize", checkMobile)
-    return () => window.removeEventListener("resize", checkMobile)
+
+    let timeoutId: NodeJS.Timeout
+    const handleResize = () => {
+        clearTimeout(timeoutId)
+        timeoutId = setTimeout(checkMobile, 150) // Debounce resize
+    }
+
+    window.addEventListener("resize", handleResize)
+    return () => {
+        window.removeEventListener("resize", handleResize)
+        clearTimeout(timeoutId)
+    }
   }, [])
 
   // Sync selectedHotspot with preview
@@ -290,6 +305,9 @@ export function MapView({
         className="w-full h-full outline-none"
         ref={mapRef}
         zoomControl={false}
+        tap={false} // Disable tap handler for mobile (prevents some conflicts)
+        touchZoom={true}
+        dragging={true}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
