@@ -1,26 +1,117 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { CyberButton } from '@/components/ui/cyber-button'
 import { CyberCard } from '@/components/ui/cyber-card'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
+import { pipeline } from '@xenova/transformers'
+import { toast } from 'sonner'
+import { Loader2, Copy, Check, AlertTriangle } from 'lucide-react'
 
 export default function AIPlannerPage() {
   const [timeAvailable, setTimeAvailable] = useState(2)
   const [companion, setCompanion] = useState('Friends')
   const [location, setLocation] = useState('')
+
+  // Model state
+  const [modelStatus, setModelStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
+  const [loadingProgress, setLoadingProgress] = useState(0)
   const [isGenerating, setIsGenerating] = useState(false)
-  const [showResults, setShowResults] = useState(false)
+  const [itinerary, setItinerary] = useState('')
+  const [generationError, setGenerationError] = useState('')
+
+  // Refs for pipeline and abort controller
+  const generatorRef = useRef<any>(null)
+
+  useEffect(() => {
+    loadModel()
+
+    return () => {
+      // Cleanup if needed
+    }
+  }, [])
+
+  const loadModel = async () => {
+    if (generatorRef.current) return // Already loaded
+
+    try {
+      setModelStatus('loading')
+
+      // Initialize the pipeline
+      // We use a custom progress callback to track download
+      generatorRef.current = await pipeline('text2text-generation', 'Xenova/flan-t5-small', {
+        progress_callback: (data: any) => {
+          if (data.status === 'progress') {
+            setLoadingProgress(Math.round(data.progress || 0))
+          }
+        }
+      })
+
+      setModelStatus('ready')
+      toast.success('AI Model loaded successfully!')
+    } catch (err) {
+      console.error('Failed to load model:', err)
+      setModelStatus('error')
+      toast.error('Failed to load AI model. Please check your connection and try again.')
+    }
+  }
 
   const handleGenerate = async () => {
+    if (!generatorRef.current) {
+      toast.error('Model is not ready yet.')
+      return
+    }
+
+    if (!location) {
+      toast.error('Please enter a starting location.')
+      return
+    }
+
     setIsGenerating(true)
-    // Simulate generation delay
-    setTimeout(() => {
+    setItinerary('')
+    setGenerationError('')
+
+    try {
+      // Build the prompt
+      const prompt = `Generate a detailed day itinerary for Vasai-Virar with 2-3 hotspots, including timing, travel info, and estimated costs. Keep total within ${timeAvailable} hours starting from ${location}. Optimized for ${companion}.`
+
+      // Generate output
+      const output = await generatorRef.current(prompt, {
+        max_new_tokens: 500, // Allow enough length for a detailed response
+        temperature: 0.7,   // Creativity
+        do_sample: true,
+      })
+
+      if (output && output[0] && output[0].generated_text) {
+        let text = output[0].generated_text
+
+        // Basic formatting to make it look nicer if the raw output is a bit dense
+        // Note: Flan-T5-Small is a small model, so its formatting might be simple.
+        // We'll trust the model's output but ensure newlines are respected in display.
+        setItinerary(text)
+        toast.success('Itinerary generated!')
+      } else {
+        throw new Error('No output generated')
+      }
+    } catch (err) {
+      console.error('Generation error:', err)
+      setGenerationError('Failed to generate itinerary. Please try again.')
+      toast.error('Error generating itinerary.')
+    } finally {
       setIsGenerating(false)
-      setShowResults(true)
-    }, 2000)
+    }
+  }
+
+  const handleCopy = () => {
+    if (!itinerary) return
+    navigator.clipboard.writeText(itinerary)
+    toast.success('Itinerary copied to clipboard!')
+  }
+
+  const handleRetryLoad = () => {
+    loadModel()
   }
 
   return (
@@ -38,6 +129,29 @@ export default function AIPlannerPage() {
           <p className="text-[var(--color-muted-foreground)] text-lg">
             Plan your perfect day in Vasai-Virar
           </p>
+
+          {/* Model Status Indicator */}
+          <div className="flex items-center justify-center gap-2 mt-4">
+            {modelStatus === 'loading' && (
+              <span className="text-sm text-[var(--color-muted-foreground)] flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Loading AI model (80MB)... {loadingProgress > 0 && `${loadingProgress}%`}
+              </span>
+            )}
+            {modelStatus === 'ready' && (
+              <span className="text-sm text-green-500 flex items-center gap-2">
+                <Check className="h-4 w-4" />
+                Model ready!
+              </span>
+            )}
+            {modelStatus === 'error' && (
+              <span className="text-sm text-red-500 flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4" />
+                Model failed to load.
+                <button onClick={handleRetryLoad} className="underline hover:text-red-400">Retry</button>
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Input Form */}
@@ -99,22 +213,56 @@ export default function AIPlannerPage() {
               variant="cyan"
               className="w-full mt-6 font-bold text-lg h-14 bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-secondary)] hover:from-[var(--color-accent)]/80 hover:to-[var(--color-secondary)]/80 border-none text-white shadow-[0_0_15px_var(--color-secondary)]"
               onClick={handleGenerate}
-              disabled={!location || isGenerating}
-              glowing={!isGenerating && !!location}
+              disabled={!location || isGenerating || modelStatus !== 'ready'}
+              glowing={!isGenerating && !!location && modelStatus === 'ready'}
             >
-              {isGenerating ? 'Generating...' : '✨ Generate Itinerary'}
+              {isGenerating ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Generating Itinerary...
+                </span>
+              ) : (
+                '✨ Generate Itinerary'
+              )}
             </CyberButton>
+
+            {modelStatus === 'loading' && (
+              <p className="text-xs text-center text-[var(--color-muted-foreground)]">
+                Waiting for model to load...
+              </p>
+            )}
           </div>
         </CyberCard>
 
         {/* Results Section */}
-        {showResults && (
-          <CyberCard variant="highlighted" className="p-6 md:p-8 animate-in slide-in-from-bottom-4 fade-in duration-500 border-[var(--color-secondary)] neon-border-pink">
-            <h2 className="text-2xl font-bold mb-4 text-[var(--color-secondary)] drop-shadow-[0_0_10px_rgba(255,0,110,0.5)] font-heading">
-              Your Itinerary
-            </h2>
-            <div className="p-6 rounded bg-[var(--color-muted)]/50 border border-[var(--color-border)] min-h-[100px] flex items-center justify-center text-[var(--color-muted-foreground)] italic text-lg">
-              AI model will generate itinerary here...
+        {(itinerary || generationError) && (
+          <CyberCard variant="highlighted" className="p-6 md:p-8 animate-in slide-in-from-bottom-4 fade-in duration-500 border-[var(--color-secondary)] neon-border-pink relative">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold text-[var(--color-secondary)] drop-shadow-[0_0_10px_rgba(255,0,110,0.5)] font-heading">
+                Your Itinerary
+              </h2>
+              {itinerary && (
+                <CyberButton
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleCopy}
+                  className="text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]"
+                >
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copy
+                </CyberButton>
+              )}
+            </div>
+
+            <div className="p-6 rounded bg-[var(--color-muted)]/50 border border-[var(--color-border)] min-h-[100px] text-[var(--color-foreground)] text-lg whitespace-pre-wrap leading-relaxed shadow-inner">
+              {generationError ? (
+                <span className="text-red-500 flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5" />
+                  {generationError}
+                </span>
+              ) : (
+                itinerary
+              )}
             </div>
           </CyberCard>
         )}
