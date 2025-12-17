@@ -11,7 +11,7 @@ export default async function ProfilePage() {
   } = await supabase.auth.getUser()
 
   if (authError || !user) {
-    redirect("/auth/login")
+    redirect("/login")
   }
 
   // Fetch all data in parallel

@@ -42,7 +42,7 @@ export default function SignUpSuccessPage() {
             <p className="text-cyber-light text-sm font-mono">Verification email sent!</p>
           </div>
 
-          <Link href="/auth/login">
+          <Link href="/login">
             <CyberButton variant="cyan" size="lg" className="w-full">
               GO TO LOGIN
             </CyberButton>

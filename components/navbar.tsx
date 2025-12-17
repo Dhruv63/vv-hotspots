@@ -180,7 +180,7 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
             </div>
           ) : (
             <div className="hidden md:flex items-center gap-2">
-              <Link href="/auth/login">
+              <Link href="/login">
                 <CyberButton variant="ghost" size="sm">
                   Login
                 </CyberButton>
@@ -264,7 +264,7 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
             ) : (
               <>
                 <Link
-                  href="/auth/login"
+                  href="/login"
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center justify-center w-full p-3 text-foreground border border-border hover:border-accent rounded-lg transition-colors font-heading min-h-[44px]"
                 >

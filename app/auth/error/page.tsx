@@ -37,7 +37,7 @@ export default async function AuthErrorPage({
           )}
 
           <div className="flex gap-4 justify-center">
-            <Link href="/auth/login">
+            <Link href="/login">
               <CyberButton variant="cyan">TRY LOGIN</CyberButton>
             </Link>
             <Link href="/">

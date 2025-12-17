@@ -292,7 +292,7 @@ export function DashboardClient({
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
         if (sessionError || !sessionData?.session) {
           showMessage("error", "Authentication required. Please sign in again.")
-          router.push("/auth/login")
+          router.push("/login")
           throw new Error("Not authenticated")
         }
         const sanitizedReview = review ? sanitizeInput(review) : null

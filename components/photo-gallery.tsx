@@ -89,7 +89,7 @@ export function PhotoGallery({ hotspotId, refreshTrigger }: PhotoGalleryProps) {
 
   const handleLoginRedirect = () => {
     toast.error("You must be logged in to upload photos")
-    router.push("/auth/login")
+    router.push("/login")
   }
 
   if (isLoading && photos.length === 0) {

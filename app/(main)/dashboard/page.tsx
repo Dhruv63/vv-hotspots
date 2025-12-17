@@ -13,7 +13,7 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser()
 
   if (authError || !user) {
-    redirect("/auth/login")
+    redirect("/login")
   }
 
   const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()

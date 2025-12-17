@@ -11,7 +11,7 @@ export default async function MainLayout({
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect("/auth/login")
+    redirect("/login")
   }
 
   const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
