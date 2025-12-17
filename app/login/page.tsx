@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { MapPin, Mail, Lock, AlertTriangle, Eye, EyeOff, Globe } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { CyberButton } from "@/components/ui/cyber-button"
@@ -12,6 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 export default function LoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -45,13 +47,9 @@ export default function LoginPage() {
         throw new Error("No session returned. Please try again.")
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 200))
-
-      // Force a hard navigation to ensure middleware runs
-      window.location.href = "/dashboard"
+      router.push('/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed. Please try again.")
-    } finally {
       setIsLoading(false)
     }
   }
@@ -61,7 +59,7 @@ export default function LoginPage() {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
       },
     })
   }
