@@ -60,7 +60,7 @@ export async function updateSession(request: NextRequest) {
   if (!user && (
     request.nextUrl.pathname.startsWith('/profile') ||
     request.nextUrl.pathname.startsWith('/settings') ||
-    request.nextUrl.pathname.startsWith('/explore')
+    request.nextUrl.pathname.startsWith('/dashboard')
   )) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
