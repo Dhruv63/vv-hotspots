@@ -75,7 +75,7 @@ export default async function HomePage() {
                 </CyberButton>
               </Link>
               {!user && (
-                <Link href="/auth/login">
+                <Link href="/login">
                   <CyberButton variant="outline" size="lg" className="w-full sm:w-auto">
                     LOGIN
                   </CyberButton>
