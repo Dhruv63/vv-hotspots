@@ -18,12 +18,11 @@ const nextConfig = {
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
-      'sharp$': false,
-      'onnxruntime-node$': false,
+      "sharp$": false,
+      "onnxruntime-node$": false,
     }
-    return config
+    return config;
   },
-  turbopack: {},
 }
 
 export default nextConfig
