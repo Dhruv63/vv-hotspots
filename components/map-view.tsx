@@ -184,6 +184,32 @@ export function MapView({
   const [showLegend, setShowLegend] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
 
+  // Generate a unique ID for the container on mount to avoid reuse errors
+  const containerId = useRef(`map-container-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`)
+
+  // Handle cleanup
+  useEffect(() => {
+    return () => {
+      // Force aggressive cleanup
+      if (mapRef.current) {
+        try {
+            const map = mapRef.current;
+            map.off();
+            map.remove();
+
+            const container = map.getContainer();
+            if (container) {
+                // @ts-ignore
+                container._leaflet_id = null;
+            }
+        } catch (e) {
+            console.error("Map destroy failed:", e);
+        }
+        mapRef.current = null;
+      }
+    };
+  }, []);
+
   // Stabilized mobile detection (Solution B)
   useEffect(() => {
     const checkMobile = () => {
@@ -261,30 +287,12 @@ export function MapView({
       }
   }
 
-  // Handle map resizing, visibility changes, and CLEANUP
+  // Handle map resizing
   useEffect(() => {
     if (mapRef.current && isVisible) {
         setTimeout(() => {
             mapRef.current?.invalidateSize()
         }, 300)
-    }
-
-    // Cleanup function to prevent "Map container is being reused" error
-    return () => {
-      if (mapRef.current) {
-        const map = mapRef.current
-        map.off()
-        map.remove()
-
-        // Explicitly clear Leaflet ID from the container
-        const container = map.getContainer()
-        if (container) {
-          // @ts-ignore
-          container._leaflet_id = null
-        }
-
-        mapRef.current = null
-      }
     }
   }, [viewMode, isVisible])
 
@@ -298,13 +306,18 @@ export function MapView({
     : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
 
   return (
-    <div className={`relative w-full h-full bg-muted z-0 ${isMobile ? "mobile-map-view" : "desktop-map-view"}`}>
+    <div
+        key={containerId.current}
+        id={containerId.current}
+        className={`relative w-full h-full bg-muted z-0 ${isMobile ? "mobile-map-view" : "desktop-map-view"}`}
+    >
       <MapContainer
         center={DEFAULT_CENTER}
         zoom={DEFAULT_ZOOM}
         className="w-full h-full outline-none"
         ref={mapRef}
         zoomControl={false}
+        // @ts-ignore
         tap={false} // Disable tap handler for mobile (prevents some conflicts)
         touchZoom={true}
         dragging={true}
