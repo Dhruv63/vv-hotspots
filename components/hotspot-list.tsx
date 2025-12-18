@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
-import { Search, Filter, List, Grid, Zap, Star, X, MessageSquare, Loader2, Clock, Coffee, Trees, Gamepad2, Utensils, Beer, MapPin, Sparkles } from "lucide-react"
+import { Search, Filter, List, Grid, Zap, Star, X, MessageSquare, Loader2, Clock, Coffee, Trees, Gamepad2, Utensils, Beer, MapPin } from "lucide-react"
 import { HotspotCard } from "@/components/hotspot-card"
 import { Input } from "@/components/ui/input"
 import type { Hotspot } from "@/lib/types"
@@ -228,21 +228,19 @@ export function HotspotList({
       </div>
 
       <div className="px-3 pt-3 md:px-4 md:pt-4">
-        <Link href="/ai-planner">
-          <div className="relative overflow-hidden rounded-xl border border-[var(--color-accent)]/30 bg-gradient-to-r from-[var(--color-accent)]/10 to-[var(--color-secondary)]/10 p-3 transition-all hover:border-[var(--color-accent)] hover:shadow-[0_0_15px_var(--color-accent)] group cursor-pointer">
-            <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-accent)]/5 to-[var(--color-secondary)]/5 opacity-0 transition-opacity group-hover:opacity-100" />
-            <div className="relative flex items-center justify-between">
-              <div className="space-y-1">
-                <h3 className="flex items-center gap-2 font-mono text-base font-bold text-foreground">
-                  <Sparkles className="h-4 w-4 text-[var(--color-accent)] animate-pulse" />
-                  AI Day Planner
-                </h3>
-                <p className="text-[10px] md:text-xs text-muted-foreground">
-                  Let AI plan your perfect day
-                </p>
-              </div>
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-accent)]/20 text-[var(--color-accent)] transition-transform group-hover:scale-110">
-                <span className="text-lg">✨</span>
+        <Link
+          href="/ai-planner"
+          className="block bg-gradient-to-br from-cyan-500/20 to-pink-500/20 border-2 border-cyan-500/40 rounded-xl p-6 hover:shadow-2xl hover:shadow-cyan-500/30 transition-all hover:scale-105 group"
+        >
+          <div className="flex items-center gap-4">
+            <div className="text-6xl group-hover:scale-110 transition-transform">🤖</div>
+            <div className="flex-1">
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-pink-400 bg-clip-text text-transparent">
+                AI Day Planner
+              </h3>
+              <p className="text-gray-300 mt-1">Let AI plan your perfect day in Vasai-Virar</p>
+              <div className="mt-2 inline-block bg-green-500/20 border border-green-500/40 rounded-full px-3 py-1">
+                <span className="text-green-300 text-sm font-semibold">✨ NEW</span>
               </div>
             </div>
           </div>
