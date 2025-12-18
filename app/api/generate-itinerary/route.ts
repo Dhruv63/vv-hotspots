@@ -92,46 +92,42 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const companionText = {
+    const companionMap: Record<string, string> = {
       girlfriend: 'your romantic partner',
       friends: 'a group of friends',
       family: 'family members',
       solo: 'solo (by yourself)',
-    }[companionType] || companionType
+    }
 
-    const prompt = `You are an expert local travel guide for Vasai-Virar, Maharashtra, India. Create a detailed ${timeAvailable}-hour itinerary for someone traveling with ${companionText}.
+    const companionText = companionMap[companionType] || companionType
 
-📍 Starting Location: ${startLocation}
+    const prompt = `Create a concise ${timeAvailable}-hour itinerary in Vasai-Virar for ${companionText}.
 
-REQUIREMENTS:
-1. Include 2-3 REAL places from Vasai-Virar:
-   - Vasai Fort (Portuguese ruins, ocean views)
-   - Arnala Beach (peaceful beach, seafood)
-   - Tungareshwar Temple (forest trek, hilltop temple)
-   - Global Vipassana Pagoda (meditation center)
-   - Local markets (Virar Market, Vasai Market)
-   - Popular cafes and restaurants
+Starting: ${startLocation}
 
-2. For EACH place provide:
-   📍 Place name
-   🕐 Specific timing (e.g., 9:00 AM - 10:30 AM)
-   🎯 Activities (be specific and exciting)
-   💰 Cost in ₹ (realistic prices)
-   🚗 Travel time and transport method
+FORMAT (keep it short!):
+🗓️ ${timeAvailable}-Hour Plan
+📍 Start: ${startLocation}
 
-3. Match companion type:
-   - Romantic partner: romantic spots, cafes, sunset views
-   - Friends: fun activities, street food
-   - Family: safe, all-ages friendly
-   - Solo: peaceful spots, photography
+1️⃣ [Place Name] (Time: X:XX - Y:YY)
+   🎯 What to do: [brief description]
+   💰 Cost: ₹XX
+   🚗 Travel: XX mins by [transport]
 
-4. Format clearly with emojis and sections
+2️⃣ [Place Name] (Time: X:XX - Y:YY)
+   🎯 What to do: [brief description]
+   💰 Cost: ₹XX
+   🚗 Travel: XX mins
 
-5. End with 3-4 practical tips for Vasai-Virar
+Include 2-3 places only from: Vasai Fort, Arnala Beach, Tungareshwar Temple, local markets, cafes.
 
-6. Keep total cost ₹500-2000 range
+💡 Tips (2-3 only):
+• Tip 1
+• Tip 2
 
-Make it exciting and authentic! Use conversational tone.`
+Total Cost: ₹XXX-XXX
+
+KEEP IT UNDER 300 WORDS! Be concise and practical.`
 
     console.log(`🤖 Generating for ${session.user.email}...`)
     const itinerary = await generateWithRetry(prompt)

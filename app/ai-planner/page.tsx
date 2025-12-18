@@ -12,7 +12,7 @@ export default function AIPlanner() {
   const [itinerary, setItinerary] = useState('')
   const [error, setError] = useState('')
   const [usageCount, setUsageCount] = useState(0)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(true)
 
   const supabase = createClient()
   const MAX_DAILY_USAGE = 5
@@ -210,8 +210,27 @@ export default function AIPlanner() {
               </button>
             </div>
 
-            <div className="text-gray-200 leading-relaxed whitespace-pre-wrap text-lg">
-              {itinerary}
+            {/* Better formatted output */}
+            <div className="prose prose-invert prose-pink max-w-none">
+              <div
+                className="text-gray-200 leading-relaxed text-lg"
+                style={{
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                }}
+              >
+                {itinerary.split('\n').map((line, i) => {
+                  // Remove markdown table syntax
+                  if (line.includes('|') && line.includes('---')) return null
+                  if (line.trim().startsWith('|')) return null
+
+                  return (
+                    <div key={i} className={line.trim() ? 'mb-2' : 'mb-4'}>
+                      {line}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           </div>
         )}
