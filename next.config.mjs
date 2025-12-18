@@ -15,13 +15,22 @@ const nextConfig = {
   },
   reactCompiler: true,
   cacheComponents: true,
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
+    // Exclude problematic modules from server-side bundling
+    if (isServer) {
+      config.externals.push({
+        '@xenova/transformers': 'commonjs @xenova/transformers',
+      })
+    }
+
+    // Ensure proper resolution for transformers.js
     config.resolve.alias = {
       ...config.resolve.alias,
-      "sharp$": false,
-      "onnxruntime-node$": false,
+      'sharp$': false,
+      'onnxruntime-node$': false,
     }
-    return config;
+
+    return config
   },
 }
 
