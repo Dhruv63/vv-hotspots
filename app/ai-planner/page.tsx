@@ -1,297 +1,227 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Loader2, AlertTriangle, Sparkles, MapPin, Clock, Users, RefreshCw, ArrowLeft } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
-const generateFallbackItinerary = (hours: string, companion: string, location: string) => {
-  const spots: Record<string, Array<{ name: string, time: string, cost: string, activity: string }>> = {
-    '2': [
-      { name: 'Vasai Fort', time: '1 hour', cost: '₹0 (Free entry)', activity: 'Explore Portuguese ruins' },
-      { name: 'Local Cafe', time: '1 hour', cost: '₹300-500', activity: 'Coffee and snacks' }
-    ],
-    '4': [
-      { name: 'Vasai Fort', time: '1.5 hours', cost: '₹0 (Free entry)', activity: 'Historical exploration' },
-      { name: 'Arnala Beach', time: '2 hours', cost: '₹50 (Transport)', activity: 'Beach time and seafood' },
-      { name: 'Local Market', time: '30 mins', cost: '₹200', activity: 'Shopping and street food' }
-    ],
-    '6': [
-      { name: 'Tungareshwar Temple', time: '2 hours', cost: '₹0 + ₹100 transport', activity: 'Nature trek and temple visit' },
-      { name: 'Vasai Fort', time: '1.5 hours', cost: '₹0', activity: 'Sunset photography' },
-      { name: 'Seafood Restaurant', time: '1.5 hours', cost: '₹600-800', activity: 'Authentic Vasai cuisine' },
-      { name: 'Market Street', time: '1 hour', cost: '₹300', activity: 'Local shopping' }
-    ]
-  }
-
-  const selectedSpots = spots[hours] || spots['4']
-  let output = `🗺️ ${hours}-Hour Itinerary\n👥 ${companion}\n📍 Starting: ${location}\n\n`
-
-  selectedSpots.forEach((spot, i) => {
-    output += `${i + 1}. ${spot.name} (${spot.time})\n   🎯 ${spot.activity}\n   💰 ${spot.cost}\n\n`
-  })
-
-  return output + `💡 Tips:\n- Book transport in advance\n- Carry water and sunscreen\n- Try local seafood specialties\n- Best time: Early morning or evening`
-}
-
-export default function AIPlannerPage() {
-  const [timeAvailable, setTimeAvailable] = useState('2')
-  const [companionType, setCompanionType] = useState('Friends')
+export default function AIPlanner() {
+  const [timeAvailable, setTimeAvailable] = useState('4')
+  const [companionType, setCompanionType] = useState('friends')
   const [startLocation, setStartLocation] = useState('')
   const [loading, setLoading] = useState(false)
-  const [modelLoading, setModelLoading] = useState(false)
   const [itinerary, setItinerary] = useState('')
   const [error, setError] = useState('')
+  const [usageCount, setUsageCount] = useState(0)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
-  // Cache the model pipeline to prevent reloading
-  const pipelineRef = useRef<any>(null)
+  const supabase = createClient()
+  const MAX_DAILY_USAGE = 5
 
-  const loadModel = async () => {
-    // If model is already loaded, return existing pipeline
-    if (pipelineRef.current) return
-
-    try {
-      setModelLoading(true)
-
-      // Dynamic import inside function to avoid server-side issues
-      const { pipeline } = await import('@xenova/transformers')
-
-      // Load the Flan-T5-Small model (approx 80MB)
-      // This happens entirely in the browser
-      pipelineRef.current = await pipeline('text2text-generation', 'Xenova/flan-t5-small')
-
-      setModelLoading(false)
-    } catch (err) {
-      console.error('Model load error:', err)
-      setError('Failed to download AI model. Please check your internet connection.')
-      setModelLoading(false)
-      throw err // Re-throw to stop generation flow
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      setIsAuthenticated(!!session)
     }
+    checkAuth()
+  }, [supabase])
+
+  useEffect(() => {
+    const today = new Date().toDateString()
+    const usageKey = `ai_planner_${today}`
+    const stored = localStorage.getItem(usageKey)
+    setUsageCount(stored ? parseInt(stored) : 0)
+  }, [])
+
+  const updateUsage = () => {
+    const today = new Date().toDateString()
+    const usageKey = `ai_planner_${today}`
+    const newCount = usageCount + 1
+    localStorage.setItem(usageKey, newCount.toString())
+    setUsageCount(newCount)
   }
 
-  const generateItinerary = async () => {
-    // 1. Validation
+  const handleGenerate = async () => {
+    if (!isAuthenticated) {
+      setError('Please log in to use AI Planner')
+      return
+    }
+
     if (!startLocation.trim()) {
-      setError('Please enter a starting location.')
+      setError('Please enter a starting location')
+      return
+    }
+
+    if (usageCount >= MAX_DAILY_USAGE) {
+      setError(`Daily limit reached! You can generate ${MAX_DAILY_USAGE} itineraries per day. Come back tomorrow! 🌅`)
       return
     }
 
     setLoading(true)
     setError('')
+    setItinerary('')
 
     try {
-      // 2. Ensure model is loaded (only downloads on first run)
-      await loadModel()
-
-      // 3. Build Prompt
-      const prompt = `Plan a ${timeAvailable} hour trip in Vasai-Virar starting from ${startLocation}. Companion: ${companionType}. List exactly 2-3 places with format:
-1. Place name - Activity (timing, travel time, cost in ₹)
-2. Place name - Activity (timing, travel time, cost in ₹)
-Include: Tungareshwar Temple, Vasai Fort, Arnala Beach, Global Vipassana Pagoda, or local cafes.`
-
-      // 4. Generate Content
-      // max_length: 512 tokens for detailed output
-      const result = await pipelineRef.current(prompt, {
-        max_length: 512,
-        temperature: 0.7,
-        top_p: 0.9,
+      const response = await fetch('/api/generate-itinerary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          timeAvailable,
+          companionType,
+          startLocation,
+        }),
       })
 
-      // 5. Extract and Format Result
-      if (result && result[0] && result[0].generated_text) {
-        const generatedText = result[0].generated_text
+      const data = await response.json()
 
-        // Check if output is too short/vague
-        if (generatedText.length < 100) {
-            console.log('AI output too short, using fallback')
-            setItinerary(generateFallbackItinerary(timeAvailable, companionType, startLocation))
-        } else {
-            // Add header and footer details to the raw output
-            const formattedItinerary = `Itinerary: ${timeAvailable} Hours | With: ${companionType} | From: ${startLocation}\n\n${generatedText}\n\nTips: Wear comfortable shoes and carry water! Check local train timings if traveling between Vasai and Virar.`
-            setItinerary(formattedItinerary)
-        }
-      } else {
-        throw new Error('No output generated by the model.')
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate itinerary')
       }
 
-    } catch (err) {
-      console.error('Generation failed:', err)
-      // Fallback on error as well
-      console.log('Generation error, using fallback')
-      setItinerary(generateFallbackItinerary(timeAvailable, companionType, startLocation))
-    } finally {
+      setItinerary(data.itinerary)
+      updateUsage()
+      setLoading(false)
+    } catch (err: any) {
+      setError(err.message || 'Failed to generate. Please try again.')
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-purple-900 to-black p-4 md:p-8 flex flex-col items-center overflow-y-auto">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-black p-6">
+      <div className="max-w-3xl mx-auto">
 
-      <div className="w-full max-w-2xl space-y-6 mt-4 mb-12">
-
-        {/* Header Section */}
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-cyan-400 to-pink-500 bg-clip-text text-transparent drop-shadow-lg font-heading">
+        <div className="text-center mb-8">
+          <h1 className="text-5xl font-bold mb-3 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">
             🤖 AI Day Planner
           </h1>
-          <p className="text-gray-300 text-lg">
-            Plan your perfect day in Vasai-Virar
-          </p>
-          {pipelineRef.current && !modelLoading && (
-             <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-500/20 text-green-400 text-sm font-medium border border-green-500/30 animate-in fade-in duration-500">
-               <span>✅</span> AI Model Ready
-             </div>
-          )}
+          <p className="text-gray-300 text-lg">Plan your perfect day in Vasai-Virar with AI</p>
+
+          <div className="mt-4 inline-block bg-cyan-500/10 border border-cyan-500/30 rounded-full px-4 py-2">
+            <span className="text-cyan-300 text-sm font-semibold">
+              {usageCount}/{MAX_DAILY_USAGE} itineraries today
+            </span>
+          </div>
         </div>
 
-        {/* Model Loading Alert */}
-        {modelLoading && (
-          <div className="w-full p-4 rounded-lg border border-blue-500/50 bg-blue-900/20 backdrop-blur-sm flex items-start gap-3 animate-pulse">
-            <Loader2 className="w-5 h-5 text-blue-400 animate-spin mt-1 shrink-0" />
-            <div>
-              <h3 className="text-blue-200 font-semibold">Downloading AI Model...</h3>
-              <p className="text-blue-300/80 text-sm">~80MB, one-time download. This may take 1-2 minutes.</p>
+        {!isAuthenticated && (
+          <div className="bg-yellow-900/40 border border-yellow-500/50 rounded-lg p-4 mb-6 text-center">
+            <p className="text-yellow-300">⚠️ Please <Link href="/login" className="underline font-bold hover:text-yellow-200">log in</Link> to use AI Planner</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="bg-red-900/40 border border-red-500/50 rounded-lg p-4 mb-6">
+            <p className="text-red-300 font-semibold">⚠️ {error}</p>
+          </div>
+        )}
+
+        <div className="bg-black/40 backdrop-blur-lg border border-cyan-500/30 rounded-xl p-8 mb-6 shadow-2xl shadow-cyan-500/20">
+
+          <div className="mb-6">
+            <label className="block text-cyan-400 mb-3 font-bold text-lg">
+              ⏰ Time Available
+            </label>
+            <div className="flex items-center gap-4">
+              <input
+                type="range"
+                min="1"
+                max="12"
+                value={timeAvailable}
+                onChange={(e) => setTimeAvailable(e.target.value)}
+                className="flex-1 accent-cyan-500"
+              />
+              <div className="bg-cyan-500/20 border border-cyan-500/50 rounded-lg px-6 py-3 min-w-[100px] text-center">
+                <span className="text-cyan-300 font-bold text-xl">{timeAvailable}</span>
+                <span className="text-cyan-400 text-sm ml-1">hrs</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-pink-400 mb-3 font-bold text-lg">
+              👥 Who are you with?
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { value: 'girlfriend', emoji: '💑', label: 'Partner' },
+                { value: 'friends', emoji: '👯', label: 'Friends' },
+                { value: 'family', emoji: '👨‍👩‍👧‍👦', label: 'Family' },
+                { value: 'solo', emoji: '🚶', label: 'Solo' },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => setCompanionType(option.value)}
+                  className={`p-4 rounded-lg border-2 transition-all font-semibold ${
+                    companionType === option.value
+                      ? 'bg-pink-500/30 border-pink-500 text-pink-200 scale-105'
+                      : 'bg-gray-900/50 border-pink-500/30 text-gray-400 hover:border-pink-500/60'
+                  }`}
+                >
+                  <div className="text-2xl mb-1">{option.emoji}</div>
+                  <div className="text-sm">{option.label}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-purple-400 mb-3 font-bold text-lg">
+              📍 Starting Location
+            </label>
+            <input
+              type="text"
+              placeholder="e.g., Vasai Railway Station, Virar East"
+              value={startLocation}
+              onChange={(e) => setStartLocation(e.target.value)}
+              className="w-full bg-gray-900/70 border-2 border-purple-500/50 rounded-lg px-5 py-4 text-white text-lg focus:outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-400/30 placeholder-gray-500 transition-all"
+            />
+          </div>
+
+          <button
+            onClick={handleGenerate}
+            disabled={loading || !isAuthenticated || !startLocation.trim() || usageCount >= MAX_DAILY_USAGE}
+            className="w-full bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 text-white font-bold text-xl py-5 rounded-xl hover:shadow-2xl hover:shadow-pink-500/50 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {loading ? (
+              <span className="flex items-center justify-center gap-3">
+                <svg className="animate-spin h-6 w-6" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Generating Your Perfect Day...
+              </span>
+            ) : (
+              '✨ Generate AI Itinerary 🚀'
+            )}
+          </button>
+        </div>
+
+        {itinerary && (
+          <div className="bg-black/50 backdrop-blur-lg border border-pink-500/40 rounded-xl p-8 shadow-2xl shadow-pink-500/20">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
+                🎉 Your Perfect Day
+              </h2>
+              <button
+                onClick={() => { setItinerary(''); setError('') }}
+                className="text-pink-400 hover:text-pink-300 font-semibold flex items-center gap-2 px-4 py-2 border border-pink-500/30 rounded-lg hover:bg-pink-500/10 transition-all"
+              >
+                🔄 New Plan
+              </button>
+            </div>
+
+            <div className="text-gray-200 leading-relaxed whitespace-pre-wrap text-lg">
+              {itinerary}
             </div>
           </div>
         )}
 
-        {/* Error Alert */}
-        {error && (
-          <div className="w-full p-4 rounded-lg border border-red-500/50 bg-red-900/20 backdrop-blur-sm flex items-center justify-between gap-3 animate-in slide-in-from-top-2">
-             <div className="flex items-center gap-3">
-                <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />
-                <p className="text-red-200">{error}</p>
-             </div>
-             <button
-               onClick={generateItinerary}
-               className="text-xs bg-red-500/20 hover:bg-red-500/30 text-red-300 px-3 py-1 rounded border border-red-500/30 transition-colors"
-             >
-               Try Again
-             </button>
-          </div>
-        )}
-
-        {/* Input Form Card */}
-        <div className="w-full bg-black/40 backdrop-blur-md border border-cyan-500/50 rounded-xl p-6 md:p-8 shadow-[0_0_20px_rgba(6,182,212,0.15)] relative overflow-hidden group">
-           {/* Cyberpunk accent lines */}
-           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 to-pink-500 opacity-50" />
-
-           <div className="space-y-6">
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 {/* Time Available */}
-                 <div className="space-y-2">
-                    <label className="text-cyan-400 text-sm font-bold uppercase tracking-wider">
-                       Time Available (Hours)
-                    </label>
-                    <div className="relative">
-                       <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
-                       <input
-                         type="number"
-                         min="1"
-                         max="12"
-                         value={timeAvailable}
-                         onChange={(e) => setTimeAvailable(e.target.value)}
-                         className="w-full bg-gray-900/80 border border-gray-700 focus:border-cyan-500 rounded-lg py-3 pl-10 pr-4 text-white outline-none transition-colors"
-                       />
-                    </div>
-                 </div>
-
-                 {/* Companion Type */}
-                 <div className="space-y-2">
-                    <label className="text-cyan-400 text-sm font-bold uppercase tracking-wider">
-                       Companion
-                    </label>
-                    <div className="relative">
-                       <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
-                       <select
-                         value={companionType}
-                         onChange={(e) => setCompanionType(e.target.value)}
-                         className="w-full bg-gray-900/80 border border-gray-700 focus:border-cyan-500 rounded-lg py-3 pl-10 pr-4 text-white outline-none transition-colors appearance-none"
-                       >
-                          <option value="Girlfriend/Partner">💑 Girlfriend/Partner</option>
-                          <option value="Friends">👯 Friends</option>
-                          <option value="Family">👨‍👩‍👧‍👦 Family</option>
-                          <option value="Solo">👤 Solo</option>
-                       </select>
-                    </div>
-                 </div>
-              </div>
-
-              {/* Start Location */}
-              <div className="space-y-2">
-                 <label className="text-cyan-400 text-sm font-bold uppercase tracking-wider">
-                    Starting Location
-                 </label>
-                 <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
-                    <input
-                      type="text"
-                      placeholder="e.g. Vasai Railway Station"
-                      value={startLocation}
-                      onChange={(e) => setStartLocation(e.target.value)}
-                      className="w-full bg-gray-900/80 border border-gray-700 focus:border-cyan-500 rounded-lg py-3 pl-10 pr-4 text-white outline-none transition-colors placeholder:text-gray-600"
-                    />
-                 </div>
-              </div>
-
-              {/* Generate Button */}
-              <button
-                onClick={generateItinerary}
-                disabled={loading || modelLoading || !startLocation}
-                className={`w-full py-4 rounded-lg font-bold text-lg text-white shadow-lg transition-all duration-300 relative overflow-hidden
-                  ${(loading || modelLoading || !startLocation)
-                    ? 'bg-gray-800 cursor-not-allowed opacity-50'
-                    : 'bg-gradient-to-r from-cyan-500 to-pink-500 hover:scale-[1.02] hover:shadow-cyan-500/25'
-                  }`}
-              >
-                 <div className="flex items-center justify-center gap-2">
-                    {loading || modelLoading ? (
-                       <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          <span>{modelLoading ? 'Loading AI Model...' : 'Generating Itinerary...'}</span>
-                       </>
-                    ) : (
-                       <>
-                          <Sparkles className="w-5 h-5" />
-                          <span>✨ Generate Itinerary</span>
-                       </>
-                    )}
-                 </div>
-              </button>
-
-           </div>
-        </div>
-
-        {/* Results Section */}
-        {itinerary && (
-          <div className="w-full bg-black/40 backdrop-blur-md border border-pink-500/50 rounded-xl p-6 md:p-8 shadow-[0_0_20px_rgba(236,72,153,0.15)] animate-in fade-in slide-in-from-bottom-4 duration-700">
-             <div className="flex items-center justify-between mb-6 border-b border-pink-500/20 pb-4">
-                <h2 className="text-2xl font-bold text-pink-400 flex items-center gap-2 font-heading">
-                   🎉 Your Itinerary
-                </h2>
-                <button
-                   onClick={generateItinerary}
-                   className="text-sm text-pink-300/70 hover:text-pink-300 flex items-center gap-1 transition-colors"
-                >
-                   <RefreshCw className="w-4 h-4" /> Regenerate
-                </button>
-             </div>
-
-             <div className="prose prose-invert max-w-none">
-                <div className="whitespace-pre-wrap text-gray-200 leading-relaxed font-light text-lg">
-                   {itinerary}
-                </div>
-             </div>
-          </div>
-        )}
-
-        {/* Back Link */}
-        <div className="flex justify-center pt-4 pb-8">
-           <Link href="/dashboard" className="text-cyan-400 hover:text-cyan-300 flex items-center gap-2 transition-colors font-medium">
-              <ArrowLeft className="w-4 h-4" /> Back to Dashboard
-           </Link>
-        </div>
-
+        <Link
+          href="/dashboard"
+          className="block text-center mt-8 text-cyan-400 hover:text-cyan-300 transition-colors font-semibold text-lg"
+        >
+          ← Back to Dashboard
+        </Link>
       </div>
     </div>
   )
