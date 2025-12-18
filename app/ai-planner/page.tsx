@@ -15,7 +15,7 @@ export default function AIPlanner() {
   const [isAuthenticated, setIsAuthenticated] = useState(true)
 
   const supabase = createClient()
-  const MAX_DAILY_USAGE = 5
+  const MAX_DAILY_USAGE = 3
 
   useEffect(() => {
     const checkAuth = async () => {

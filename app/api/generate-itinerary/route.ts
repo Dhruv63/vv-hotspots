@@ -29,7 +29,7 @@ async function generateWithRetry(prompt: string): Promise<string> {
     try {
       const apiKey = getNextApiKey()
       const genAI = new GoogleGenerativeAI(apiKey)
-      const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' })
+      const model = genAI.getGenerativeModel({ model: 'gemma-3-12b-it' })
 
       const result = await model.generateContent(prompt)
       const text = result.response.text()
@@ -105,29 +105,27 @@ export async function POST(request: NextRequest) {
 
 Starting: ${startLocation}
 
-FORMAT (keep it short!):
-🗓️ ${timeAvailable}-Hour Plan
-📍 Start: ${startLocation}
+FORMAT (keep it SHORT and practical!):
 
-1️⃣ [Place Name] (Time: X:XX - Y:YY)
-   🎯 What to do: [brief description]
-   💰 Cost: ₹XX
-   🚗 Travel: XX mins by [transport]
+🗓️ ${timeAvailable}-Hour Plan | Start: ${startLocation}
 
-2️⃣ [Place Name] (Time: X:XX - Y:YY)
-   🎯 What to do: [brief description]
-   💰 Cost: ₹XX
-   🚗 Travel: XX mins
+1️⃣ [Place Name] • [Start Time] - [End Time]
+   🎯 Activity: [1 sentence only]
+   💰 Cost: ₹XX | 🚗 [X mins by auto]
 
-Include 2-3 places only from: Vasai Fort, Arnala Beach, Tungareshwar Temple, local markets, cafes.
+2️⃣ [Place Name] • [Start Time] - [End Time]
+   🎯 Activity: [1 sentence only]
+   💰 Cost: ₹XX | 🚗 [X mins]
 
-💡 Tips (2-3 only):
-• Tip 1
-• Tip 2
+Include 2-3 places ONLY from: Vasai Fort, Arnala Beach, Tungareshwar, local markets, cafes.
 
-Total Cost: ₹XXX-XXX
+💡 Quick Tips:
+• [Tip 1 - one line]
+• [Tip 2 - one line]
 
-KEEP IT UNDER 300 WORDS! Be concise and practical.`
+Total: ₹XXX-XXX
+
+KEEP IT UNDER 250 WORDS! Be brief and actionable.`
 
     console.log(`🤖 Generating for ${session.user.email}...`)
     const itinerary = await generateWithRetry(prompt)
