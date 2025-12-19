@@ -147,7 +147,7 @@ export function ReviewsTab({ hotspotId, onWriteReview, currentUserReview }: Revi
           <div className="text-center py-12 text-cyber-gray border border-dashed border-cyber-gray/30 rounded-lg">
             <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-30" />
             <p className="font-mono text-sm">No reviews yet.</p>
-            <p className="text-xs mt-1">Be the first to share your experience!</p>
+            <p className="text-xs mt-1">Be the first to review!</p>
           </div>
         )}
 
@@ -162,7 +162,7 @@ export function ReviewsTab({ hotspotId, onWriteReview, currentUserReview }: Revi
             onClick={handleLoadMore}
             className="w-full py-3 text-center font-mono text-xs text-cyber-cyan hover:text-cyber-light hover:underline transition-colors border border-dashed border-cyber-gray/30 rounded hover:border-cyber-cyan/50"
           >
-            VIEW ALL REVIEWS
+            SHOW MORE REVIEWS
           </button>
         )}
       </div>

@@ -16,7 +16,7 @@ export default async function DashboardPage() {
     redirect("/login")
   }
 
-  const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
   const todayStart = new Date()
   todayStart.setHours(0, 0, 0, 0)
 
@@ -40,7 +40,7 @@ export default async function DashboardPage() {
       .from("check_ins")
       .select("hotspot_id, user_id")
       .eq("is_active", true)
-      .gte("checked_in_at", fourHoursAgo),
+      .gte("checked_in_at", twentyFourHoursAgo),
 
     // Ratings (Global - for average calculation)
     supabase.from("ratings").select("hotspot_id, rating"),
@@ -50,6 +50,7 @@ export default async function DashboardPage() {
       .from("check_ins")
       .select("id, user_id, hotspot_id, checked_in_at")
       .eq("is_active", true)
+      .gte("checked_in_at", twentyFourHoursAgo)
       .order("checked_in_at", { ascending: false })
       .limit(50),
 
@@ -59,7 +60,7 @@ export default async function DashboardPage() {
       .select("hotspot_id")
       .eq("user_id", user.id)
       .eq("is_active", true)
-      .gte("checked_in_at", fourHoursAgo)
+      .gte("checked_in_at", twentyFourHoursAgo)
       .order("checked_in_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
@@ -149,7 +150,9 @@ export default async function DashboardPage() {
       friendVisitsPromise = supabase
         .from('check_ins')
         .select('hotspot_id')
-        .in('user_id', friendIds) as any
+        .in('user_id', friendIds)
+        .eq('is_active', true)
+        .gte('checked_in_at', twentyFourHoursAgo) as any
   }
 
   // Await dependent data
