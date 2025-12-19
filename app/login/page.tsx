@@ -47,8 +47,28 @@ export default function LoginPage() {
         throw new Error("No session returned. Please try again.")
       }
 
-      router.refresh()
+      // Fetch user's theme immediately to prevent flash
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('theme')
+        .eq('id', data.session.user.id)
+        .single()
+
+      if (profile?.theme) {
+        localStorage.setItem('user-theme', profile.theme)
+      }
+
       router.push('/dashboard')
+      router.refresh()
+
+      // Safety timeout in case redirect hangs
+      setTimeout(() => {
+         // Check if we haven't redirected yet
+         if (window.location.pathname === '/login') {
+             setError("Login is taking longer than expected. Please try again.")
+             setIsLoading(false)
+         }
+      }, 5000)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed. Please try again.")
       setIsLoading(false)
