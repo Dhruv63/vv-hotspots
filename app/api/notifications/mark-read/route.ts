@@ -24,9 +24,9 @@ export async function POST(request: Request) {
       // Mark all notifications as read
       const { data, error } = await supabase
         .from('notifications')
-        .update({ read: true })
+        .update({ is_read: true })
         .eq('user_id', user.id)
-        .eq('read', false)
+        .eq('is_read', false)
         .select()
 
       if (error) {
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
       // Mark single notification as read
       const { data, error } = await supabase
         .from('notifications')
-        .update({ read: true })
+        .update({ is_read: true })
         .eq('id', notification_id)
         .eq('user_id', user.id)
         .select()
