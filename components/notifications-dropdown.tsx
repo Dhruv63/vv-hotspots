@@ -69,7 +69,9 @@ export function NotificationsDropdown({ userId }: NotificationsDropdownProps) {
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+            const target = event.target as HTMLElement
+            // Close if clicking outside the dropdown container
+            if (isOpen && dropdownRef.current && !dropdownRef.current.contains(target)) {
                 setIsOpen(false)
             }
         }
@@ -77,63 +79,71 @@ export function NotificationsDropdown({ userId }: NotificationsDropdownProps) {
         return () => {
             document.removeEventListener("mousedown", handleClickOutside)
         }
-    }, [])
-
-    const markAsRead = async (id: string) => {
-        try {
-            const { error } = await supabase
-                .from("notifications")
-                .update({ read: true })
-                .eq("id", id)
-
-            if (error) throw error
-
-            setNotifications((prev) =>
-                prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-            )
-            setUnreadCount((prev) => Math.max(0, prev - 1))
-        } catch (error) {
-            console.error("Error marking notification as read:", error)
-        }
-    }
+    }, [isOpen])
 
     const handleNotificationClick = async (notification: Notification) => {
+        // Mark as read via API if not read
         if (!notification.read) {
-            await markAsRead(notification.id)
+            try {
+                await fetch('/api/notifications/mark-read', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ notification_id: notification.id })
+                })
+
+                // Optimistic update
+                setNotifications((prev) =>
+                    prev.map((n) => (n.id === notification.id ? { ...n, read: true } : n))
+                )
+                setUnreadCount((prev) => Math.max(0, prev - 1))
+            } catch (error) {
+                console.error("Error marking notification as read:", error)
+            }
         }
 
         setIsOpen(false)
 
-        // Navigate based on type
-        if (notification.type === 'friend_request' || notification.type === 'friend_accept') {
+        // Navigate based on notification type
+        if (notification.type === 'friend_request') {
             router.push('/profile/friends')
+        } else if (notification.type === 'friend_accept') {
+            router.push('/profile/friends')
+        } else if (notification.data?.hotspot_id) {
+            router.push(`/hotspots/${notification.data.hotspot_id}`)
+        } else if (notification.data?.user_id) {
+            router.push(`/users/${notification.data.user_id}`)
         } else {
-            // Default fallback or handle checkins
+            // Default fallback
+            // window.location.href not ideal in SPA, using router.push but refreshing notifications
+            // If just general notification, maybe stay on page?
             // router.push('/dashboard')
         }
+
+        // Reload notifications to sync state fully if needed
+        fetchNotifications()
     }
 
     const markAllAsRead = async () => {
         try {
-            const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id)
-            if (unreadIds.length === 0) return
+            await fetch('/api/notifications/mark-read', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mark_all: true })
+            })
 
-            const { error } = await supabase
-                .from("notifications")
-                .update({ read: true })
-                .in("id", unreadIds)
-
-            if (error) throw error
-
+            // Optimistic update
             setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
             setUnreadCount(0)
+
+            // Re-fetch to confirm
+            fetchNotifications()
         } catch (error) {
             console.error("Error marking all as read:", error)
         }
     }
 
     return (
-        <div className="relative" ref={dropdownRef}>
+        <div className="relative notification-bell-container" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="relative p-2 rounded-full hover:bg-cyber-gray/10 text-cyber-light transition-colors"
@@ -170,41 +180,40 @@ export function NotificationsDropdown({ userId }: NotificationsDropdownProps) {
                             </div>
                         ) : (
                             <div className="divide-y divide-white/5">
-                                {notifications.map((notification) => (
+                                {notifications.map((notif) => (
                                     <div
-                                        key={notification.id}
-                                        className={`flex gap-3 p-4 hover:bg-white/5 transition-colors cursor-pointer ${!notification.read ? "bg-white/[0.02] border-l-2 border-[#E8FF00]" : "border-l-2 border-transparent"
-                                            }`}
-                                        onClick={() => handleNotificationClick(notification)}
+                                        key={notif.id}
+                                        className={`p-3 border-b border-gray-800 hover:bg-gray-800 cursor-pointer transition-colors ${
+                                            !notif.read ? 'bg-cyan-900/20 border-l-4 border-l-cyan-500' : ''
+                                        }`}
+                                        onClick={() => handleNotificationClick(notif)}
                                     >
-                                        {/* Avatar Placeholder - ideally fetch sender profile */}
-                                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-cyan-500/20 border border-cyan-500/50 flex items-center justify-center text-cyan-400 font-bold">
-                                            {notification.type === 'friend_request' ? 'FR' : 'FA'}
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex-1">
+                                                <h4 className={`text-sm font-semibold ${
+                                                    !notif.read ? 'text-cyan-300' : 'text-gray-300'
+                                                }`}>
+                                                    {notif.type === 'friend_request' ? '👥 Friend Request' :
+                                                     notif.type === 'friend_accept' ? '✅ Friend Accepted' :
+                                                     notif.type === 'check_in' ? '📍 Check-in' : // Assuming check_in type exists or mapped
+                                                     '🔔 Notification'}
+                                                </h4>
+                                                <p className="text-xs text-gray-300 mt-1">
+                                                    {/* Display content based on type/data if content field missing */}
+                                                    {notif.data?.message ||
+                                                     (notif.type === 'friend_request' && "New friend request received") ||
+                                                     (notif.type === 'friend_accept' && "Your friend request was accepted") ||
+                                                     "New notification"}
+                                                </p>
+                                                <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                                                     <Clock className="w-3 h-3" />
+                                                    {new Date(notif.created_at).toLocaleString()}
+                                                </p>
+                                            </div>
+                                            {!notif.read && (
+                                                <div className="w-2 h-2 bg-cyan-500 rounded-full ml-2 mt-1 animate-pulse" />
+                                            )}
                                         </div>
-
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm text-gray-200 line-clamp-2">
-                                                {notification.type === 'friend_request' && "New friend request received"}
-                                                {notification.type === 'friend_accept' && "Your friend request was accepted"}
-                                                {!['friend_request', 'friend_accept'].includes(notification.type) && "New notification"}
-                                            </p>
-                                            <p className="text-xs text-[#B0B9C1] mt-1 flex items-center gap-1">
-                                                <Clock className="w-3 h-3" />
-                                                {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
-                                            </p>
-                                        </div>
-
-                                        {!notification.read && (
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation()
-                                                    markAsRead(notification.id)
-                                                }}
-                                                className="flex-shrink-0 text-[#E8FF00] hover:text-[#E8FF00]/80 p-1"
-                                            >
-                                                <Check className="w-4 h-4" />
-                                            </button>
-                                        )}
                                     </div>
                                 ))}
                             </div>
