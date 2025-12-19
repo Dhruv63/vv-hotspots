@@ -47,6 +47,7 @@ export default function LoginPage() {
         throw new Error("No session returned. Please try again.")
       }
 
+      router.refresh()
       router.push('/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed. Please try again.")
