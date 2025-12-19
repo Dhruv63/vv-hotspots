@@ -9,7 +9,7 @@ export default async function AdminPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user || user.email !== "megahack785@gmail.com") {
+  if (!user || user.email !== "vv.hotspots@gmail.com") {
     redirect("/dashboard")
   }
 
