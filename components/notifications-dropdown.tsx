@@ -82,14 +82,27 @@ export function NotificationsDropdown({ userId }: NotificationsDropdownProps) {
     }, [isOpen])
 
     const handleNotificationClick = async (notification: Notification) => {
+        console.log('🔔 Notification clicked:', notification)
+
         // Mark as read via API if not read
         if (!notification.read) {
             try {
-                await fetch('/api/notifications/mark-read', {
+                console.log('📤 Sending mark-read request for:', notification.id)
+
+                const response = await fetch('/api/notifications/mark-read', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ notification_id: notification.id })
                 })
+
+                console.log('📥 Mark-read response status:', response.status)
+
+                const result = await response.json()
+                console.log('✅ Mark-read result:', result)
+
+                if (!result.success) {
+                    console.error('❌ Mark-read failed:', result.error)
+                }
 
                 // Optimistic update
                 setNotifications((prev) =>
@@ -97,8 +110,10 @@ export function NotificationsDropdown({ userId }: NotificationsDropdownProps) {
                 )
                 setUnreadCount((prev) => Math.max(0, prev - 1))
             } catch (error) {
-                console.error("Error marking notification as read:", error)
+                console.error("❌ Error marking notification as read:", error)
             }
+        } else {
+            console.log('ℹ️ Notification already read')
         }
 
         setIsOpen(false)
