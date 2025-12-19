@@ -102,6 +102,6 @@ export interface Notification {
   user_id: string
   type: 'friend_request' | 'friend_accept'
   data: any
-  read: boolean
+  is_read: boolean
   created_at: string
 }

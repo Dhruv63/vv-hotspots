@@ -33,7 +33,7 @@ export function NotificationsDropdown({ userId }: NotificationsDropdownProps) {
             if (error) throw error
 
             setNotifications(data || [])
-            setUnreadCount(data?.filter((n: Notification) => !n.read).length || 0)
+            setUnreadCount(data?.filter((n: Notification) => !n.is_read).length || 0)
         } catch (error) {
             console.error("Error fetching notifications:", error)
         } finally {
@@ -85,7 +85,7 @@ export function NotificationsDropdown({ userId }: NotificationsDropdownProps) {
         console.log('🔔 Notification clicked:', notification)
 
         // Mark as read via API if not read
-        if (!notification.read) {
+        if (!notification.is_read) {
             try {
                 console.log('📤 Sending mark-read request for:', notification.id)
 
@@ -106,7 +106,7 @@ export function NotificationsDropdown({ userId }: NotificationsDropdownProps) {
 
                 // Optimistic update
                 setNotifications((prev) =>
-                    prev.map((n) => (n.id === notification.id ? { ...n, read: true } : n))
+                    prev.map((n) => (n.id === notification.id ? { ...n, is_read: true } : n))
                 )
                 setUnreadCount((prev) => Math.max(0, prev - 1))
             } catch (error) {
@@ -147,7 +147,7 @@ export function NotificationsDropdown({ userId }: NotificationsDropdownProps) {
             })
 
             // Optimistic update
-            setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+            setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
             setUnreadCount(0)
 
             // Re-fetch to confirm
@@ -199,14 +199,14 @@ export function NotificationsDropdown({ userId }: NotificationsDropdownProps) {
                                     <div
                                         key={notif.id}
                                         className={`p-3 border-b border-gray-800 hover:bg-gray-800 cursor-pointer transition-colors ${
-                                            !notif.read ? 'bg-cyan-900/20 border-l-4 border-l-cyan-500' : ''
+                                            !notif.is_read ? 'bg-cyan-900/20 border-l-4 border-l-cyan-500' : ''
                                         }`}
                                         onClick={() => handleNotificationClick(notif)}
                                     >
                                         <div className="flex items-start justify-between">
                                             <div className="flex-1">
                                                 <h4 className={`text-sm font-semibold ${
-                                                    !notif.read ? 'text-cyan-300' : 'text-gray-300'
+                                                    !notif.is_read ? 'text-cyan-300' : 'text-gray-300'
                                                 }`}>
                                                     {notif.type === 'friend_request' ? '👥 Friend Request' :
                                                      notif.type === 'friend_accept' ? '✅ Friend Accepted' :
@@ -225,7 +225,7 @@ export function NotificationsDropdown({ userId }: NotificationsDropdownProps) {
                                                     {new Date(notif.created_at).toLocaleString()}
                                                 </p>
                                             </div>
-                                            {!notif.read && (
+                                            {!notif.is_read && (
                                                 <div className="w-2 h-2 bg-cyan-500 rounded-full ml-2 mt-1 animate-pulse" />
                                             )}
                                         </div>
