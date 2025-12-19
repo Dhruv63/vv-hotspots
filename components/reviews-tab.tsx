@@ -138,9 +138,15 @@ export function ReviewsTab({ hotspotId, onWriteReview, currentUserReview }: Revi
                    <StarRating rating={review.rating} size="sm" />
                 </div>
               </div>
-              <p className="text-cyber-light/90 text-sm leading-relaxed pl-[52px]">
-                {review.review}
-              </p>
+              {review.review ? (
+                <p className="text-cyber-light/90 text-sm leading-relaxed pl-[52px]">
+                  {review.review}
+                </p>
+              ) : (
+                <p className="text-cyber-gray/50 text-xs italic pl-[52px]">
+                  No text review
+                </p>
+              )}
             </div>
           ))
         ) : !isLoading && (
