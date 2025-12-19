@@ -234,7 +234,7 @@
   --font-heading: 'Georgia', serif;
   --transition-speed: 200ms;
   /* Grunge/Texture pattern */
-  --bg-pattern: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%235D4037' fill-opacity='0.1'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z'/%3E%3C/g%3E%3C/svg%3E");
+  --bg-pattern: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%235D4037' fill-opacity='0.1'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z'/%3E%3C/g%3E%3C/svg%3E");
   --border-card: var(--border);
   --text-glow: none;
 
@@ -545,4 +545,89 @@ button:not(:disabled):hover {
     0 0 10px color-mix(in srgb, var(--dot) 80%, transparent),
     0 0 22px color-mix(in srgb, var(--dot) 55%, transparent),
     0 0 36px color-mix(in srgb, var(--dot) 35%, transparent);
+}
+
+/* Custom Tooltip Styles */
+.leaflet-tooltip.custom-tooltip {
+  background-color: rgba(10, 14, 39, 0.9) !important;
+  border: 1px solid var(--color-primary) !important;
+  border-radius: 4px !important;
+  color: var(--color-primary) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 11px !important;
+  padding: 2px 6px !important;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5) !important;
+  white-space: nowrap;
+}
+
+.leaflet-tooltip-bottom.custom-tooltip::before {
+  border-bottom-color: var(--color-primary) !important;
+}
+
+/* Cluster Styles */
+.cyber-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(10, 14, 39, 0.85);
+  border: 2px solid;
+  font-weight: bold;
+  font-family: var(--font-mono);
+  box-shadow: 0 0 15px currentColor;
+  backdrop-filter: blur(4px);
+  transition: all 0.3s ease;
+}
+
+.cyber-cluster:hover {
+  transform: scale(1.1);
+  background: rgba(10, 14, 39, 0.95);
+}
+
+.cluster-small {
+  color: var(--color-accent); /* cyan */
+  border-color: var(--color-accent);
+}
+
+.cluster-medium {
+  color: var(--color-primary); /* yellow */
+  border-color: var(--color-primary);
+}
+
+.cluster-large {
+  color: var(--color-secondary); /* pink */
+  border-color: var(--color-secondary);
+}
+
+/* Popup Styles */
+.cyber-popup .leaflet-popup-content-wrapper {
+  background: var(--color-card) !important;
+  color: var(--color-foreground) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius) !important;
+  padding: 0 !important;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+}
+
+.cyber-popup .leaflet-popup-content {
+  margin: 0 !important;
+  width: 240px !important;
+}
+
+.cyber-popup .leaflet-popup-tip {
+  background: var(--color-card) !important;
+  border: 1px solid var(--color-border) !important;
+}
+
+.cyber-popup a.leaflet-popup-close-button {
+  color: var(--color-muted-foreground) !important;
+  padding: 8px !important;
+  font-size: 18px !important;
+}
+
+.cyber-popup a.leaflet-popup-close-button:hover {
+  color: var(--color-primary) !important;
 }

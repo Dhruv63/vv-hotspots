@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react"
 import L from "leaflet"
-import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl } from "react-leaflet"
+import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl, Tooltip } from "react-leaflet"
 import "leaflet/dist/leaflet.css"
 import "leaflet.markercluster/dist/MarkerCluster.css"
 import "leaflet.markercluster/dist/MarkerCluster.Default.css"
@@ -10,18 +10,22 @@ import type { Hotspot } from "@/lib/types"
 import { useTheme } from "next-themes"
 import { themes } from "@/lib/themes"
 import { CATEGORY_COLOR } from "@/lib/constants"
-import { Search, Navigation, Layers, Info } from "lucide-react"
+import { Search, Navigation, Layers, Info, MapPin } from "lucide-react"
 import { HotspotCard } from "@/components/hotspot-card"
 import MarkerClusterGroup from "@/components/ui/marker-cluster"
+import { CategoryBadge } from "@/components/ui/category-badge"
 
 // Fix for default marker icons in Next.js
 // @ts-ignore
-delete L.Icon.Default.prototype._getIconUrl
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "/marker-icon-2x.png",
-  iconUrl: "/marker-icon.png",
-  shadowUrl: "/marker-shadow.png",
-})
+if (typeof window !== "undefined") {
+    // @ts-ignore
+    delete L.Icon.Default.prototype._getIconUrl
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl: "/marker-icon-2x.png",
+      iconUrl: "/marker-icon.png",
+      shadowUrl: "/marker-shadow.png",
+    })
+}
 
 const isValidLatLng = (lat: any, lng: any): boolean => {
   const latitude = Number(lat)
@@ -373,7 +377,51 @@ export function MapView({
                         eventHandlers={{
                             click: () => handleMarkerClick(hotspot),
                         }}
-                    />
+                    >
+                         <Tooltip
+                             permanent
+                             direction="bottom"
+                             className="custom-tooltip"
+                             offset={[0, 10]}
+                         >
+                            {hotspot.name}
+                         </Tooltip>
+                         <Popup className="cyber-popup" closeButton={true}>
+                             <div className="flex flex-col">
+                                 <div className="relative h-24 w-full bg-muted">
+                                     {/* We could show a thumbnail here if available */}
+                                     {/* For now, just a gradient or color pattern */}
+                                     <div
+                                         className="absolute inset-0 opacity-50"
+                                         style={{
+                                             background: `linear-gradient(to bottom right, ${CATEGORY_COLOR[hotspot.category] || 'var(--color-primary)'}, transparent)`
+                                         }}
+                                     />
+                                     <div className="absolute bottom-2 left-2">
+                                         <CategoryBadge category={hotspot.category} />
+                                     </div>
+                                 </div>
+                                 <div className="p-3 bg-card space-y-2">
+                                     <h3 className="font-bold text-sm line-clamp-1" title={hotspot.name}>{hotspot.name}</h3>
+                                     <div className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                                         <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                                         <span className="line-clamp-2">{hotspot.address || "No address provided"}</span>
+                                     </div>
+                                     <button
+                                         onClick={(e) => {
+                                             e.stopPropagation()
+                                             handleMarkerClick(hotspot)
+                                             // Close popup if needed, but clicking View Details usually implies selecting it.
+                                             // The handleMarkerClick already selects it.
+                                         }}
+                                         className="w-full mt-2 py-1.5 text-xs font-bold bg-primary/10 text-primary border border-primary/20 rounded hover:bg-primary/20 transition-colors"
+                                     >
+                                         VIEW DETAILS
+                                     </button>
+                                 </div>
+                             </div>
+                         </Popup>
+                    </Marker>
                 ))}
             </MarkerClusterGroup>
         )}
