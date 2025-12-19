@@ -26,6 +26,7 @@ export function ActiveUsersList({ hotspotId }: ActiveUsersListProps) {
 
   const fetchUsers = useCallback(async () => {
     const supabase = createClient()
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
 
     // 1. Fetch active check-ins
     const { data: checkIns, error: checkInError } = await supabase
@@ -33,6 +34,7 @@ export function ActiveUsersList({ hotspotId }: ActiveUsersListProps) {
       .select("user_id, checked_in_at")
       .eq("hotspot_id", hotspotId)
       .eq("is_active", true)
+      .gte("checked_in_at", twentyFourHoursAgo)
       .order("checked_in_at", { ascending: false })
 
     if (checkInError) {
