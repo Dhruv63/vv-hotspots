@@ -234,10 +234,10 @@ export function HotspotDetail({
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999]" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-[999]" onClick={onClose} />
 
       <div
-        className="fixed inset-x-0 bottom-0 md:absolute md:inset-auto md:bottom-4 md:right-4 md:w-96 z-[1000] bg-cyber-dark border-t-2 md:border-2 border-cyber-cyan md:rounded-2xl max-h-[85vh] md:max-h-[80vh] overflow-y-auto shadow-[0_0_30px_rgba(255,255,0,0.3)] rounded-t-[32px] md:rounded-2xl"
+        className="fixed inset-x-0 bottom-0 md:absolute md:inset-auto md:bottom-4 md:right-4 md:w-96 z-[1000] glass-panel border-t md:border border-white/10 md:rounded-2xl max-h-[85vh] md:max-h-[80vh] overflow-y-auto shadow-2xl rounded-t-[32px] md:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Drag handle for mobile */}
@@ -365,16 +365,20 @@ export function HotspotDetail({
               type="button"
               onClick={handleCheckInClick}
               disabled={isLoading || isCheckInLoading || isCheckInSuccess}
-              className={`w-full py-4 px-6 font-bold text-lg tracking-wider rounded-xl transition-all duration-200 active:scale-[0.98] hover:scale-100 flex items-center justify-center gap-3 min-h-[56px] ${
+              className={`w-full py-4 px-6 font-bold text-lg tracking-wider rounded-xl transition-all duration-200 active:scale-[0.98] hover:scale-100 flex items-center justify-center gap-3 min-h-[56px] group relative overflow-hidden ${
                 isCheckInLoading
-                  ? "bg-cyber-gray/50 text-cyber-gray cursor-not-allowed"
+                  ? "bg-muted text-muted-foreground cursor-not-allowed"
                   : isCheckInSuccess
-                    ? "bg-[#39FF14] text-black shadow-[0_0_20px_rgba(57,255,20,0.5)] scale-100"
+                    ? "bg-green-500 text-black shadow-[0_0_20px_rgba(34,197,94,0.5)] scale-100"
                     : isCheckedIn
-                      ? "bg-cyber-pink text-white hover:bg-cyber-pink/80 shadow-[0_0_20px_rgba(204,255,0,0.5)]"
-                      : "bg-[#FFFF00] text-black hover:bg-[#E6E600] shadow-[0_0_30px_rgba(255,255,0,0.6)]"
+                      ? "bg-secondary text-white hover:bg-secondary/80 shadow-[0_0_20px_var(--color-secondary)]"
+                      : "bg-primary text-black hover:bg-primary/90 shadow-[0_0_30px_var(--color-primary)] btn-pulse"
               }`}
             >
+              {/* Shine Effect */}
+              {!isCheckInLoading && !isCheckedIn && !isCheckInSuccess && (
+                <div className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent z-10" />
+              )}
               {isCheckInLoading || (isLoading && !isCheckedIn && !isCheckInSuccess) ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />

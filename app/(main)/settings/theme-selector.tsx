@@ -29,19 +29,28 @@ export function ThemeSelector() {
           <button
             key={theme.id}
             onClick={() => handleThemeChange(theme.id)}
-            className={`p-4 rounded-2xl border-2 transition-all duration-300 text-left hover:scale-105 hover:shadow-xl ${
+            className={`relative p-4 rounded-2xl border transition-all duration-300 text-left hover-float group overflow-hidden ${
               currentTheme === theme.id
-                ? 'border-primary ring-2 ring-primary/50 bg-primary/10 shadow-lg'
-                : 'border-border hover:border-foreground/20 bg-card shadow-md'
+                ? 'border-primary bg-primary/10 shadow-[0_0_20px_rgba(var(--primary),0.2)]'
+                : 'border-white/10 glass-panel hover:border-white/30'
             }`}
           >
+            {/* Animated Gradient Border on Hover */}
             <div
-              className="h-16 rounded-xl mb-3 shadow-lg"
+               className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+               style={{
+                 boxShadow: `inset 0 0 0 2px ${theme.colors.primary}`,
+                 borderRadius: '16px'
+               }}
+            />
+
+            <div
+              className="h-16 rounded-xl mb-3 shadow-lg group-hover:scale-105 transition-transform duration-500"
               style={{
                 background: `linear-gradient(135deg, ${theme.colors.primary} 0%, ${theme.colors.secondary} 100%)`
               }}
             />
-            <h4 className="font-bold text-foreground mb-1">{theme.name}</h4>
+            <h4 className="font-bold text-foreground mb-1 group-hover:text-primary transition-colors">{theme.name}</h4>
             <p className="text-xs text-muted-foreground line-clamp-2">{theme.tagline}</p>
           </button>
         ))}
