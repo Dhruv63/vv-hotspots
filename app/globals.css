@@ -743,3 +743,16 @@ button:not(:disabled):hover {
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
+
+/* Map Theme Filters */
+[data-theme="lofi"] .leaflet-container .leaflet-tile-pane {
+  filter: sepia(0.3) hue-rotate(-10deg) saturate(0.8);
+}
+
+[data-theme="rdr2"] .leaflet-container .leaflet-tile-pane {
+  filter: sepia(0.5) hue-rotate(-20deg) saturate(1.2) contrast(1.1);
+}
+
+.leaflet-container .leaflet-tile-pane {
+  transition: filter 0.5s ease-in-out;
+}
