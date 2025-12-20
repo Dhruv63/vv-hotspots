@@ -12,7 +12,7 @@ const CyberCard = forwardRef<HTMLDivElement, CyberCardProps>(
       <div
         ref={ref}
         className={cn(
-          "bg-cyber-dark/80 backdrop-blur-sm cyber-clip",
+          "bg-cyber-dark/80 backdrop-blur-sm rounded-2xl shadow-lg transition-all duration-300 hover:shadow-xl",
           !noBorder && "border border-cyber-gray",
           variant === "highlighted" && "border-cyber-cyan neon-border-cyan",
           className,

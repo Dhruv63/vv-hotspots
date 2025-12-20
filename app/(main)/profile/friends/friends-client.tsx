@@ -50,7 +50,7 @@ const FriendCard = memo(function FriendCard({
     <div
       onMouseEnter={() => router.prefetch(`/users/${friend.username}`)}
       onClick={() => router.push(`/users/${friend.username}`)}
-      className="flex flex-col items-center p-6 card-theme relative overflow-hidden group cursor-pointer"
+      className="flex flex-col items-center p-6 card-theme relative overflow-hidden group cursor-pointer rounded-2xl"
       role="link"
       tabIndex={0}
       onKeyDown={(e) => {
@@ -76,16 +76,16 @@ const FriendCard = memo(function FriendCard({
       {/* Info */}
       <div className="text-center w-full mb-6">
         <div className="hover:underline block mb-1">
-          <h3 className="font-heading font-bold text-lg truncate text-accent">@{friend.username}</h3>
+          <h3 className="font-bold text-lg truncate text-accent">@{friend.username}</h3>
         </div>
 
         <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground mb-2">
           <MapPin className="w-3 h-3" />
-          <span className="truncate max-w-[150px] font-heading">{friend.city || 'Vasai-Virar'}</span>
+          <span className="truncate max-w-[150px]">{friend.city || 'Vasai-Virar'}</span>
         </div>
 
         {friend.bio && (
-          <p className="text-xs text-muted-foreground line-clamp-2 min-h-[2.5em] px-2 font-heading">
+          <p className="text-xs text-muted-foreground line-clamp-2 min-h-[2.5em] px-2">
             {friend.bio}
           </p>
         )}
@@ -95,7 +95,7 @@ const FriendCard = memo(function FriendCard({
       <div className="flex gap-3 w-full mt-auto">
         <div className="flex-1">
           <button
-            className="w-full py-2 px-3 text-sm font-heading font-bold rounded transition-colors uppercase tracking-wider hover:brightness-110 flex items-center justify-center gap-2 bg-secondary text-secondary-foreground"
+            className="w-full py-2 px-3 text-sm font-bold rounded-xl transition-colors uppercase tracking-wider hover:brightness-110 flex items-center justify-center gap-2 bg-secondary text-secondary-foreground shadow-md hover:shadow-lg hover:scale-105"
           >
             View Profile
           </button>
@@ -107,7 +107,7 @@ const FriendCard = memo(function FriendCard({
             onRemove(item.friendshipId, friend.id)
           }}
           disabled={isRemoving}
-          className="p-2 rounded border border-red-500/50 text-red-500 hover:bg-red-500/10 hover:border-red-500 transition-colors"
+          className="p-2 rounded-full border border-red-500/50 text-red-500 hover:bg-red-500/10 hover:border-red-500 transition-colors hover:scale-110"
           title="Remove Friend"
         >
           {isRemoving ? (
@@ -282,12 +282,12 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
   return (
     <>
       <div className="flex flex-col md:flex-row justify-end items-start md:items-center mb-8 gap-4">
-          <div className="flex bg-cyber-dark/50 p-1 rounded-lg border border-cyber-gray/30">
+          <div className="flex bg-cyber-dark/50 p-1 rounded-xl border border-cyber-gray/30">
             <button
               onClick={() => handleTabChange('friends')}
-              className={`px-4 py-2 text-sm font-mono rounded transition-colors ${
+              className={`px-4 py-2 text-sm font-bold rounded-lg transition-colors ${
                 tab === 'friends'
-                  ? 'bg-cyber-cyan/20 text-cyber-cyan font-bold'
+                  ? 'bg-cyber-cyan/20 text-cyber-cyan'
                   : 'text-cyber-gray hover:text-cyber-light'
               }`}
             >
@@ -295,9 +295,9 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
             </button>
             <button
               onClick={() => handleTabChange('requests')}
-              className={`px-4 py-2 text-sm font-mono rounded transition-colors ${
+              className={`px-4 py-2 text-sm font-bold rounded-lg transition-colors ${
                 tab === 'requests'
-                  ? 'bg-cyber-cyan/20 text-cyber-cyan font-bold'
+                  ? 'bg-cyber-cyan/20 text-cyber-cyan'
                   : 'text-cyber-gray hover:text-cyber-light'
               }`}
             >
@@ -305,9 +305,9 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
             </button>
             <button
               onClick={() => handleTabChange('sent')}
-              className={`px-4 py-2 text-sm font-mono rounded transition-colors ${
+              className={`px-4 py-2 text-sm font-bold rounded-lg transition-colors ${
                 tab === 'sent'
-                  ? 'bg-cyber-cyan/20 text-cyber-cyan font-bold'
+                  ? 'bg-cyber-cyan/20 text-cyber-cyan'
                   : 'text-cyber-gray hover:text-cyber-light'
               }`}
             >
@@ -330,11 +330,11 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-20 border border-dashed border-[#E8FF00]/30 rounded-lg bg-[#0A0E27]/50">
-                  <p className="text-[#00D9FF] font-mono text-lg mb-4">No friends yet</p>
+                <div className="text-center py-20 border border-dashed border-[#E8FF00]/30 rounded-2xl bg-[#0A0E27]/50">
+                  <p className="text-[#00D9FF] text-lg mb-4">No friends yet</p>
                   <p className="text-gray-400 max-w-md mx-auto mb-6">Start connecting with other explorers in Vasai-Virar to see their activity and discoveries!</p>
                   <Link href="/dashboard">
-                    <CyberButton>Explore Hotspots</CyberButton>
+                    <CyberButton className="rounded-xl">Explore Hotspots</CyberButton>
                   </Link>
                 </div>
               )
@@ -344,7 +344,7 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
             incomingRequests.length > 0 ? (
               <div className="space-y-4">
                 {incomingRequests.map((req: any) => (
-                  <div key={req.id} className="card-theme p-4 flex items-center gap-4 border-l-4 border-l-primary">
+                  <div key={req.id} className="card-theme p-4 flex items-center gap-4 border-l-4 border-l-primary rounded-2xl">
                     <div
                       onMouseEnter={() => router.prefetch(`/users/${req.sender.username}`)}
                       onClick={() => router.push(`/users/${req.sender.username}`)}
@@ -370,8 +370,8 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                         <span className="text-xs text-primary font-heading uppercase tracking-wider">Request Received</span>
-                         <span className="text-xs text-muted-foreground font-heading">• {formatDistanceToNow(new Date(req.created_at))} ago</span>
+                         <span className="text-xs text-primary uppercase tracking-wider">Request Received</span>
+                         <span className="text-xs text-muted-foreground">• {formatDistanceToNow(new Date(req.created_at))} ago</span>
                       </div>
                       <div
                         onMouseEnter={() => router.prefetch(`/users/${req.sender.username}`)}
@@ -386,7 +386,7 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
                           }
                         }}
                       >
-                        <h3 className="font-heading font-bold text-foreground text-lg">@{req.sender?.username}</h3>
+                        <h3 className="font-bold text-foreground text-lg">@{req.sender?.username}</h3>
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -424,7 +424,7 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
             sentRequests.length > 0 ? (
               <div className="space-y-4">
                 {sentRequests.map((req: any) => (
-                  <div key={req.id} className="card-theme p-4 flex items-center gap-4 opacity-80">
+                  <div key={req.id} className="card-theme p-4 flex items-center gap-4 opacity-80 rounded-2xl">
                     <div
                       onMouseEnter={() => router.prefetch(`/users/${req.receiver.username}`)}
                       onClick={() => router.push(`/users/${req.receiver.username}`)}
@@ -449,8 +449,8 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                         <span className="text-xs text-muted-foreground font-heading uppercase tracking-wider">Request Sent</span>
-                         <span className="text-xs text-muted-foreground font-heading">• {formatDistanceToNow(new Date(req.created_at))} ago</span>
+                         <span className="text-xs text-muted-foreground uppercase tracking-wider">Request Sent</span>
+                         <span className="text-xs text-muted-foreground">• {formatDistanceToNow(new Date(req.created_at))} ago</span>
                       </div>
                       <div
                         onMouseEnter={() => router.prefetch(`/users/${req.receiver.username}`)}
@@ -465,13 +465,13 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
                           }
                         }}
                       >
-                        <h3 className="font-heading font-bold text-foreground">@{req.receiver?.username}</h3>
+                        <h3 className="font-bold text-foreground">@{req.receiver?.username}</h3>
                       </div>
                     </div>
                     <CyberButton
                       variant="outline"
                       size="sm"
-                      className="text-muted-foreground hover:text-destructive hover:border-destructive font-heading"
+                      className="text-muted-foreground hover:text-destructive hover:border-destructive"
                       onClick={() => cancelRequestMutation.mutate(req.id)}
                       disabled={processingId === req.id}
                     >

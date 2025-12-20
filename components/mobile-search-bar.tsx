@@ -52,7 +52,7 @@ export function MobileSearchBar({
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Search cafes, beaches, parks..."
-          className="w-full h-10 pl-9 pr-9 bg-muted border border-border rounded-full text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-inner"
+          className="w-full h-10 pl-9 pr-9 bg-muted border border-border rounded-lg text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-inner"
         />
         {(searchTerm || activeFilters.length > 0) && (
           <button

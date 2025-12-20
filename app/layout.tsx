@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata, Viewport } from "next"
-import { Inter, Fira_Code } from "next/font/google"
+import { Inter } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import "./globals.css"
@@ -8,7 +8,6 @@ import { Toaster } from "sonner"
 import { ThemeProvider } from "@/components/theme-provider"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
-const firaCode = Fira_Code({ subsets: ["latin"], variable: "--font-mono" })
 
 export const metadata: Metadata = {
   title: "VV Hotspots | Discover Vasai-Virar",
@@ -43,7 +42,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${firaCode.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} font-sans antialiased`}>
         <ServiceWorkerRegistration />
         <NotificationPermissionModal />
         <QueryProvider>

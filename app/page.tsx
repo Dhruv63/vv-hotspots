@@ -108,13 +108,13 @@ export default async function HomePage() {
 
                    {/* Fake UI Overlay */}
                    <div className="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-cyber-black via-cyber-black/80 to-transparent pt-12">
-                      <div className="bg-cyber-navy/90 backdrop-blur border border-cyber-yellow/30 p-3 rounded-lg shadow-lg">
+                      <div className="bg-cyber-navy/90 backdrop-blur border border-cyber-yellow/30 p-3 rounded-xl shadow-lg">
                         <div className="flex items-center gap-2 mb-1">
                             <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
                             <span className="text-xs font-bold text-cyber-yellow uppercase">Trending Now</span>
                         </div>
-                        <p className="text-cyber-light text-sm font-mono">12 spots • 342 checked in</p>
-                        <p className="text-cyber-cyan text-xs mt-1 font-mono">89 new reviews today</p>
+                        <p className="text-cyber-light text-sm">12 spots • 342 checked in</p>
+                        <p className="text-cyber-cyan text-xs mt-1">89 new reviews today</p>
                       </div>
                    </div>
                 </div>
@@ -143,8 +143,8 @@ export default async function HomePage() {
               }[feature.color]
 
               return (
-                <div key={feature.title} className="p-6 rounded-xl bg-cyber-navy border border-white/5 hover:border-cyber-yellow/50 transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-lg group">
-                  <div className={`w-12 h-12 mb-4 rounded-lg bg-cyber-black flex items-center justify-center border border-white/10 group-hover:border-${feature.color === 'cyan' ? 'cyber-cyan' : 'cyber-pink'}`}>
+                <div key={feature.title} className="p-6 rounded-2xl bg-cyber-navy border border-white/5 hover:border-cyber-yellow/50 transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-lg group">
+                  <div className={`w-12 h-12 mb-4 rounded-xl bg-cyber-black flex items-center justify-center border border-white/10 group-hover:border-${feature.color === 'cyan' ? 'cyber-cyan' : 'cyber-pink'}`}>
                     <Icon className={`w-6 h-6 ${colorClasses}`} />
                   </div>
                   <h3 className="font-sans text-xl font-bold text-cyber-light mb-2">{feature.title}</h3>
@@ -160,7 +160,7 @@ export default async function HomePage() {
       <footer className="py-12 px-4 border-t border-white/10 bg-cyber-black mt-auto">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
-                <span className="font-mono text-xl font-bold block mb-4">
+                <span className="text-xl font-bold block mb-4">
                     <span className="text-cyber-yellow">VV</span>
                     <span className="text-cyber-light"> HOTSPOTS</span>
                 </span>
@@ -212,7 +212,7 @@ export default async function HomePage() {
         </div>
 
         <div className="border-t border-white/5 pt-8 text-center">
-          <p className="font-mono text-cyber-gray/50 text-xs">© 2025 VV Hotspots. All rights reserved.</p>
+          <p className="text-cyber-gray/50 text-xs">© 2025 VV Hotspots. All rights reserved.</p>
         </div>
       </footer>
     </div>

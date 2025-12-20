@@ -21,7 +21,7 @@ export function ThemeSelector() {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold font-mono text-foreground">Color Theme</h3>
+      <h3 className="text-lg font-semibold text-foreground">Color Theme</h3>
       <p className="text-sm text-muted-foreground">Choose your visual style</p>
 
       <div className="grid grid-cols-2 gap-4">
@@ -29,19 +29,19 @@ export function ThemeSelector() {
           <button
             key={theme.id}
             onClick={() => handleThemeChange(theme.id)}
-            className={`p-4 rounded-lg border-2 transition-all text-left ${
+            className={`p-4 rounded-2xl border-2 transition-all duration-300 text-left hover:scale-105 hover:shadow-xl ${
               currentTheme === theme.id
-                ? 'border-primary ring-2 ring-primary/50 bg-primary/10'
-                : 'border-border hover:border-foreground/20 bg-card'
+                ? 'border-primary ring-2 ring-primary/50 bg-primary/10 shadow-lg'
+                : 'border-border hover:border-foreground/20 bg-card shadow-md'
             }`}
           >
             <div
-              className="h-16 rounded-lg mb-3 shadow-lg"
+              className="h-16 rounded-xl mb-3 shadow-lg"
               style={{
                 background: `linear-gradient(135deg, ${theme.colors.primary} 0%, ${theme.colors.secondary} 100%)`
               }}
             />
-            <h4 className="font-bold text-foreground mb-1 font-mono">{theme.name}</h4>
+            <h4 className="font-bold text-foreground mb-1">{theme.name}</h4>
             <p className="text-xs text-muted-foreground line-clamp-2">{theme.tagline}</p>
           </button>
         ))}

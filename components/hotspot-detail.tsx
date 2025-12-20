@@ -237,12 +237,12 @@ export function HotspotDetail({
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999]" onClick={onClose} />
 
       <div
-        className="fixed inset-x-0 bottom-0 md:absolute md:inset-auto md:bottom-4 md:right-4 md:w-96 z-[1000] bg-cyber-dark border-t-2 md:border-2 border-cyber-cyan md:rounded-lg max-h-[85vh] md:max-h-[80vh] overflow-y-auto shadow-[0_0_30px_rgba(255,255,0,0.3)] rounded-t-2xl md:rounded-lg"
+        className="fixed inset-x-0 bottom-0 md:absolute md:inset-auto md:bottom-4 md:right-4 md:w-96 z-[1000] bg-cyber-dark border-t-2 md:border-2 border-cyber-cyan md:rounded-2xl max-h-[85vh] md:max-h-[80vh] overflow-y-auto shadow-[0_0_30px_rgba(255,255,0,0.3)] rounded-t-[32px] md:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Drag handle for mobile */}
-        <div className="md:hidden flex items-center justify-center py-2 sticky top-0 bg-cyber-dark z-10">
-          <div className="w-12 h-1 bg-cyber-gray rounded-full" />
+        <div className="md:hidden flex items-center justify-center py-3 sticky top-0 bg-cyber-dark z-10 rounded-t-[32px]">
+          <div className="w-12 h-1.5 bg-cyber-gray/50 rounded-full" />
         </div>
 
         {/* Glowing header bar */}
@@ -273,11 +273,11 @@ export function HotspotDetail({
 
           <div className="absolute bottom-4 left-4 right-4">
             <span
-              className={`inline-block px-3 py-1.5 text-xs font-mono font-bold uppercase rounded mb-2 ${getCategoryColor(hotspot.category)}`}
+              className={`inline-block px-3 py-1.5 text-xs font-bold uppercase rounded-full mb-2 ${getCategoryColor(hotspot.category)}`}
             >
               {hotspot.category}
             </span>
-            <h2 className="font-mono text-xl md:text-xl font-bold text-cyber-light drop-shadow-lg">{hotspot.name}</h2>
+            <h2 className="text-xl md:text-xl font-bold text-cyber-light drop-shadow-lg">{hotspot.name}</h2>
           </div>
         </div>
 
@@ -291,7 +291,7 @@ export function HotspotDetail({
             </div>
             <button
               onClick={openInMaps}
-              className="flex items-center gap-2 text-[#FFFF00] text-sm font-mono flex-shrink-0 px-4 py-2 border border-[#FFFF00] rounded-lg hover:bg-[#FFFF00]/10 hover:shadow-[0_0_10px_rgba(255,255,0,0.5)] transition-colors min-h-[44px]"
+              className="flex items-center gap-2 text-[#FFFF00] text-sm font-bold flex-shrink-0 px-4 py-2 border border-[#FFFF00] rounded-xl hover:bg-[#FFFF00]/10 hover:shadow-[0_0_10px_rgba(255,255,0,0.5)] transition-colors min-h-[44px]"
             >
               <Navigation className="w-4 h-4" />
               Navigate
@@ -299,7 +299,7 @@ export function HotspotDetail({
           </div>
 
           {/* Description */}
-          <div className="bg-cyber-black/50 p-4 border-l-2 border-cyber-cyan rounded-r">
+          <div className="bg-cyber-black/50 p-4 border-l-2 border-cyber-cyan rounded-xl">
             <p className="text-cyber-light/90 text-sm leading-relaxed">
               {hotspot.description ||
                 "Discover this awesome spot in Vasai-Virar! Check in to let others know you're here."}
@@ -313,13 +313,13 @@ export function HotspotDetail({
                 <Users className="w-5 h-5 text-cyber-cyan" />
               </div>
               <div>
-                <span className="font-mono text-cyber-light text-xl">{activeCheckins}</span>
+                <span className="font-bold text-cyber-light text-xl">{activeCheckins}</span>
                 <span className="text-cyber-gray text-sm ml-1">here now</span>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <StarRating rating={averageRating} size="sm" />
-              <span className="font-mono text-cyber-light text-lg">
+              <span className="font-bold text-cyber-light text-lg">
                 {averageRating > 0 ? averageRating.toFixed(1) : "-"}
               </span>
             </div>
@@ -329,35 +329,35 @@ export function HotspotDetail({
           <div className="flex items-center justify-between gap-2 py-2">
              <button
                onClick={() => handleShare('whatsapp')}
-               className="flex-1 flex flex-col items-center justify-center gap-1 py-2 bg-green-500/10 border border-green-500/30 rounded hover:bg-green-500/20 transition-colors"
+               className="flex-1 flex flex-col items-center justify-center gap-1 py-2 bg-green-500/10 border border-green-500/30 rounded-xl hover:bg-green-500/20 transition-colors"
              >
                <Share2 className="w-5 h-5 text-green-500" />
-               <span className="text-[10px] font-mono text-green-400">WhatsApp</span>
+               <span className="text-[10px] font-bold text-green-400">WhatsApp</span>
              </button>
              <button
                onClick={() => handleShare('instagram')}
-               className="flex-1 flex flex-col items-center justify-center gap-1 py-2 bg-pink-500/10 border border-pink-500/30 rounded hover:bg-pink-500/20 transition-colors"
+               className="flex-1 flex flex-col items-center justify-center gap-1 py-2 bg-pink-500/10 border border-pink-500/30 rounded-xl hover:bg-pink-500/20 transition-colors"
              >
                <Instagram className="w-5 h-5 text-pink-500" />
-               <span className="text-[10px] font-mono text-pink-400">Instagram</span>
+               <span className="text-[10px] font-bold text-pink-400">Instagram</span>
              </button>
              <button
                onClick={() => handleShare('copy')}
-               className="flex-1 flex flex-col items-center justify-center gap-1 py-2 bg-cyber-cyan/10 border border-cyber-cyan/30 rounded hover:bg-cyber-cyan/20 transition-colors"
+               className="flex-1 flex flex-col items-center justify-center gap-1 py-2 bg-cyber-cyan/10 border border-cyber-cyan/30 rounded-xl hover:bg-cyber-cyan/20 transition-colors"
              >
                <Copy className="w-5 h-5 text-cyber-cyan" />
-               <span className="text-[10px] font-mono text-cyber-cyan">Copy Link</span>
+               <span className="text-[10px] font-bold text-cyber-cyan">Copy Link</span>
              </button>
           </div>
 
           <ActiveUsersList hotspotId={hotspot.id} />
 
           {/* Check-in button - larger for mobile */}
-          <div className="space-y-3 p-4 bg-gradient-to-b from-cyber-cyan/10 to-cyber-black/30 rounded-lg border-2 border-cyber-cyan/50 shadow-[0_0_20px_rgba(255,255,0,0.2)]">
+          <div className="space-y-3 p-4 bg-gradient-to-b from-cyber-cyan/10 to-cyber-black/30 rounded-xl border-2 border-cyber-cyan/50 shadow-[0_0_20px_rgba(255,255,0,0.2)]">
             {isCheckedIn && (
-              <div className="flex items-center gap-2 p-3 bg-cyber-cyan/20 border border-cyber-cyan rounded">
+              <div className="flex items-center gap-2 p-3 bg-cyber-cyan/20 border border-cyber-cyan rounded-lg">
                 <span className="w-3 h-3 bg-cyber-cyan rounded-full animate-pulse" />
-                <span className="text-cyber-cyan text-sm font-mono font-bold">YOU ARE HERE</span>
+                <span className="text-cyber-cyan text-sm font-bold">YOU ARE HERE</span>
               </div>
             )}
 
@@ -365,7 +365,7 @@ export function HotspotDetail({
               type="button"
               onClick={handleCheckInClick}
               disabled={isLoading || isCheckInLoading || isCheckInSuccess}
-              className={`w-full py-4 px-6 font-mono font-bold text-lg tracking-wider rounded-lg transition-all duration-200 active:scale-[0.98] hover:scale-100 flex items-center justify-center gap-3 min-h-[56px] ${
+              className={`w-full py-4 px-6 font-bold text-lg tracking-wider rounded-xl transition-all duration-200 active:scale-[0.98] hover:scale-100 flex items-center justify-center gap-3 min-h-[56px] ${
                 isCheckInLoading
                   ? "bg-cyber-gray/50 text-cyber-gray cursor-not-allowed"
                   : isCheckInSuccess
@@ -399,37 +399,37 @@ export function HotspotDetail({
             </button>
 
             {!isCheckedIn && !isLoading && !isCheckInSuccess && (
-              <p className="text-center text-cyber-cyan/70 text-xs font-mono">
+              <p className="text-center text-cyber-cyan/70 text-xs">
                 Tap to let others know you&apos;re at this spot!
               </p>
             )}
           </div>
 
           {/* Rating section */}
-          <div className="space-y-3 p-4 bg-gradient-to-b from-cyber-purple/10 to-cyber-black/30 rounded-lg border border-cyber-purple/50">
+          <div className="space-y-3 p-4 bg-gradient-to-b from-cyber-purple/10 to-cyber-black/30 rounded-xl border border-cyber-purple/50">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Star className="w-5 h-5 text-yellow-400" />
-                <p className="text-cyber-light text-sm font-mono font-bold">RATE THIS SPOT</p>
+                <p className="text-cyber-light text-sm font-bold">RATE THIS SPOT</p>
               </div>
-              {ratingSuccess && <span className="text-green-400 text-xs font-mono animate-pulse">Saved!</span>}
+              {ratingSuccess && <span className="text-green-400 text-xs font-bold animate-pulse">Saved!</span>}
             </div>
 
             {/* User's current rating display */}
             {userRating && (
-              <div className="flex items-center gap-2 p-3 bg-cyber-purple/20 border border-cyber-purple/50 rounded">
-                <span className="text-cyber-purple text-xs font-mono">Your rating:</span>
+              <div className="flex items-center gap-2 p-3 bg-cyber-purple/20 border border-cyber-purple/50 rounded-lg">
+                <span className="text-cyber-purple text-xs font-bold">Your rating:</span>
                 <StarRating rating={userRating} size="sm" />
-                <span className="text-cyber-light font-mono text-sm font-bold">{userRating}/5</span>
+                <span className="text-cyber-light text-sm font-bold">{userRating}/5</span>
               </div>
             )}
 
             {/* User's review display */}
             {userReview && (
-              <div className="p-3 bg-cyber-purple/10 border border-cyber-purple/30 rounded">
+              <div className="p-3 bg-cyber-purple/10 border border-cyber-purple/30 rounded-lg">
                 <div className="flex items-center gap-1 mb-1">
                   <MessageSquare className="w-3 h-3 text-cyber-purple" />
-                  <span className="text-cyber-purple text-xs font-mono">Your review:</span>
+                  <span className="text-cyber-purple text-xs font-bold">Your review:</span>
                 </div>
                 <p className="text-cyber-light/80 text-sm italic">&quot;{userReview}&quot;</p>
               </div>
@@ -437,14 +437,14 @@ export function HotspotDetail({
 
             {/* Interactive rating selector */}
             <div className="flex flex-col items-center gap-3 py-3">
-              <p className="text-cyber-gray text-xs font-mono">
+              <p className="text-cyber-gray text-xs">
                 {userRating ? "Tap to change your rating:" : "Tap a star to rate:"}
               </p>
               <div className="relative">
                 {isRating ? (
                   <div className="flex items-center justify-center py-4">
                     <Loader2 className="w-6 h-6 text-cyber-cyan animate-spin" />
-                    <span className="ml-2 text-cyber-cyan font-mono text-sm">Saving...</span>
+                    <span className="ml-2 text-cyber-cyan text-sm">Saving...</span>
                   </div>
                 ) : (
                   <StarRating
@@ -462,14 +462,14 @@ export function HotspotDetail({
           <div className="flex border-b border-cyber-gray/30 mb-4 sticky top-0 bg-cyber-dark z-10 pt-2">
              <button
                onClick={() => setActiveTab('photos')}
-               className={`flex-1 py-3 font-mono text-sm font-bold border-b-2 transition-colors flex items-center justify-center gap-2 ${activeTab === 'photos' ? 'border-cyber-pink text-cyber-pink bg-cyber-pink/5' : 'border-transparent text-cyber-gray hover:text-cyber-light'}`}
+               className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors flex items-center justify-center gap-2 ${activeTab === 'photos' ? 'border-cyber-pink text-cyber-pink bg-cyber-pink/5' : 'border-transparent text-cyber-gray hover:text-cyber-light'}`}
              >
                <Camera className="w-4 h-4" />
                PHOTOS
              </button>
              <button
                onClick={() => setActiveTab('reviews')}
-               className={`flex-1 py-3 font-mono text-sm font-bold border-b-2 transition-colors flex items-center justify-center gap-2 ${activeTab === 'reviews' ? 'border-[#FFFF00] text-[#FFFF00] bg-[#FFFF00]/5' : 'border-transparent text-cyber-gray hover:text-cyber-light'}`}
+               className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors flex items-center justify-center gap-2 ${activeTab === 'reviews' ? 'border-[#FFFF00] text-[#FFFF00] bg-[#FFFF00]/5' : 'border-transparent text-cyber-gray hover:text-cyber-light'}`}
              >
                <MessageSquare className="w-4 h-4" />
                REVIEWS
@@ -479,7 +479,7 @@ export function HotspotDetail({
           {/* Tab Content */}
           <div className="min-h-[300px]">
             {activeTab === 'photos' && (
-              <div className="space-y-3 p-4 bg-gradient-to-b from-cyber-black/30 to-cyber-purple/5 rounded-lg border border-cyber-gray/30 animate-in fade-in slide-in-from-bottom-2">
+              <div className="space-y-3 p-4 bg-gradient-to-b from-cyber-black/30 to-cyber-purple/5 rounded-xl border border-cyber-gray/30 animate-in fade-in slide-in-from-bottom-2">
                  <PhotoGallery hotspotId={hotspot.id} refreshTrigger={galleryRefreshTrigger} />
               </div>
             )}

@@ -65,13 +65,13 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
 
       <main className="pt-20 px-4 max-w-4xl mx-auto">
         {/* Back button */}
-        <Link href="/dashboard" className="inline-flex items-center gap-2 text-accent hover:underline mb-6 font-heading">
+        <Link href="/dashboard" className="inline-flex items-center gap-2 text-accent hover:underline mb-6">
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Map</span>
         </Link>
 
         {/* Profile Header */}
-        <div className="card-theme p-6 mb-6">
+        <div className="card-theme p-6 mb-6 rounded-2xl">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
             {/* Avatar */}
             <div className="relative group">
@@ -100,12 +100,12 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
 
             <div className="flex-1 text-center sm:text-left">
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-2">
-                <h1 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
                   {profile?.username || user.email?.split("@")[0] || "Anonymous"}
                 </h1>
                 <Link
                   href="/profile/edit"
-                  className="inline-flex items-center gap-1 text-primary hover:text-foreground transition-colors text-sm font-heading"
+                  className="inline-flex items-center gap-1 text-primary hover:text-foreground transition-colors text-sm"
                 >
                   <Edit2 className="w-4 h-4" />
                   Edit Profile
@@ -115,13 +115,13 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
 
               <div className="flex flex-col gap-2 mb-4">
                 {profile?.city && (
-                  <div className="flex items-center gap-2 text-accent text-sm font-heading">
+                  <div className="flex items-center gap-2 text-accent text-sm">
                     <MapPin className="w-4 h-4" />
                     <span>{profile.city}</span>
                   </div>
                 )}
                 {profile?.bio && (
-                  <p className="text-muted-foreground text-sm italic max-w-lg font-heading">{profile.bio}</p>
+                  <p className="text-muted-foreground text-sm italic max-w-lg">{profile.bio}</p>
                 )}
                 <div className="flex gap-3 mt-1">
                   {profile?.instagram_username && (
@@ -153,37 +153,37 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                   className={`text-center cursor-pointer transition-transform hover:scale-105 ${activeTab === 'history' ? 'border-b-2 border-primary pb-1' : ''}`}
                   onClick={() => setActiveTab('history')}
                 >
-                  <p className="font-heading text-2xl sm:text-3xl text-primary">{totalCheckIns}</p>
-                  <p className="text-muted-foreground text-xs sm:text-sm font-heading">Check-ins</p>
+                  <p className="text-2xl sm:text-3xl text-primary font-bold">{totalCheckIns}</p>
+                  <p className="text-muted-foreground text-xs sm:text-sm">Check-ins</p>
                 </div>
                 <div
                   className={`text-center cursor-pointer transition-transform hover:scale-105 ${activeTab === 'visited' ? 'border-b-2 border-primary pb-1' : ''}`}
                   onClick={() => setActiveTab('visited')}
                 >
-                  <p className="font-heading text-2xl sm:text-3xl text-primary">{uniqueSpots}</p>
-                  <p className="text-muted-foreground text-xs sm:text-sm font-heading">Spots Visited</p>
+                  <p className="text-2xl sm:text-3xl text-primary font-bold">{uniqueSpots}</p>
+                  <p className="text-muted-foreground text-xs sm:text-sm">Spots Visited</p>
                 </div>
                 <div
                   className={`text-center cursor-pointer transition-transform hover:scale-105 ${activeTab === 'reviews' ? 'border-b-2 border-primary pb-1' : ''}`}
                   onClick={() => setActiveTab('reviews')}
                 >
-                  <p className="font-heading text-2xl sm:text-3xl text-primary">{totalRatings}</p>
-                  <p className="text-muted-foreground text-xs sm:text-sm font-heading">Ratings</p>
+                  <p className="text-2xl sm:text-3xl text-primary font-bold">{totalRatings}</p>
+                  <p className="text-muted-foreground text-xs sm:text-sm">Ratings</p>
                 </div>
                 <div
                   className={`text-center cursor-pointer transition-transform hover:scale-105 ${activeTab === 'photos' ? 'border-b-2 border-primary pb-1' : ''}`}
                   onClick={() => setActiveTab('photos')}
                 >
-                  <p className="font-heading text-2xl sm:text-3xl text-primary">{totalPhotos}</p>
-                  <p className="text-muted-foreground text-xs sm:text-sm font-heading">Photos</p>
+                  <p className="text-2xl sm:text-3xl text-primary font-bold">{totalPhotos}</p>
+                  <p className="text-muted-foreground text-xs sm:text-sm">Photos</p>
                 </div>
                 {avgRating && (
                   <div
                     className={`text-center cursor-pointer transition-transform hover:scale-105 ${activeTab === 'reviews' ? 'border-b-2 border-primary pb-1' : ''}`}
                     onClick={() => setActiveTab('reviews')}
                   >
-                    <p className="font-heading text-2xl sm:text-3xl text-primary">{avgRating}</p>
-                    <p className="text-muted-foreground text-xs sm:text-sm font-heading">Avg Rating</p>
+                    <p className="text-2xl sm:text-3xl text-primary font-bold">{avgRating}</p>
+                    <p className="text-muted-foreground text-xs sm:text-sm">Avg Rating</p>
                   </div>
                 )}
               </div>
@@ -198,7 +198,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab as any)}
-                className={`px-6 py-3 font-heading text-sm uppercase tracking-wider transition-all border-b-2 flex-shrink-0 ${
+                className={`px-6 py-3 text-sm uppercase tracking-wider transition-all border-b-2 flex-shrink-0 rounded-t-lg ${
                   activeTab === tab
                     ? 'border-primary text-primary font-bold bg-primary/5'
                     : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground'
@@ -217,13 +217,13 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
           <div className="min-h-[400px]">
 
             {activeTab === 'history' && (
-              <div className="card-theme p-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <div className="card-theme p-4 animate-in fade-in slide-in-from-bottom-4 duration-300 rounded-2xl">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="font-heading text-lg text-foreground flex items-center gap-2">
+                  <h2 className="text-lg text-foreground flex items-center gap-2 font-bold">
                     <MapPin className="w-5 h-5 text-accent" />
                     CHECK-IN HISTORY
                   </h2>
-                  <span className="text-muted-foreground text-xs font-heading">{totalCheckIns} total</span>
+                  <span className="text-muted-foreground text-xs">{totalCheckIns} total</span>
                 </div>
 
                 {checkIns && checkIns.length > 0 ? (
@@ -231,7 +231,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                     {checkIns.map((checkin: any) => (
                       <div
                         key={checkin.id}
-                        className={`p-4 border rounded-lg transition-all ${
+                        className={`p-4 border rounded-xl transition-all ${
                           checkin.is_active
                             ? "border-accent bg-accent/10 shadow-[var(--shadow-hover)]"
                             : "border-border bg-muted/50 hover:border-accent/50 hover:bg-muted"
@@ -239,19 +239,19 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                       >
                         <div className="flex items-start justify-between">
                           <div>
-                            <h3 className="font-bold text-foreground text-lg font-heading">{checkin.hotspots?.name}</h3>
+                            <h3 className="font-bold text-foreground text-lg">{checkin.hotspots?.name}</h3>
                             <div className="flex items-center gap-2 mt-1">
                               <CategoryBadge category={checkin.hotspots?.category} />
-                              <span className="text-muted-foreground text-xs font-heading">{checkin.hotspots?.address}</span>
+                              <span className="text-muted-foreground text-xs">{checkin.hotspots?.address}</span>
                             </div>
                           </div>
                           {checkin.is_active && (
-                            <span className="px-2 py-1 bg-accent/20 border border-accent text-accent text-xs font-heading animate-pulse rounded">
+                            <span className="px-2 py-1 bg-accent/20 border border-accent text-accent text-xs font-bold animate-pulse rounded-full">
                               ACTIVE
                             </span>
                           )}
                         </div>
-                        <div className="mt-3 flex items-center gap-2 text-muted-foreground text-xs font-heading">
+                        <div className="mt-3 flex items-center gap-2 text-muted-foreground text-xs">
                           <Calendar className="w-3 h-3" />
                           <span>
                             {new Date(checkin.checked_in_at).toLocaleDateString()} at {new Date(checkin.checked_in_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
@@ -275,13 +275,13 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
             )}
 
             {activeTab === 'reviews' && (
-              <div className="card-theme p-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <div className="card-theme p-4 animate-in fade-in slide-in-from-bottom-4 duration-300 rounded-2xl">
                  <div className="flex items-center justify-between mb-4">
-                  <h2 className="font-heading text-lg text-foreground flex items-center gap-2">
+                  <h2 className="text-lg text-foreground flex items-center gap-2 font-bold">
                     <Star className="w-5 h-5 text-primary" />
                     YOUR REVIEWS
                   </h2>
-                  <span className="text-muted-foreground text-xs font-heading">{totalRatings} total</span>
+                  <span className="text-muted-foreground text-xs">{totalRatings} total</span>
                 </div>
 
                 {ratings && ratings.length > 0 ? (
@@ -289,21 +289,21 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                     {ratings.map((rating: any) => (
                       <div
                         key={rating.id}
-                        className="p-4 border border-border bg-muted/50 rounded-lg hover:border-primary/50 transition-all"
+                        className="p-4 border border-border bg-muted/50 rounded-xl hover:border-primary/50 transition-all"
                       >
                         <div className="flex items-start justify-between mb-3">
                           <div>
-                            <h3 className="font-bold text-foreground text-lg font-heading">{rating.hotspots?.name}</h3>
+                            <h3 className="font-bold text-foreground text-lg">{rating.hotspots?.name}</h3>
                             <CategoryBadge category={rating.hotspots?.category} className="mt-1" />
                           </div>
-                          <div className="flex items-center gap-1 bg-primary/10 px-3 py-1.5 rounded border border-primary/30">
+                          <div className="flex items-center gap-1 bg-primary/10 px-3 py-1.5 rounded-lg border border-primary/30">
                             <Star className="w-4 h-4 text-primary fill-primary" />
-                            <span className="font-heading text-primary font-bold">{rating.rating}</span>
+                            <span className="text-primary font-bold">{rating.rating}</span>
                           </div>
                         </div>
 
                         {rating.review && (
-                          <div className="p-3 bg-background/50 rounded border-l-2 border-accent mb-3">
+                          <div className="p-3 bg-background/50 rounded-lg border-l-2 border-accent mb-3">
                             <div className="flex items-start gap-2">
                               <MessageSquare className="w-4 h-4 text-accent flex-shrink-0 mt-1" />
                               <p className="text-foreground italic">"{rating.review}"</p>
@@ -311,7 +311,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                           </div>
                         )}
 
-                        <p className="text-muted-foreground text-xs font-heading">
+                        <p className="text-muted-foreground text-xs">
                           {formatDistanceToNow(new Date(rating.created_at), { addSuffix: true })}
                         </p>
                       </div>
@@ -320,7 +320,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                 ) : (
                   <div className="text-center py-12 text-muted-foreground">
                     <Star className="w-12 h-12 mx-auto mb-4 opacity-30" />
-                    <p className="font-heading">No reviews yet</p>
+                    <p className="font-bold">No reviews yet</p>
                     <p className="text-sm">Rate hotspots to keep track of your favorites!</p>
                   </div>
                 )}
@@ -328,19 +328,19 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
             )}
 
             {activeTab === 'saved' && (
-               <div className="card-theme p-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+               <div className="card-theme p-6 animate-in fade-in slide-in-from-bottom-4 duration-300 rounded-2xl">
                  <div className="flex items-center justify-between mb-6">
-                  <h2 className="font-heading text-xl text-foreground flex items-center gap-2 font-bold">
+                  <h2 className="text-xl text-foreground flex items-center gap-2 font-bold">
                     <Heart className="w-6 h-6 text-secondary" />
                     SAVED HOTSPOTS
                   </h2>
-                  <span className="text-muted-foreground text-xs font-heading">{saved.length} total</span>
+                  <span className="text-muted-foreground text-xs">{saved.length} total</span>
                 </div>
 
                 {saved.length > 0 ? (
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {saved.map((item: any) => (
-                         <div key={item.id} className="group relative rounded-lg overflow-hidden border border-border bg-muted hover:border-accent/50 transition-all flex flex-col">
+                         <div key={item.id} className="group relative rounded-xl overflow-hidden border border-border bg-muted hover:border-accent/50 transition-all flex flex-col">
                             <div className="h-40 relative">
                                <Image src={item.hotspots?.image_url || "/placeholder.svg"} alt={item.hotspots?.name} fill className="object-cover" />
                                <div className="absolute top-2 right-2">
@@ -348,20 +348,20 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                                </div>
                             </div>
                             <div className="p-4 flex-1 flex flex-col">
-                               <h3 className="font-bold text-foreground text-lg mb-1 font-heading">{item.hotspots?.name}</h3>
-                               <p className="text-sm text-muted-foreground mb-4 flex items-center gap-1 font-heading">
+                               <h3 className="font-bold text-foreground text-lg mb-1">{item.hotspots?.name}</h3>
+                               <p className="text-sm text-muted-foreground mb-4 flex items-center gap-1">
                                   <MapPin className="w-3 h-3" />
                                   {item.hotspots?.address}
                                </p>
                                <div className="mt-auto flex items-center justify-between gap-3">
                                   <Link href={`/dashboard?hotspot=${item.hotspots?.id}`} className="flex-1">
-                                     <button className="w-full py-2 bg-primary text-primary-foreground text-xs font-heading font-bold rounded hover:bg-primary/90 transition-colors">
+                                     <button className="w-full py-2 bg-primary text-primary-foreground text-xs font-bold rounded-lg hover:bg-primary/90 transition-colors">
                                         VIEW DETAILS
                                      </button>
                                   </Link>
                                   <button
                                     onClick={() => handleRemoveSaved(item.id, item.hotspots?.id)}
-                                    className="p-2 border border-secondary/50 text-secondary hover:bg-secondary/10 rounded transition-colors"
+                                    className="p-2 border border-secondary/50 text-secondary hover:bg-secondary/10 rounded-full transition-colors"
                                   >
                                      <Trash2 className="w-4 h-4" />
                                   </button>
@@ -387,22 +387,22 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
             )}
 
             {activeTab === 'visited' && (
-              <div className="card-theme p-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <div className="card-theme p-4 animate-in fade-in slide-in-from-bottom-4 duration-300 rounded-2xl">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="font-heading text-lg text-foreground flex items-center gap-2">
+                  <h2 className="text-lg text-foreground flex items-center gap-2 font-bold">
                     <MapPin className="w-5 h-5 text-accent" />
                     SPOTS VISITED
                   </h2>
-                  <span className="text-muted-foreground text-xs font-heading">{uniqueSpots} total</span>
+                  <span className="text-muted-foreground text-xs">{uniqueSpots} total</span>
                 </div>
 
                 {visitedHotspots.length > 0 ? (
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {visitedHotspots.map((spot: any) => (
-                      <Link key={spot.id} href={`/dashboard?hotspot=${spot.id}`} className="group block relative aspect-video rounded-lg overflow-hidden border border-border hover:border-accent transition-all">
+                      <Link key={spot.id} href={`/dashboard?hotspot=${spot.id}`} className="group block relative aspect-video rounded-xl overflow-hidden border border-border hover:border-accent transition-all">
                         <Image src={spot.image_url || "/placeholder.svg"} alt={spot.name} fill className="object-cover transition-transform duration-500 group-hover:scale-110" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent p-3 flex flex-col justify-end">
-                          <h3 className="font-bold text-white text-sm truncate font-heading">{spot.name}</h3>
+                          <h3 className="font-bold text-white text-sm truncate">{spot.name}</h3>
                           <div className="flex items-center gap-1">
                              <CategoryBadge category={spot.category} />
                           </div>
@@ -413,26 +413,26 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                 ) : (
                   <div className="text-center py-12 text-muted-foreground">
                     <MapPin className="w-12 h-12 mx-auto mb-4 opacity-30" />
-                    <p className="font-heading">No spots visited yet</p>
+                    <p className="font-bold">No spots visited yet</p>
                   </div>
                 )}
               </div>
             )}
 
             {activeTab === 'photos' && (
-              <div className="card-theme p-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <div className="card-theme p-4 animate-in fade-in slide-in-from-bottom-4 duration-300 rounded-2xl">
                  <div className="flex items-center justify-between mb-4">
-                  <h2 className="font-heading text-lg text-foreground flex items-center gap-2">
+                  <h2 className="text-lg text-foreground flex items-center gap-2 font-bold">
                     <Camera className="w-5 h-5 text-accent" />
                     MY PHOTOS
                   </h2>
-                  <span className="text-muted-foreground text-xs font-heading">{totalPhotos} total</span>
+                  <span className="text-muted-foreground text-xs">{totalPhotos} total</span>
                 </div>
 
                 {userPhotos && userPhotos.length > 0 ? (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {userPhotos.map((photo: any) => (
-                      <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden group border border-border hover:border-accent transition-all hover:shadow-[var(--shadow-hover)]">
+                      <div key={photo.id} className="relative aspect-square rounded-xl overflow-hidden group border border-border hover:border-accent transition-all hover:shadow-[var(--shadow-hover)]">
                         <Image
                           src={photo.thumbnail_url || photo.image_url}
                           alt="My upload"
@@ -440,7 +440,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                           className="object-cover transition-transform duration-500 group-hover:scale-110"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
-                            <p className="text-xs text-white font-heading font-bold truncate">{photo.hotspots?.name}</p>
+                            <p className="text-xs text-white font-bold truncate">{photo.hotspots?.name}</p>
                             <p className="text-[10px] text-muted-foreground">{new Date(photo.created_at).toLocaleDateString()}</p>
                         </div>
                       </div>
@@ -455,15 +455,15 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                         <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                            <Upload className="w-8 h-8 text-muted-foreground group-hover:text-accent transition-colors" />
                         </div>
-                        <h3 className="font-heading text-lg text-foreground font-bold mb-2">Drag photos here or click to upload</h3>
+                        <h3 className="text-lg text-foreground font-bold mb-2">Drag photos here or click to upload</h3>
                         <p className="text-muted-foreground text-sm">Share your best moments with the community</p>
                      </div>
 
                      <div>
-                        <p className="text-muted-foreground text-xs font-heading mb-4 uppercase tracking-widest">Inspiration from others</p>
+                        <p className="text-muted-foreground text-xs mb-4 uppercase tracking-widest">Inspiration from others</p>
                         <div className="grid grid-cols-3 gap-4">
                            {popularHotspots.slice(0, 3).map((spot: any) => (
-                              <div key={spot.id} className="relative aspect-square rounded-lg overflow-hidden opacity-60 hover:opacity-100 transition-opacity">
+                              <div key={spot.id} className="relative aspect-square rounded-xl overflow-hidden opacity-60 hover:opacity-100 transition-opacity">
                                  <Image src={spot.image_url || "/placeholder.svg"} alt="Inspiration" fill className="object-cover grayscale hover:grayscale-0 transition-all" />
                               </div>
                            ))}

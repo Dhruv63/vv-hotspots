@@ -5,7 +5,7 @@
 
 @theme inline {
   --font-sans: "Inter", "Inter Fallback", system-ui, sans-serif;
-  --font-mono: "Fira Code", "JetBrains Mono", "Geist Mono", monospace;
+  --font-mono: "Inter", "Inter Fallback", system-ui, sans-serif;
 
   /* Semantic Theme Colors */
   --color-background: var(--background);
@@ -65,10 +65,11 @@
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
 }
 
 :root {
@@ -92,13 +93,13 @@
   --border: #2A3055;
   --input: #2A3055;
   --ring: #E8FF00;
-  --radius: 2px;
+  --radius: 12px;
 
   /* Theme Personality Variables */
-  --shadow-card: 0 0 20px rgba(0, 255, 255, 0.3);
-  --shadow-hover: 0 0 30px rgba(0, 255, 255, 0.5);
-  --font-heading: 'Courier New', monospace;
-  --transition-speed: 150ms;
+  --shadow-card: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --font-heading: var(--font-sans);
+  --transition-speed: 300ms;
   --bg-pattern: repeating-linear-gradient(0deg, rgba(0, 217, 255, 0.03), rgba(0, 217, 255, 0.03) 1px, transparent 1px, transparent 2px);
   --border-card: var(--accent);
   --text-glow: 0 0 10px var(--accent), 0 0 20px var(--secondary);
@@ -120,7 +121,10 @@
 }
 
 [data-theme="cyberpunk"] {
-  /* Inherits from root */
+  --radius: 16px;
+  --font-heading: var(--font-sans);
+  --shadow-card: 0 4px 20px rgba(0, 255, 255, 0.15);
+  --shadow-hover: 0 8px 30px rgba(0, 255, 255, 0.25);
 }
 
 [data-theme="genshin"] {
@@ -148,7 +152,7 @@
   /* Genshin Personality */
   --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08);
   --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.12);
-  --font-heading: 'Georgia', serif;
+  --font-heading: var(--font-sans);
   --transition-speed: 300ms;
   --bg-pattern: radial-gradient(circle at top right, rgba(74, 144, 226, 0.05), transparent 60%), radial-gradient(circle at bottom left, rgba(158, 124, 193, 0.05), transparent 60%);
   --border-card: var(--border);
@@ -189,7 +193,7 @@
   /* Lofi Personality */
   --shadow-card: 0 4px 12px rgba(139, 90, 43, 0.15);
   --shadow-hover: 0 6px 16px rgba(139, 90, 43, 0.2);
-  --font-heading: system-ui, -apple-system, sans-serif;
+  --font-heading: var(--font-sans);
   --transition-speed: 350ms;
   /* Noise texture data uri */
   --bg-pattern: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
@@ -226,13 +230,13 @@
   --border: #5D4037;
   --input: #5D4037;
   --ring: #C0392B;
-  --radius: 4px;
+  --radius: 16px;
 
   /* RDR2 Personality */
   --shadow-card: 0 2px 8px rgba(101, 50, 15, 0.4);
   --shadow-hover: 0 4px 12px rgba(101, 50, 15, 0.6);
-  --font-heading: 'Georgia', serif;
-  --transition-speed: 200ms;
+  --font-heading: var(--font-sans);
+  --transition-speed: 300ms;
   /* Grunge/Texture pattern */
   --bg-pattern: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%235D4037' fill-opacity='0.1'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z'/%3E%3C/g%3E%3C/svg%3E");
   --border-card: var(--border);
@@ -409,13 +413,13 @@ button:not(:disabled):hover {
   animation: glitch 0.3s ease-in-out;
 }
 
-/* Angular clip paths for cyberpunk cards */
+/* Rounded corners for cards (formerly angular) */
 .cyber-clip {
-  clip-path: polygon(0 5px, 5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%);
+  @apply rounded-xl;
 }
 
 .cyber-clip-sm {
-  clip-path: polygon(0 3px, 3px 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%);
+  @apply rounded-lg;
 }
 
 /* Pulse animation */
@@ -551,11 +555,11 @@ button:not(:disabled):hover {
 .leaflet-tooltip.custom-tooltip {
   background-color: rgba(10, 14, 39, 0.9) !important;
   border: 1px solid var(--color-primary) !important;
-  border-radius: 4px !important;
+  border-radius: 12px !important;
   color: var(--color-primary) !important;
   font-family: var(--font-mono) !important;
   font-size: 11px !important;
-  padding: 2px 6px !important;
+  padding: 4px 8px !important;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5) !important;
   white-space: nowrap;
 }
@@ -606,10 +610,10 @@ button:not(:disabled):hover {
   background: var(--color-card) !important;
   color: var(--color-foreground) !important;
   border: 1px solid var(--color-border) !important;
-  border-radius: var(--radius) !important;
+  border-radius: 20px !important;
   padding: 0 !important;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25) !important;
 }
 
 .cyber-popup .leaflet-popup-content {

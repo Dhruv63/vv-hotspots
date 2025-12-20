@@ -153,7 +153,7 @@ export function HotspotCard({
         {/* Category badge */}
         <div className="absolute top-2 left-2 z-10">
           <span
-            className={`px-2 py-0.5 text-[10px] font-heading font-bold uppercase rounded shadow-sm ${getCategoryColor(hotspot.category)}`}
+            className={`px-3 py-1 text-[10px] font-bold uppercase rounded-full shadow-sm ${getCategoryColor(hotspot.category)}`}
           >
             {hotspot.category}
           </span>
@@ -162,7 +162,7 @@ export function HotspotCard({
         {/* Active users badge & Save Button */}
         <div className="absolute top-2 right-2 z-10 flex items-center gap-2">
           {activeCheckins > 0 && (
-            <div className="flex items-center gap-1 px-2 py-0.5 bg-background/90 border border-accent text-accent text-[10px] font-heading rounded backdrop-blur-sm">
+            <div className="flex items-center gap-1 px-3 py-1 bg-background/90 border border-accent text-accent text-[10px] font-bold rounded-full backdrop-blur-sm">
               <Users className="w-3 h-3" />
               <span>{activeCheckins}</span>
             </div>
@@ -171,7 +171,7 @@ export function HotspotCard({
              <button
                 onClick={(e) => { e.stopPropagation(); onToggleSave(hotspot.id) }}
                 className={cn(
-                  "p-1.5 rounded-full backdrop-blur-sm transition-all active:scale-95",
+                  "p-1.5 rounded-full backdrop-blur-sm transition-all active:scale-95 hover:scale-110",
                   isSaved
                     ? "bg-secondary/20 border-secondary text-secondary"
                     : "bg-black/30 border-white/20 text-white hover:bg-black/50 hover:border-white"
@@ -185,7 +185,7 @@ export function HotspotCard({
         {/* Distance (Bottom Left overlay for grid/list) */}
         {distance !== undefined && distance !== null && (
           <div className="absolute bottom-2 left-2 z-10">
-             <span className="text-[10px] font-mono font-bold text-white/90 bg-black/50 px-1.5 py-0.5 rounded backdrop-blur-sm border border-white/10">
+             <span className="text-[10px] font-bold text-white/90 bg-black/50 px-2 py-1 rounded-full backdrop-blur-sm border border-white/10">
                 {distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)} km`}
              </span>
           </div>
@@ -196,7 +196,7 @@ export function HotspotCard({
       <div className="p-3 flex flex-col flex-1 overflow-hidden">
         <div className="flex justify-between items-start mb-1 gap-2">
             <h3 className={cn(
-              "font-heading font-bold text-foreground leading-tight line-clamp-1",
+              "font-bold text-foreground leading-tight line-clamp-1",
               isGrid ? "text-[14px]" : "text-[18px]"
             )}>
               {hotspot.name}
@@ -217,10 +217,10 @@ export function HotspotCard({
                <div className="flex items-center">
                   {renderStars(averageRating)}
                </div>
-               {!isGrid && <span className="text-muted-foreground text-xs font-mono">({ratingCount})</span>}
+               {!isGrid && <span className="text-muted-foreground text-xs">({ratingCount})</span>}
             </div>
           ) : (
-            <span className="text-muted-foreground text-xs font-mono">No ratings</span>
+            <span className="text-muted-foreground text-xs">No ratings</span>
           )}
         </div>
 

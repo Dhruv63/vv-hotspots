@@ -172,9 +172,9 @@ export function NotificationsDropdown({ userId }: NotificationsDropdownProps) {
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-[#0A0E27] border border-cyan-500/30 rounded-lg shadow-[0_0_30px_rgba(0,0,0,0.8)] overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
+                <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-[#0A0E27] border border-cyan-500/30 rounded-xl shadow-[0_0_30px_rgba(0,0,0,0.8)] overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
                     <div className="p-3 border-b border-white/10 flex items-center justify-between bg-[#1A1F3A]">
-                        <h3 className="font-mono text-sm font-bold text-white tracking-widest">NOTIFICATIONS</h3>
+                        <h3 className="text-sm font-bold text-white tracking-widest">NOTIFICATIONS</h3>
                         {unreadCount > 0 && (
                             <button
                                 onClick={markAllAsRead}
