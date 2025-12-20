@@ -7,7 +7,7 @@ import "leaflet/dist/leaflet.css"
 import "leaflet.markercluster/dist/MarkerCluster.css"
 import "leaflet.markercluster/dist/MarkerCluster.Default.css"
 import type { Hotspot } from "@/lib/types"
-import { useTheme } from "next-themes"
+import { useTheme } from "@/components/theme-provider"
 import { themes } from "@/lib/themes"
 import { CATEGORY_COLOR } from "@/lib/constants"
 import { Search, Navigation, Layers, Info, MapPin } from "lucide-react"
@@ -301,13 +301,15 @@ export function MapView({
   }, [viewMode, isVisible])
 
   const activeTheme = (theme as keyof typeof themes) || "cyberpunk"
-  const tileLayerUrl = activeTheme === 'genshin'
-    ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-    : activeTheme === 'lofi'
-    ? "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-    : activeTheme === 'rdr2'
-    ? "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
-    : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+
+  const tileUrls = {
+     cyberpunk: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+     genshin: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+     lofi: 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png',
+     rdr2: 'https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}.jpg'
+  };
+
+  const tileLayerUrl = tileUrls[activeTheme] || tileUrls.cyberpunk;
 
   return (
     <div

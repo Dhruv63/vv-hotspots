@@ -1,10 +1,10 @@
 export const CATEGORY_COLOR = {
-  cafe: "#0ABDC6",
-  park: "#00FF9F",
-  gaming: "#EA00D9",
-  food: "#FFCC00",
-  hangout: "#BD00FF",
-  other: "#00B8FF",
+  cafe: "var(--color-cat-cafe)",
+  park: "var(--color-cat-park)",
+  gaming: "var(--color-cat-gaming)",
+  food: "var(--color-cat-food)",
+  hangout: "var(--color-cat-hangout)",
+  other: "var(--color-cat-other)",
 } as const;
 
 export type CategoryColor = typeof CATEGORY_COLOR;
