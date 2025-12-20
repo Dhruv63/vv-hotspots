@@ -150,7 +150,7 @@ export function HotspotList({
               }}
               onFocus={() => setShowSuggestions(true)}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-              className="pl-12 pr-12 h-14 text-lg rounded-lg bg-card border-border text-foreground placeholder:text-muted-foreground/50 transition-all duration-200 focus:border-primary focus:ring-primary/20 focus:shadow-lg shadow-inner"
+              className="pl-12 pr-12 h-14 text-lg rounded-xl bg-background/50 border-white/10 text-foreground placeholder:text-muted-foreground/50 transition-all duration-300 focus:border-primary focus:ring-1 focus:ring-primary/50 focus:shadow-[0_0_20px_rgba(var(--primary),0.2)] backdrop-blur-sm"
             />
             {/* ... key shortcut ... */}
             <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
@@ -230,17 +230,22 @@ export function HotspotList({
       <div className="px-3 pt-3 md:px-4 md:pt-4">
         <Link
           href="/ai-planner"
-          className="block bg-gradient-to-br from-cyan-500/20 to-pink-500/20 border-2 border-cyan-500/40 rounded-2xl p-6 hover:shadow-2xl hover:shadow-cyan-500/30 transition-all hover:scale-105 group"
+          className="block glass-panel rounded-2xl p-6 hover-float group relative overflow-hidden"
         >
-          <div className="flex items-center gap-4">
-            <div className="text-6xl group-hover:scale-110 transition-transform">🤖</div>
+          {/* Animated Gradient Border */}
+          <div className="absolute inset-0 rounded-2xl p-[2px] opacity-70 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none -z-10"
+               style={{background: 'linear-gradient(135deg, #00D9FF, #FF006E)'}} />
+          <div className="absolute inset-[2px] bg-card/80 rounded-[14px] -z-10" />
+
+          <div className="flex items-center gap-4 relative z-10">
+            <div className="text-6xl group-hover:scale-110 transition-transform animate-float">🤖</div>
             <div className="flex-1">
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-pink-400 bg-clip-text text-transparent">
+              <h3 className="text-2xl font-bold text-gradient-animated bg-clip-text text-transparent">
                 AI Day Planner
               </h3>
-              <p className="text-gray-300 mt-1">Let AI plan your perfect day in Vasai-Virar</p>
-              <div className="mt-2 inline-block bg-green-500/20 border border-green-500/40 rounded-full px-3 py-1">
-                <span className="text-green-300 text-sm font-semibold">✨ NEW</span>
+              <p className="text-muted-foreground mt-1 text-sm">Let AI plan your perfect day in Vasai-Virar</p>
+              <div className="mt-2 inline-flex items-center gap-1 bg-green-500/10 border border-green-500/30 rounded-full px-3 py-0.5 animate-pulse">
+                <span className="text-green-400 text-xs font-bold">✨ NEW FEATURE</span>
               </div>
             </div>
           </div>

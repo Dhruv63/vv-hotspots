@@ -17,7 +17,7 @@ interface HotspotCardProps {
   children?: ReactNode
   isSaved?: boolean
   onToggleSave?: (id: string) => void
-  variant?: "list" | "grid" | "compact" // Added variant prop
+  variant?: "list" | "grid" | "compact"
 }
 
 const getHotspotImage = (hotspot: Hotspot): string => {
@@ -79,7 +79,7 @@ export function HotspotCard({
   children,
   isSaved,
   onToggleSave,
-  variant = "list", // Default to list for backward compatibility with sidebar
+  variant = "list",
 }: HotspotCardProps) {
   const imageUrl = getHotspotImage(hotspot)
 
@@ -92,14 +92,14 @@ export function HotspotCard({
       stars.push(
         <Star
           key={`full-${i}`}
-          className="w-3 h-3 md:w-3.5 md:h-3.5 fill-primary text-primary"
+          className="w-3 h-3 md:w-3.5 md:h-3.5 fill-primary text-primary transition-transform hover:scale-125"
         />
       )
     }
 
     if (hasHalfStar) {
       stars.push(
-        <div key="half" className="relative w-3 h-3 md:w-3.5 md:h-3.5">
+        <div key="half" className="relative w-3 h-3 md:w-3.5 md:h-3.5 transition-transform hover:scale-125">
             <StarHalf className="absolute inset-0 w-full h-full fill-primary text-primary z-10" />
             <Star className="absolute inset-0 w-full h-full text-muted-foreground/30" />
         </div>
@@ -111,7 +111,7 @@ export function HotspotCard({
       stars.push(
         <Star
           key={`empty-${i}`}
-          className="w-3 h-3 md:w-3.5 md:h-3.5 text-muted-foreground/30"
+          className="w-3 h-3 md:w-3.5 md:h-3.5 text-muted-foreground/30 transition-transform hover:scale-125"
         />
       )
     }
@@ -119,32 +119,31 @@ export function HotspotCard({
     return stars
   }
 
-  // Define layout styles based on variant
   const isGrid = variant === "grid"
-  const isCompact = variant === "compact"
-
-  // Height for images
   const imageHeight = isGrid ? "h-[140px]" : "h-[180px]"
 
   return (
     <div
       onClick={onClick}
       className={cn(
-        "group relative overflow-hidden card-theme cursor-pointer flex flex-col bg-card",
+        "group relative overflow-hidden card-theme glass-card cursor-pointer flex flex-col hover-float",
         isSelected
           ? "border-primary shadow-[var(--shadow-hover)]"
-          : "hover:border-primary/50",
-        // Spacing based on variant
+          : "hover:border-transparent", // Make border transparent on hover to show gradient
         isGrid ? "w-full" : "w-full mb-3 last:mb-0"
       )}
     >
+      {/* Gradient Border on Hover */}
+      <div className="absolute inset-0 rounded-[inherit] p-[2px] bg-gradient-to-r from-cyan-400 to-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none -z-10" />
+      <div className="absolute inset-[1px] bg-card/90 rounded-[inherit] -z-10 group-hover:bg-card/95 transition-colors duration-300" />
+
       {/* Image section */}
       <div className={cn("relative w-full shrink-0 bg-muted/50 overflow-hidden", imageHeight)}>
         <Image
           src={imageUrl || "/placeholder.svg"}
           alt={hotspot.name}
           fill
-          className="object-cover transition-all duration-300 group-hover:scale-105"
+          className="object-cover transition-all duration-500 group-hover:scale-110"
           sizes={isGrid ? "(max-width: 768px) 50vw, 320px" : "(max-width: 768px) 100vw, 320px"}
           loading="lazy"
         />
@@ -162,7 +161,7 @@ export function HotspotCard({
         {/* Active users badge & Save Button */}
         <div className="absolute top-2 right-2 z-10 flex items-center gap-2">
           {activeCheckins > 0 && (
-            <div className="flex items-center gap-1 px-3 py-1 bg-background/90 border border-accent text-accent text-[10px] font-bold rounded-full backdrop-blur-sm">
+            <div className="flex items-center gap-1 px-3 py-1 bg-background/90 border border-accent text-accent text-[10px] font-bold rounded-full backdrop-blur-sm shadow-[0_0_10px_rgba(var(--accent),0.5)] animate-pulse">
               <Users className="w-3 h-3" />
               <span>{activeCheckins}</span>
             </div>
@@ -173,8 +172,8 @@ export function HotspotCard({
                 className={cn(
                   "p-1.5 rounded-full backdrop-blur-sm transition-all active:scale-95 hover:scale-110",
                   isSaved
-                    ? "bg-secondary/20 border-secondary text-secondary"
-                    : "bg-black/30 border-white/20 text-white hover:bg-black/50 hover:border-white"
+                    ? "bg-secondary/20 border-secondary text-secondary shadow-[0_0_10px_var(--color-secondary)]"
+                    : "bg-black/30 border-white/20 text-white hover:bg-black/50 hover:border-white hover:shadow-lg"
                 )}
              >
                 <Heart className={cn("w-3.5 h-3.5", isSaved && "fill-secondary")} />
@@ -182,7 +181,7 @@ export function HotspotCard({
           )}
         </div>
 
-        {/* Distance (Bottom Left overlay for grid/list) */}
+        {/* Distance */}
         {distance !== undefined && distance !== null && (
           <div className="absolute bottom-2 left-2 z-10">
              <span className="text-[10px] font-bold text-white/90 bg-black/50 px-2 py-1 rounded-full backdrop-blur-sm border border-white/10">
@@ -193,10 +192,10 @@ export function HotspotCard({
       </div>
 
       {/* Content section */}
-      <div className="p-3 flex flex-col flex-1 overflow-hidden">
+      <div className="p-3 flex flex-col flex-1 overflow-hidden relative z-10">
         <div className="flex justify-between items-start mb-1 gap-2">
             <h3 className={cn(
-              "font-bold text-foreground leading-tight line-clamp-1",
+              "font-bold text-foreground leading-tight line-clamp-1 group-hover:text-primary transition-colors duration-300",
               isGrid ? "text-[14px]" : "text-[18px]"
             )}>
               {hotspot.name}
@@ -224,7 +223,7 @@ export function HotspotCard({
           )}
         </div>
 
-        {/* Buttons (Children) */}
+        {/* Buttons */}
         {children && (
           <div className={cn("mt-auto w-full", isGrid ? "pt-1" : "pt-2")}>
             {children}

@@ -71,24 +71,27 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
         </Link>
 
         {/* Profile Header */}
-        <div className="card-theme p-6 mb-6 rounded-2xl">
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+        <div className="glass-panel p-6 mb-6 rounded-2xl relative overflow-hidden group/header border border-white/10">
+          <div className="absolute inset-0 bg-gradient-to-r from-accent/5 to-primary/5 opacity-0 group-hover/header:opacity-100 transition-opacity duration-500 pointer-events-none" />
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 relative z-10">
             {/* Avatar */}
             <div className="relative group">
-              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden border-4 border-accent shadow-theme bg-muted">
-                {profile?.avatar_url ? (
-                  <Image
-                    src={profile.avatar_url || "/placeholder.svg"}
-                    alt={profile.username || "User avatar"}
-                    width={112}
-                    height={112}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-accent/10">
-                    <User className="w-12 h-12 text-accent" />
-                  </div>
-                )}
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full p-[3px] bg-gradient-to-tr from-accent via-primary to-accent bg-[length:200%_200%] animate-gradient-x shadow-lg">
+                <div className="w-full h-full rounded-full overflow-hidden bg-background relative">
+                  {profile?.avatar_url ? (
+                    <Image
+                      src={profile.avatar_url || "/placeholder.svg"}
+                      alt={profile.username || "User avatar"}
+                      width={112}
+                      height={112}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-accent/10">
+                      <User className="w-12 h-12 text-accent" />
+                    </div>
+                  )}
+                </div>
               </div>
               <Link
                 href="/profile/edit"
@@ -153,28 +156,28 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                   className={`text-center cursor-pointer transition-transform hover:scale-105 ${activeTab === 'history' ? 'border-b-2 border-primary pb-1' : ''}`}
                   onClick={() => setActiveTab('history')}
                 >
-                  <p className="text-2xl sm:text-3xl text-primary font-bold">{totalCheckIns}</p>
+                  <p className="text-2xl sm:text-3xl text-primary font-bold animate-count-up">{totalCheckIns}</p>
                   <p className="text-muted-foreground text-xs sm:text-sm">Check-ins</p>
                 </div>
                 <div
                   className={`text-center cursor-pointer transition-transform hover:scale-105 ${activeTab === 'visited' ? 'border-b-2 border-primary pb-1' : ''}`}
                   onClick={() => setActiveTab('visited')}
                 >
-                  <p className="text-2xl sm:text-3xl text-primary font-bold">{uniqueSpots}</p>
+                  <p className="text-2xl sm:text-3xl text-primary font-bold animate-count-up" style={{ animationDelay: '100ms' }}>{uniqueSpots}</p>
                   <p className="text-muted-foreground text-xs sm:text-sm">Spots Visited</p>
                 </div>
                 <div
                   className={`text-center cursor-pointer transition-transform hover:scale-105 ${activeTab === 'reviews' ? 'border-b-2 border-primary pb-1' : ''}`}
                   onClick={() => setActiveTab('reviews')}
                 >
-                  <p className="text-2xl sm:text-3xl text-primary font-bold">{totalRatings}</p>
+                  <p className="text-2xl sm:text-3xl text-primary font-bold animate-count-up" style={{ animationDelay: '200ms' }}>{totalRatings}</p>
                   <p className="text-muted-foreground text-xs sm:text-sm">Ratings</p>
                 </div>
                 <div
                   className={`text-center cursor-pointer transition-transform hover:scale-105 ${activeTab === 'photos' ? 'border-b-2 border-primary pb-1' : ''}`}
                   onClick={() => setActiveTab('photos')}
                 >
-                  <p className="text-2xl sm:text-3xl text-primary font-bold">{totalPhotos}</p>
+                  <p className="text-2xl sm:text-3xl text-primary font-bold animate-count-up" style={{ animationDelay: '300ms' }}>{totalPhotos}</p>
                   <p className="text-muted-foreground text-xs sm:text-sm">Photos</p>
                 </div>
                 {avgRating && (
@@ -182,7 +185,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                     className={`text-center cursor-pointer transition-transform hover:scale-105 ${activeTab === 'reviews' ? 'border-b-2 border-primary pb-1' : ''}`}
                     onClick={() => setActiveTab('reviews')}
                   >
-                    <p className="text-2xl sm:text-3xl text-primary font-bold">{avgRating}</p>
+                    <p className="text-2xl sm:text-3xl text-primary font-bold animate-count-up" style={{ animationDelay: '400ms' }}>{avgRating}</p>
                     <p className="text-muted-foreground text-xs sm:text-sm">Avg Rating</p>
                   </div>
                 )}
@@ -217,7 +220,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
           <div className="min-h-[400px]">
 
             {activeTab === 'history' && (
-              <div className="card-theme p-4 animate-in fade-in slide-in-from-bottom-4 duration-300 rounded-2xl">
+              <div className="glass-panel p-4 animate-in fade-in slide-in-from-bottom-4 duration-300 rounded-2xl">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg text-foreground flex items-center gap-2 font-bold">
                     <MapPin className="w-5 h-5 text-accent" />
@@ -275,7 +278,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
             )}
 
             {activeTab === 'reviews' && (
-              <div className="card-theme p-4 animate-in fade-in slide-in-from-bottom-4 duration-300 rounded-2xl">
+              <div className="glass-panel p-4 animate-in fade-in slide-in-from-bottom-4 duration-300 rounded-2xl">
                  <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg text-foreground flex items-center gap-2 font-bold">
                     <Star className="w-5 h-5 text-primary" />
@@ -328,7 +331,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
             )}
 
             {activeTab === 'saved' && (
-               <div className="card-theme p-6 animate-in fade-in slide-in-from-bottom-4 duration-300 rounded-2xl">
+               <div className="glass-panel p-6 animate-in fade-in slide-in-from-bottom-4 duration-300 rounded-2xl">
                  <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl text-foreground flex items-center gap-2 font-bold">
                     <Heart className="w-6 h-6 text-secondary" />
@@ -387,7 +390,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
             )}
 
             {activeTab === 'visited' && (
-              <div className="card-theme p-4 animate-in fade-in slide-in-from-bottom-4 duration-300 rounded-2xl">
+              <div className="glass-panel p-4 animate-in fade-in slide-in-from-bottom-4 duration-300 rounded-2xl">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg text-foreground flex items-center gap-2 font-bold">
                     <MapPin className="w-5 h-5 text-accent" />
@@ -420,7 +423,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
             )}
 
             {activeTab === 'photos' && (
-              <div className="card-theme p-4 animate-in fade-in slide-in-from-bottom-4 duration-300 rounded-2xl">
+              <div className="glass-panel p-4 animate-in fade-in slide-in-from-bottom-4 duration-300 rounded-2xl">
                  <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg text-foreground flex items-center gap-2 font-bold">
                     <Camera className="w-5 h-5 text-accent" />

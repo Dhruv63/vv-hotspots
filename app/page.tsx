@@ -61,8 +61,8 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-12 items-center relative z-10">
           {/* Left Side: Content */}
           <div className="text-left space-y-8">
-            <h1 className="font-sans text-5xl md:text-7xl font-bold leading-tight text-cyber-light">
-              Find Where Your <span className="text-cyber-yellow neon-text-yellow">Crew</span> Is
+            <h1 className="font-sans text-5xl md:text-7xl font-bold leading-tight text-foreground">
+              Find Where Your <span className="text-gradient-animated bg-clip-text text-transparent font-extrabold tracking-tight">Crew</span> Is
             </h1>
             <p className="text-xl md:text-2xl text-cyber-gray max-w-lg font-sans">
               Real-time hangout discovery for Vasai-Virar locals
@@ -85,9 +85,9 @@ export default async function HomePage() {
           </div>
 
           {/* Right Side: Animated Phone Mockup */}
-          <div className="relative flex justify-center md:justify-end">
+          <div className="relative flex justify-center md:justify-end animate-float">
              {/* Phone Body */}
-             <div className="relative w-[300px] h-[600px] bg-cyber-black border-[12px] border-[#2A3055] rounded-[3rem] shadow-[0_0_50px_rgba(232,255,0,0.15)] overflow-hidden transform rotate-[-5deg] hover:rotate-0 transition-transform duration-500">
+             <div className="relative w-[300px] h-[600px] bg-background border-[12px] border-border rounded-[3rem] shadow-[0_0_50px_rgba(var(--primary),0.15)] overflow-hidden transform rotate-[-5deg] hover:rotate-0 transition-transform duration-500">
                 {/* Notch */}
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-[#2A3055] rounded-b-xl z-20"></div>
 
@@ -143,12 +143,12 @@ export default async function HomePage() {
               }[feature.color]
 
               return (
-                <div key={feature.title} className="p-6 rounded-2xl bg-cyber-navy border border-white/5 hover:border-cyber-yellow/50 transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-lg group">
-                  <div className={`w-12 h-12 mb-4 rounded-xl bg-cyber-black flex items-center justify-center border border-white/10 group-hover:border-${feature.color === 'cyan' ? 'cyber-cyan' : 'cyber-pink'}`}>
+                <div key={feature.title} className="glass-panel p-6 rounded-2xl transition-all duration-300 hover-float group">
+                  <div className={`w-12 h-12 mb-4 rounded-xl bg-background/50 flex items-center justify-center border border-white/10 group-hover:border-${feature.color === 'cyan' ? 'cyber-cyan' : 'cyber-pink'} shadow-inner`}>
                     <Icon className={`w-6 h-6 ${colorClasses}`} />
                   </div>
-                  <h3 className="font-sans text-xl font-bold text-cyber-light mb-2">{feature.title}</h3>
-                  <p className="text-cyber-gray text-sm leading-relaxed">{feature.description}</p>
+                  <h3 className="font-sans text-xl font-bold text-foreground mb-2">{feature.title}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{feature.description}</p>
                 </div>
               )
             })}

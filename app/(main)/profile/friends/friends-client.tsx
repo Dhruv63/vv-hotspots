@@ -50,7 +50,7 @@ const FriendCard = memo(function FriendCard({
     <div
       onMouseEnter={() => router.prefetch(`/users/${friend.username}`)}
       onClick={() => router.push(`/users/${friend.username}`)}
-      className="flex flex-col items-center p-6 card-theme relative overflow-hidden group cursor-pointer rounded-2xl"
+      className="flex flex-col items-center p-6 glass-panel relative overflow-hidden group cursor-pointer rounded-2xl hover-float border border-white/10"
       role="link"
       tabIndex={0}
       onKeyDown={(e) => {
@@ -60,6 +60,9 @@ const FriendCard = memo(function FriendCard({
         }
       }}
     >
+      {/* Gradient Border on Hover */}
+      <div className="absolute inset-0 rounded-[inherit] p-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none -z-10" style={{background: 'linear-gradient(to right, var(--color-accent), var(--color-primary))'}} />
+
       {/* Avatar */}
       <div className="mb-4 relative">
         <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-accent bg-muted relative z-10">
@@ -344,7 +347,7 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
             incomingRequests.length > 0 ? (
               <div className="space-y-4">
                 {incomingRequests.map((req: any) => (
-                  <div key={req.id} className="card-theme p-4 flex items-center gap-4 border-l-4 border-l-primary rounded-2xl">
+                  <div key={req.id} className="glass-panel p-4 flex items-center gap-4 border-l-4 border-l-primary rounded-2xl hover:border-white/20 transition-colors">
                     <div
                       onMouseEnter={() => router.prefetch(`/users/${req.sender.username}`)}
                       onClick={() => router.push(`/users/${req.sender.username}`)}
@@ -424,7 +427,7 @@ export const FriendsClient = memo(function FriendsClient({ initialFriends, incom
             sentRequests.length > 0 ? (
               <div className="space-y-4">
                 {sentRequests.map((req: any) => (
-                  <div key={req.id} className="card-theme p-4 flex items-center gap-4 opacity-80 rounded-2xl">
+                  <div key={req.id} className="glass-panel p-4 flex items-center gap-4 opacity-80 rounded-2xl hover:opacity-100 transition-opacity">
                     <div
                       onMouseEnter={() => router.prefetch(`/users/${req.receiver.username}`)}
                       onClick={() => router.push(`/users/${req.receiver.username}`)}
