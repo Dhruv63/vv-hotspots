@@ -58,10 +58,10 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
         {/* Left: Logo */}
         <div className="flex items-center gap-4">
           <Link href="/" className="flex items-center gap-2 glitch-hover">
-            <div className="w-8 h-8 bg-accent cyber-clip-sm flex items-center justify-center transition-colors duration-300">
+            <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center transition-colors duration-300">
               <MapPin className="w-5 h-5 text-accent-foreground transition-colors duration-300" />
             </div>
-            <span className="font-heading text-xl font-bold hidden sm:inline">
+            <span className="text-xl font-bold hidden sm:inline">
               <span className="text-accent text-glow transition-colors duration-300">VV</span>
               <span className="text-foreground transition-colors duration-300"> HOTSPOTS</span>
             </span>
@@ -75,7 +75,7 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
               href="/dashboard"
               prefetch={true}
               onMouseEnter={() => router.prefetch("/dashboard")}
-              className={`font-heading text-sm tracking-wider transition-all py-1 border-b-2 ${isActive("/dashboard")
+              className={`text-sm font-bold tracking-wider transition-all py-1 border-b-2 ${isActive("/dashboard")
                   ? "border-primary text-primary shadow-[var(--shadow-hover)]"
                   : "border-transparent text-foreground hover:text-accent hover:border-accent/50"
                 }`}
@@ -86,7 +86,7 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
               href="/profile"
               prefetch={true}
               onMouseEnter={() => router.prefetch("/profile")}
-              className={`font-heading text-sm tracking-wider transition-all py-1 border-b-2 ${isActive("/profile")
+              className={`text-sm font-bold tracking-wider transition-all py-1 border-b-2 ${isActive("/profile")
                   ? "border-primary text-primary shadow-[var(--shadow-hover)]"
                   : "border-transparent text-foreground hover:text-accent hover:border-accent/50"
                 }`}
@@ -97,7 +97,7 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
               href="/profile/friends"
               prefetch={true}
               onMouseEnter={() => router.prefetch("/profile/friends")}
-              className={`font-heading text-sm tracking-wider transition-all py-1 border-b-2 ${isActive("/profile/friends")
+              className={`text-sm font-bold tracking-wider transition-all py-1 border-b-2 ${isActive("/profile/friends")
                   ? "border-primary text-primary shadow-[var(--shadow-hover)]"
                   : "border-transparent text-foreground hover:text-accent hover:border-accent/50"
                 }`}
@@ -140,7 +140,7 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
               </button>
 
               {userDropdownOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-card border border-border rounded-lg shadow-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div className="absolute right-0 top-full mt-2 w-48 bg-card border border-border rounded-xl shadow-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                   <div className="py-1">
                     <Link
                       href="/profile"
@@ -214,7 +214,7 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
                   prefetch={true}
                   onTouchStart={() => router.prefetch("/dashboard")}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors font-heading min-h-[44px] ${isActive("/dashboard") ? "bg-primary/10 text-primary border border-primary" : "text-foreground hover:bg-accent/10"
+                  className={`flex items-center gap-3 w-full p-3 rounded-xl transition-colors min-h-[44px] ${isActive("/dashboard") ? "bg-primary/10 text-primary border border-primary" : "text-foreground hover:bg-accent/10"
                     }`}
                 >
                   <MapPin className="w-5 h-5" />
@@ -225,7 +225,7 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
                   prefetch={true}
                   onTouchStart={() => router.prefetch("/profile")}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors font-heading min-h-[44px] ${isActive("/profile") ? "bg-primary/10 text-primary border border-primary" : "text-foreground hover:bg-accent/10"
+                  className={`flex items-center gap-3 w-full p-3 rounded-xl transition-colors min-h-[44px] ${isActive("/profile") ? "bg-primary/10 text-primary border border-primary" : "text-foreground hover:bg-accent/10"
                     }`}
                 >
                   <User className="w-5 h-5" />
@@ -236,7 +236,7 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
                   prefetch={true}
                   onTouchStart={() => router.prefetch("/profile/friends")}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors font-heading min-h-[44px] ${isActive("/profile/friends") ? "bg-primary/10 text-primary border border-primary" : "text-foreground hover:bg-accent/10"
+                  className={`flex items-center gap-3 w-full p-3 rounded-xl transition-colors min-h-[44px] ${isActive("/profile/friends") ? "bg-primary/10 text-primary border border-primary" : "text-foreground hover:bg-accent/10"
                     }`}
                 >
                   <Users className="w-5 h-5" />
@@ -247,7 +247,7 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
                   prefetch={true}
                   onTouchStart={() => router.prefetch("/settings")}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors font-heading min-h-[44px] ${isActive("/settings") ? "bg-primary/10 text-primary border border-primary" : "text-foreground hover:bg-accent/10"
+                  className={`flex items-center gap-3 w-full p-3 rounded-xl transition-colors min-h-[44px] ${isActive("/settings") ? "bg-primary/10 text-primary border border-primary" : "text-foreground hover:bg-accent/10"
                     }`}
                 >
                   <Settings className="w-5 h-5" />
@@ -255,7 +255,7 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
                 </Link>
                 <button
                   onClick={handleSignOut}
-                  className="flex items-center gap-3 w-full p-3 text-red-400 border border-red-500/50 hover:bg-red-500/10 rounded-lg transition-colors font-heading min-h-[44px]"
+                  className="flex items-center gap-3 w-full p-3 text-red-400 border border-red-500/50 hover:bg-red-500/10 rounded-xl transition-colors min-h-[44px]"
                 >
                   <LogOut className="w-5 h-5" />
                   Sign Out
@@ -266,14 +266,14 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
                 <Link
                   href="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-center w-full p-3 text-foreground border border-border hover:border-accent rounded-lg transition-colors font-heading min-h-[44px]"
+                  className="flex items-center justify-center w-full p-3 text-foreground border border-border hover:border-accent rounded-xl transition-colors min-h-[44px]"
                 >
                   Login
                 </Link>
                 <Link
                   href="/auth/sign-up"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-center w-full p-3 bg-accent text-accent-foreground rounded-lg font-heading font-bold min-h-[44px]"
+                  className="flex items-center justify-center w-full p-3 bg-accent text-accent-foreground rounded-xl font-bold min-h-[44px]"
                 >
                   Sign Up
                 </Link>

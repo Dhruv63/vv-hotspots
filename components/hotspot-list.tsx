@@ -132,7 +132,7 @@ export function HotspotList({
       */}
       <div className="p-4 border-b border-border space-y-4 hidden md:block">
         <div className="flex items-center justify-between">
-          <h2 className="font-mono text-base text-foreground">
+          <h2 className="font-bold text-base text-foreground">
             <span className="text-primary">{">"}</span> HOTSPOTS
           </h2>
         </div>
@@ -150,30 +150,30 @@ export function HotspotList({
               }}
               onFocus={() => setShowSuggestions(true)}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-              className="pl-12 pr-12 h-14 text-lg rounded-xl bg-card border-border text-foreground placeholder:text-muted-foreground/50 transition-all duration-200 focus:border-primary focus:ring-primary/20 focus:shadow-lg shadow-inner"
+              className="pl-12 pr-12 h-14 text-lg rounded-lg bg-card border-border text-foreground placeholder:text-muted-foreground/50 transition-all duration-200 focus:border-primary focus:ring-primary/20 focus:shadow-lg shadow-inner"
             />
             {/* ... key shortcut ... */}
             <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
-              <kbd className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded bg-background border border-muted-foreground/30 text-[10px] font-mono text-muted-foreground">
+              <kbd className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-background border border-muted-foreground/30 text-[10px] text-muted-foreground">
                 <span className="text-xs">⌘</span>K
               </kbd>
             </div>
              {/* ... autocomplete ... */}
             {showSuggestions && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-primary/30 rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100 max-h-[300px] overflow-y-auto z-50">
+              <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-primary/30 rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100 max-h-[300px] overflow-y-auto z-50">
                  {/* ... existing logic ... */}
                  {search.trim() === '' ? (
                   recentSearches.length > 0 && (
                     <div className="p-2">
-                      <p className="text-xs font-mono text-muted-foreground px-2 py-1">RECENT SEARCHES</p>
+                      <p className="text-xs text-muted-foreground px-2 py-1">RECENT SEARCHES</p>
                       {recentSearches.map(term => (
                         <button
                           key={term}
                           onClick={() => { setSearch(term); }}
-                          className="w-full text-left px-3 py-2 hover:bg-muted/50 rounded flex items-center gap-2 text-foreground transition-colors"
+                          className="w-full text-left px-3 py-2 hover:bg-muted/50 rounded-lg flex items-center gap-2 text-foreground transition-colors"
                         >
                           <Clock className="w-4 h-4 text-muted-foreground" />
-                          <span className="font-mono text-sm">{term}</span>
+                          <span className="text-sm">{term}</span>
                         </button>
                       ))}
                     </div>
@@ -184,13 +184,13 @@ export function HotspotList({
                         <button
                           key={hotspot.id}
                           onClick={() => handleSuggestionClick(hotspot)}
-                          className="w-full text-left px-3 py-2 hover:bg-muted/50 rounded flex items-center gap-3 text-foreground group/item transition-colors"
+                          className="w-full text-left px-3 py-2 hover:bg-muted/50 rounded-lg flex items-center gap-3 text-foreground group/item transition-colors"
                         >
                           <div className={`p-1.5 rounded-full bg-background border border-border group-hover/item:border-primary transition-colors`}>
                               {getCategoryIcon(hotspot.category)}
                           </div>
                           <div className="flex-1 overflow-hidden">
-                              <p className="font-bold font-mono text-sm truncate">{hotspot.name}</p>
+                              <p className="font-bold text-sm truncate">{hotspot.name}</p>
                               <p className="text-xs text-muted-foreground truncate">{hotspot.address}</p>
                           </div>
                         </button>
@@ -205,7 +205,7 @@ export function HotspotList({
             <button
               onClick={onOpenFilter}
               className={`
-                h-14 px-4 rounded-xl border border-border
+                h-14 px-4 rounded-lg border border-border
                 flex items-center gap-2 transition-all duration-200
                 ${activeFilterCount > 0
                   ? "bg-primary/10 text-primary border-primary shadow-lg"
@@ -214,7 +214,7 @@ export function HotspotList({
               `}
             >
               <Filter className="w-5 h-5" />
-              <span className="hidden md:inline font-mono text-sm font-bold">
+              <span className="hidden md:inline font-bold text-sm">
                 {activeFilterCount > 0 ? `Filters (${activeFilterCount})` : 'Filters'}
               </span>
               {activeFilterCount > 0 && (
@@ -230,7 +230,7 @@ export function HotspotList({
       <div className="px-3 pt-3 md:px-4 md:pt-4">
         <Link
           href="/ai-planner"
-          className="block bg-gradient-to-br from-cyan-500/20 to-pink-500/20 border-2 border-cyan-500/40 rounded-xl p-6 hover:shadow-2xl hover:shadow-cyan-500/30 transition-all hover:scale-105 group"
+          className="block bg-gradient-to-br from-cyan-500/20 to-pink-500/20 border-2 border-cyan-500/40 rounded-2xl p-6 hover:shadow-2xl hover:shadow-cyan-500/30 transition-all hover:scale-105 group"
         >
           <div className="flex items-center gap-4">
             <div className="text-6xl group-hover:scale-110 transition-transform">🤖</div>

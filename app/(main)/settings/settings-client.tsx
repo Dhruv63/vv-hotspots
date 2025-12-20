@@ -147,21 +147,21 @@ export function SettingsClient({ user }: SettingsClientProps) {
                 <div className="mb-6">
                     <button
                         onClick={() => router.back()}
-                        className="inline-flex items-center gap-2 text-accent hover:underline font-mono text-sm"
+                        className="inline-flex items-center gap-2 text-accent hover:underline text-sm"
                     >
                         <ArrowLeft className="w-4 h-4" />
                         <span>Back</span>
                     </button>
                 </div>
 
-                <h1 className="font-mono text-3xl font-bold text-foreground mb-8 glitch-text">SETTINGS</h1>
+                <h1 className="text-3xl font-bold text-foreground mb-8 glitch-text">SETTINGS</h1>
 
                 <div className="space-y-6">
                     {/* App Preferences */}
                     <CyberCard className="p-6">
                         <div className="flex items-center gap-3 mb-6 border-b border-border pb-4">
                             <Smartphone className="w-6 h-6 text-primary" />
-                            <h2 className="font-mono text-xl text-foreground">App Preferences</h2>
+                            <h2 className="text-xl text-foreground">App Preferences</h2>
                         </div>
 
                         <div className="space-y-6">
@@ -169,7 +169,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
                                 <div className="flex items-center gap-3">
                                     <Volume2 className="w-5 h-5 text-muted-foreground" />
                                     <div>
-                                        <p className="font-mono text-sm text-foreground">Sound Effects</p>
+                                        <p className="text-sm text-foreground">Sound Effects</p>
                                         <p className="text-xs text-muted-foreground">Enable UI interaction sounds</p>
                                     </div>
                                 </div>
@@ -178,10 +178,10 @@ export function SettingsClient({ user }: SettingsClientProps) {
                         </div>
                     </CyberCard>
 
-                    <section className="p-6 rounded-lg bg-card border border-border">
+                    <section className="p-6 rounded-xl bg-card border border-border shadow-lg">
                         <div className="flex items-center gap-3 mb-4">
                             <span className="text-2xl">🎨</span>
-                            <h2 className="text-xl font-bold font-mono text-foreground">Appearance</h2>
+                            <h2 className="text-xl font-bold text-foreground">Appearance</h2>
                         </div>
                         <ThemeSelector />
                     </section>
@@ -190,13 +190,13 @@ export function SettingsClient({ user }: SettingsClientProps) {
                     <CyberCard className="p-6">
                         <div className="flex items-center gap-3 mb-6 border-b border-border pb-4">
                             <Bell className="w-6 h-6 text-secondary" />
-                            <h2 className="font-mono text-xl text-foreground">Notifications</h2>
+                            <h2 className="text-xl text-foreground">Notifications</h2>
                         </div>
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <Bell className="w-5 h-5 text-muted-foreground" />
                                 <div>
-                                    <p className="font-mono text-sm text-foreground">Push Notifications</p>
+                                    <p className="text-sm text-foreground">Push Notifications</p>
                                     <p className="text-xs text-muted-foreground">Get updates on friends and hotspots</p>
                                 </div>
                             </div>
@@ -211,13 +211,13 @@ export function SettingsClient({ user }: SettingsClientProps) {
                     <CyberCard className="p-6">
                         <div className="flex items-center gap-3 mb-6 border-b border-border pb-4">
                             <Shield className="w-6 h-6 text-secondary" />
-                            <h2 className="font-mono text-xl text-foreground">Privacy</h2>
+                            <h2 className="text-xl text-foreground">Privacy</h2>
                         </div>
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <Lock className="w-5 h-5 text-muted-foreground" />
                                 <div>
-                                    <p className="font-mono text-sm text-foreground">Ghost Mode</p>
+                                    <p className="text-sm text-foreground">Ghost Mode</p>
                                     <p className="text-xs text-muted-foreground">Hide your check-ins from public feed</p>
                                 </div>
                             </div>
@@ -229,12 +229,12 @@ export function SettingsClient({ user }: SettingsClientProps) {
                     <div className="pt-8">
                         <button
                             onClick={handleSignOut}
-                            className="w-full py-4 border-2 border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300 hover:border-red-400 rounded-lg font-mono text-lg font-bold flex items-center justify-center gap-2 transition-all shadow-[0_0_10px_rgba(239,68,68,0.2)] hover:shadow-[0_0_20px_rgba(239,68,68,0.4)]"
+                            className="w-full py-4 border-2 border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300 hover:border-red-400 rounded-xl text-lg font-bold flex items-center justify-center gap-2 transition-all shadow-[0_0_10px_rgba(239,68,68,0.2)] hover:shadow-[0_0_20px_rgba(239,68,68,0.4)]"
                         >
                             <LogOut className="w-5 h-5" />
                             LOG OUT
                         </button>
-                        <p className="text-center text-muted-foreground text-xs mt-4 font-mono">v1.2.0 • Build 2024.05</p>
+                        <p className="text-center text-muted-foreground text-xs mt-4">v1.2.0 • Build 2024.05</p>
                     </div>
                 </div>
             </main>

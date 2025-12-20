@@ -45,7 +45,7 @@ const CyberButton = forwardRef<HTMLButtonElement, CyberButtonProps>(
       <button
         ref={ref}
         className={cn(
-          "font-heading font-semibold border-2 transition-all duration-300 relative overflow-hidden rounded-md",
+          "font-heading font-semibold border-2 transition-all duration-300 relative overflow-hidden rounded-xl shadow-lg hover:shadow-xl hover:scale-105",
           "disabled:opacity-50 disabled:cursor-not-allowed disabled:animate-none",
           "active:scale-95",
           variants[variant],
