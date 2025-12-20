@@ -1,31 +1,36 @@
 "use client"
 
 import { useEffect, useState, useRef, useCallback } from "react"
-import L from "leaflet"
-import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl, Tooltip } from "react-leaflet"
-import "leaflet/dist/leaflet.css"
-import "leaflet.markercluster/dist/MarkerCluster.css"
-import "leaflet.markercluster/dist/MarkerCluster.Default.css"
+// Import Leaflet dynamically to avoid SSR issues
+import dynamic from 'next/dynamic'
 import type { Hotspot } from "@/lib/types"
 import { useTheme } from "next-themes"
 import { themes } from "@/lib/themes"
 import { CATEGORY_COLOR } from "@/lib/constants"
 import { Search, Navigation, Layers, Info, MapPin } from "lucide-react"
 import { HotspotCard } from "@/components/hotspot-card"
-import MarkerClusterGroup from "@/components/ui/marker-cluster"
 import { CategoryBadge } from "@/components/ui/category-badge"
 
-// Fix for default marker icons in Next.js
-// @ts-ignore
-if (typeof window !== "undefined") {
-    // @ts-ignore
-    delete L.Icon.Default.prototype._getIconUrl
-    L.Icon.Default.mergeOptions({
-      iconRetinaUrl: "/marker-icon-2x.png",
-      iconUrl: "/marker-icon.png",
-      shadowUrl: "/marker-shadow.png",
-    })
-}
+// Dynamically import React-Leaflet components with ssr: false
+const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false });
+const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false });
+const Marker = dynamic(() => import('react-leaflet').then(mod => mod.Marker), { ssr: false });
+const Popup = dynamic(() => import('react-leaflet').then(mod => mod.Popup), { ssr: false });
+const ZoomControl = dynamic(() => import('react-leaflet').then(mod => mod.ZoomControl), { ssr: false });
+const Tooltip = dynamic(() => import('react-leaflet').then(mod => mod.Tooltip), { ssr: false });
+const MarkerClusterGroup = dynamic(() => import('@/components/ui/marker-cluster'), { ssr: false });
+
+const MapUpdater = dynamic(() => Promise.resolve(({ center, zoom }: any) => {
+    // Only import useMap on client
+    const { useMap } = require('react-leaflet');
+    const map = useMap();
+    useEffect(() => {
+        if (isValidLatLng(center[0], center[1])) {
+            map.flyTo(center, zoom, { duration: 1.5 });
+        }
+    }, [center, zoom, map]);
+    return null;
+}), { ssr: false });
 
 const isValidLatLng = (lat: any, lng: any): boolean => {
   const latitude = Number(lat)
@@ -37,6 +42,29 @@ const isValidLatLng = (lat: any, lng: any): boolean => {
     Math.abs(longitude) <= 180
   )
 }
+
+const tileConfigs = {
+  cyberpunk: {
+    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    filter: 'none'
+  },
+  genshin: {
+    url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    filter: 'none'
+  },
+  lofi: {
+    url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    filter: 'sepia(0.25) saturate(0.9) hue-rotate(-5deg) brightness(0.95)'
+  },
+  rdr2: {
+    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    filter: 'sepia(0.4) saturate(1.3) hue-rotate(-15deg) contrast(1.1) brightness(0.85)'
+  }
+};
 
 interface MapViewProps {
   hotspots: Hotspot[]
@@ -50,16 +78,6 @@ interface MapViewProps {
   viewMode?: string
   onSearchClick?: () => void
   isVisible?: boolean
-}
-
-function MapUpdater({ center, zoom }: { center: [number, number]; zoom: number }) {
-  const map = useMap()
-  useEffect(() => {
-    if (isValidLatLng(center[0], center[1])) {
-      map.flyTo(center, zoom, { duration: 1.5 })
-    }
-  }, [center, zoom, map])
-  return null
 }
 
 function RecenterControl({ onRecenter, isTracking }: { onRecenter: () => void, isTracking: boolean }) {
@@ -148,21 +166,6 @@ function LegendControl({ isOpen, onToggle }: { isOpen: boolean, onToggle: () => 
     )
 }
 
-const iconCache = new Map<string, L.DivIcon>();
-function getNeonDotIcon(color: string) {
-  const key = color.toLowerCase();
-  const cached = iconCache.get(key);
-  if (cached) return cached;
-  const icon = L.divIcon({
-    className: "vv-neon-dot",
-    html: `<div class="vv-neon-dot__inner" style="--dot:${key}"></div>`,
-    iconSize: [18, 18],      // larger tap target
-    iconAnchor: [9, 9],      // center anchor
-  });
-  iconCache.set(key, icon);
-  return icon;
-}
-
 const DEFAULT_CENTER: [number, number] = [19.3919, 72.8397] // Vasai-Virar
 const DEFAULT_ZOOM = 13
 
@@ -180,13 +183,50 @@ export function MapView({
   isVisible = true
 }: MapViewProps) {
   const { theme } = useTheme()
-  const mapRef = useRef<L.Map | null>(null)
+  const mapRef = useRef<any>(null)
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null)
   const [isTracking, setIsTracking] = useState(false)
   const [mapReady, setMapReady] = useState(false)
   const [previewHotspot, setPreviewHotspot] = useState<Hotspot | null>(null)
   const [showLegend, setShowLegend] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [L, setL] = useState<any>(null)
+
+  // Load Leaflet on client side only
+  useEffect(() => {
+    (async () => {
+        const leaflet = await import('leaflet')
+        require('leaflet/dist/leaflet.css')
+        require('leaflet.markercluster/dist/MarkerCluster.css')
+        require('leaflet.markercluster/dist/MarkerCluster.Default.css')
+
+        // @ts-ignore
+        delete leaflet.Icon.Default.prototype._getIconUrl
+        leaflet.Icon.Default.mergeOptions({
+            iconRetinaUrl: "/marker-icon-2x.png",
+            iconUrl: "/marker-icon.png",
+            shadowUrl: "/marker-shadow.png",
+        })
+        setL(leaflet)
+    })()
+  }, [])
+
+  const iconCache = useRef(new Map<string, any>())
+  const getNeonDotIcon = useCallback((color: string) => {
+    if (!L) return null;
+    const key = color.toLowerCase();
+    const cached = iconCache.current.get(key);
+    if (cached) return cached;
+    const icon = L.divIcon({
+      className: "vv-neon-dot",
+      html: `<div class="vv-neon-dot__inner" style="--dot:${key}"></div>`,
+      iconSize: [18, 18],
+      iconAnchor: [9, 9],
+    });
+    iconCache.current.set(key, icon);
+    return icon;
+  }, [L])
+
 
   // Generate a unique ID for the container on mount to avoid reuse errors
   const containerId = useRef(`map-container-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`)
@@ -301,19 +341,17 @@ export function MapView({
   }, [viewMode, isVisible])
 
   const activeTheme = (theme as keyof typeof themes) || "cyberpunk"
-  const tileLayerUrl = activeTheme === 'genshin'
-    ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-    : activeTheme === 'lofi'
-    ? "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-    : activeTheme === 'rdr2'
-    ? "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
-    : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+  const currentConfig = tileConfigs[activeTheme] || tileConfigs.cyberpunk
+
+  // Only render map when client-side and Leaflet loaded
+  if (!L) return <div className="w-full h-full bg-muted flex items-center justify-center">Loading map...</div>
 
   return (
     <div
         key={containerId.current}
         id={containerId.current}
         className={`relative w-full h-full bg-muted z-0 ${isMobile ? "mobile-map-view" : "desktop-map-view"}`}
+        style={{ filter: currentConfig.filter }}
     >
       <MapContainer
         center={DEFAULT_CENTER}
@@ -327,8 +365,8 @@ export function MapView({
         dragging={true}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url={tileLayerUrl}
+          attribution={currentConfig.attribution}
+          url={currentConfig.url}
           maxZoom={20}
         />
 
