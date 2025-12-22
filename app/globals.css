@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 @import "tw-animate-css";
 
 @custom-variant dark (&:where([data-theme="cyberpunk"], [data-theme="rdr2"], :not([data-theme="genshin"]):not([data-theme="lofi"]) *));
@@ -77,6 +78,8 @@
   --animate-pulse-glow: pulse-glow 2s infinite;
   --animate-gradient-x: gradient-x 3s ease infinite;
   --animate-gradient-flow: gradient-flow 6s linear infinite;
+  --animate-bounce-subtle: bounce-subtle 2s infinite;
+  --animate-spin-slow: spin-slow 3s linear infinite;
 }
 
 :root {
@@ -742,4 +745,14 @@ button:not(:disabled):hover {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
+}
+
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateY(-5%); }
+  50% { transform: translateY(0); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
