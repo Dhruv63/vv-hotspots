@@ -5,12 +5,12 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Hotspot } from "@/lib/types"
-import { createClient } from "@/lib/supabase/client"
 import { CyberButton } from "@/components/ui/cyber-button"
 import { CyberCard } from "@/components/ui/cyber-card"
 import { useRouter } from "next/navigation"
 import { Trash2, Edit, MapPin, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { createHotspot, deleteHotspot, updateHotspot } from "@/app/actions/admin"
 
 const hotspotSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -34,7 +34,9 @@ export default function AdminClient({ initialHotspots, userEmail }: AdminClientP
   const [isEditing, setIsEditing] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
+
+  // Note: We used to use createClient() here, but now we use Server Actions
+  // to ensure strict isolation of hotspot updates from user/profile tables.
 
   const form = useForm<HotspotFormValues>({
     resolver: zodResolver(hotspotSchema),
@@ -78,34 +80,29 @@ export default function AdminClient({ initialHotspots, userEmail }: AdminClientP
 
   const onSubmit = async (data: HotspotFormValues) => {
     setIsLoading(true)
-    const cleanData = {
-        ...data,
-        description: data.description || null,
-        image_url: data.image_url || null,
-    }
 
     try {
       if (isEditing) {
-        const { error } = await supabase
-          .from("hotspots")
-          .update(cleanData)
-          .eq("id", isEditing)
+        // Use Server Action for Update
+        const result = await updateHotspot(isEditing, data)
 
-        if (error) throw error
+        if (result.error) throw new Error(result.error)
 
-        setHotspots(hotspots.map(h => h.id === isEditing ? { ...h, ...cleanData, id: h.id, created_at: h.created_at } : h))
+        // Optimistic update (or refetch via router.refresh)
+        setHotspots(hotspots.map(h =>
+          h.id === isEditing
+            ? { ...h, ...data, description: data.description || null, image_url: data.image_url || null }
+            : h
+        ))
         alert("Hotspot updated successfully!")
       } else {
-        const { data: newHotspot, error } = await supabase
-          .from("hotspots")
-          .insert(cleanData)
-          .select()
-          .single()
+        // Use Server Action for Create
+        const result = await createHotspot(data)
 
-        if (error) throw error
+        if (result.error) throw new Error(result.error)
 
-        if (newHotspot) {
-           setHotspots([newHotspot, ...hotspots])
+        if (result.data) {
+           setHotspots([result.data as Hotspot, ...hotspots])
         }
         alert("Hotspot added successfully!")
       }
@@ -124,12 +121,9 @@ export default function AdminClient({ initialHotspots, userEmail }: AdminClientP
 
     setIsLoading(true)
     try {
-      const { error } = await supabase
-        .from("hotspots")
-        .delete()
-        .eq("id", id)
+      const result = await deleteHotspot(id)
 
-      if (error) throw error
+      if (result.error) throw new Error(result.error)
 
       setHotspots(hotspots.filter(h => h.id !== id))
       alert("Hotspot deleted successfully!")
