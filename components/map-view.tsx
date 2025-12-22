@@ -172,9 +172,9 @@ const MAP_TILE_URLS = {
 
 const MAP_FILTERS = {
   cyberpunk: 'none',
-  genshin: 'saturate(1.2) brightness(1.05)',
-  lofi: 'sepia(0.35) saturate(0.85) hue-rotate(-8deg) brightness(0.92)',
-  rdr2: 'sepia(0.55) saturate(1.25) hue-rotate(-18deg) contrast(1.12) brightness(0.82)'
+  genshin: 'saturate(1.1) brightness(1.02) contrast(0.98)',
+  lofi: 'sepia(0.15) saturate(0.95) hue-rotate(-3deg) brightness(0.98) contrast(1.02)',
+  rdr2: 'sepia(0.25) saturate(1.1) hue-rotate(-8deg) contrast(1.05) brightness(0.95)'
 };
 
 const DEFAULT_CENTER: [number, number] = [19.3919, 72.8397] // Vasai-Virar
