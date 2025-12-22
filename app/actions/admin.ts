@@ -15,6 +15,8 @@ const hotspotSchema = z.object({
 })
 
 export async function updateHotspot(id: string, formData: z.infer<typeof hotspotSchema>) {
+  console.log('Updating hotspot', id, formData);
+
   const supabase = await createClient()
 
   // 1. Verify Admin
@@ -35,10 +37,14 @@ export async function updateHotspot(id: string, formData: z.infer<typeof hotspot
   }
 
   // 3. Perform Update
+  // Explicitly selecting only the updated row isn't necessary for update, but returns no data by default unless select() is called.
+  // We just need the error.
   const { error } = await supabase
     .from("hotspots")
     .update(updates)
     .eq("id", id)
+
+  console.log('Update result', error);
 
   if (error) {
     console.error("Server Action Update Error:", error)
