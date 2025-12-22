@@ -149,44 +149,37 @@ export default function AIPlanner() {
 
   const companionOptions = [
     { value: 'girlfriend', emoji: '💑', label: 'Partner', desc: 'Romantic date' },
-    { value: 'friends', emoji: '👯', label: 'Friends', desc: 'Fun hangout' },
-    { value: 'family', emoji: '👨‍👩‍👧‍👦', label: 'Family', desc: 'Kid-friendly' },
-    { value: 'solo', emoji: '🚶', label: 'Solo' },
+    { value: 'friends', emoji: '👯', label: 'Friends', desc: 'Group hangout' },
+    { value: 'family', emoji: '👨‍👩‍👧‍👦', label: 'Family', desc: 'Family time' },
+    { value: 'solo', emoji: '🚶', label: 'Solo', desc: 'Me time' },
   ]
 
+  const timeValue = parseInt(timeAvailable)
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-slate-900 to-black p-4 md:p-8 pb-24">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 px-4 py-6 sm:px-6 lg:px-8 overflow-x-hidden">
+      <div className="max-w-2xl mx-auto w-full space-y-8">
 
         {/* Header Section */}
-        <div className="text-center space-y-4 pt-4">
-          <div className="inline-flex items-center justify-center p-3 bg-cyan-500/10 rounded-full border border-cyan-500/30 mb-2 animate-bounce-subtle">
-            <Bot className="w-8 h-8 text-cyan-400" />
+        <div className="text-center mb-8 sm:mb-12">
+          <div className="inline-block p-4 sm:p-6 rounded-full bg-cyan-500/20 border-2 border-cyan-500 mb-4 sm:mb-6">
+            <div className="text-4xl sm:text-5xl">🤖</div>
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-cyan-400 via-yellow-400 to-pink-500 bg-clip-text text-transparent pb-2">
-            AI Day Planner
+
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
+            <span className="text-cyan-400">AI</span>{' '}
+            <span className="text-yellow-400">Day Planner</span>
           </h1>
-          <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto">
+
+          <p className="text-sm sm:text-base lg:text-lg text-gray-300 max-w-xl mx-auto px-4">
             Experience Vasai-Virar like never before with a personalized itinerary curated just for you.
           </p>
 
-          <div className="flex justify-center mt-4">
-            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border ${
-              usageCount >= MAX_DAILY_USAGE
-                ? 'bg-red-500/10 border-red-500/30 text-red-400'
-                : 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400'
-            }`}>
-              <Sparkles className="w-4 h-4" />
-              <span className="font-medium text-sm">
-                {usageCount}/{MAX_DAILY_USAGE} itineraries generated today
-              </span>
-              {usageCount < MAX_DAILY_USAGE && (
-                <span className="flex h-2 w-2 relative ml-1">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
-                </span>
-              )}
-            </div>
+          <div className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-full border border-yellow-500/50 bg-yellow-500/10">
+            <span className="text-xl sm:text-2xl">✨</span>
+            <span className="text-xs sm:text-sm font-medium text-yellow-400">
+              {usageCount}/{MAX_DAILY_USAGE} itineraries generated today
+            </span>
           </div>
         </div>
 
@@ -210,68 +203,64 @@ export default function AIPlanner() {
             </div>
           )}
 
-          <div className="space-y-8 md:space-y-10">
+          <div className="space-y-8">
             {/* Time Slider Section */}
-            <div>
-              <label className="flex items-center gap-2 text-cyan-300 mb-4 font-bold text-lg">
-                <Clock className="w-5 h-5" />
-                Time Available
-              </label>
-              <div className="bg-black/20 rounded-2xl p-6 border border-white/5">
-                <div className="flex justify-between items-end mb-4">
-                  <span className="text-gray-400 text-sm font-medium">Short Trip</span>
-                  <span className="text-3xl font-bold text-white tabular-nums">
-                    {timeAvailable}<span className="text-lg text-gray-500 ml-1">hrs</span>
-                  </span>
-                  <span className="text-gray-400 text-sm font-medium">Full Day</span>
+            <div className="space-y-4 mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <label className="text-lg sm:text-xl font-medium text-cyan-400 flex items-center gap-2">
+                  <Clock className="w-5 h-5" /> Time Available
+                </label>
+                <div className="bg-cyan-500/20 px-4 py-2 rounded-full border border-cyan-500/50">
+                  <span className="text-2xl sm:text-3xl font-bold text-cyan-400">{timeValue}</span>
+                  <span className="text-sm text-cyan-300 ml-1">hrs</span>
                 </div>
+              </div>
+
+              <div className="relative">
                 <input
                   type="range"
                   min="1"
                   max="12"
                   value={timeAvailable}
                   onChange={(e) => setTimeAvailable(e.target.value)}
-                  className="w-full h-3 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-400 hover:accent-cyan-300 transition-all [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-400 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:shadow-[0_0_10px_rgba(34,211,238,0.5)] [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-cyan-400 [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:shadow-[0_0_10px_rgba(34,211,238,0.5)]"
+                  className="w-full h-3 sm:h-2 appearance-none bg-gray-700 rounded-full cursor-pointer accent-cyan-400"
+                  style={{
+                    background: `linear-gradient(to right, #06b6d4 0%, #06b6d4 ${(timeValue/12)*100}%, #1e293b ${(timeValue/12)*100}%, #1e293b 100%)`
+                  }}
                 />
-                <div className="flex justify-between text-xs text-gray-500 mt-2 px-1">
-                  <span>1h</span>
-                  <span>6h</span>
-                  <span>12h</span>
+                <div className="flex justify-between mt-2 text-xs sm:text-sm text-gray-400">
+                  <span>Short Trip</span>
+                  <span>Full Day</span>
                 </div>
               </div>
             </div>
 
             {/* Companion Selection */}
-            <div>
-              <label className="flex items-center gap-2 text-pink-300 mb-4 font-bold text-lg">
-                <Users className="w-5 h-5" />
-                Who are you with?
+            <div className="space-y-4 mb-8">
+              <label className="text-lg sm:text-xl font-medium text-pink-400 flex items-center gap-2">
+                <Users className="w-5 h-5" /> Who are you with?
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 {companionOptions.map((option) => (
                   <button
                     key={option.value}
                     onClick={() => setCompanionType(option.value)}
-                    className={`relative p-4 rounded-xl border transition-all duration-300 group/card text-left ${
-                      companionType === option.value
-                        ? 'bg-gradient-to-br from-pink-500/20 to-purple-500/20 border-pink-500 shadow-[0_0_20px_rgba(236,72,153,0.2)]'
-                        : 'bg-black/20 border-white/10 hover:border-pink-500/50 hover:bg-white/5'
-                    }`}
+                    className={`
+                      p-6 sm:p-8 rounded-2xl border-2 transition-all relative text-left
+                      ${companionType === option.value
+                        ? 'border-pink-500 bg-pink-500/20 shadow-lg shadow-pink-500/50'
+                        : 'border-gray-700 bg-gray-800/50 hover:border-pink-400'}
+                    `}
                   >
-                    <div className={`text-3xl mb-3 transition-transform duration-300 ${companionType === option.value ? 'scale-110' : 'group-hover/card:scale-110'}`}>
-                      {option.emoji}
-                    </div>
-                    <div className={`font-bold text-lg mb-1 ${companionType === option.value ? 'text-white' : 'text-gray-300'}`}>
-                      {option.label}
-                    </div>
-                    <div className={`text-xs ${companionType === option.value ? 'text-pink-200' : 'text-gray-500'}`}>
-                      {option.desc}
-                    </div>
+                    <div className="text-4xl mb-3">{option.emoji}</div>
+                    <div className="text-lg sm:text-xl font-semibold text-white">{option.label}</div>
+                    <div className="text-sm text-gray-400 mt-1">{option.desc}</div>
 
                     {companionType === option.value && (
-                      <div className="absolute top-3 right-3 text-pink-500">
-                        <CheckCircle2 className="w-5 h-5" />
-                      </div>
+                       <div className="absolute top-3 right-3 text-pink-500">
+                         <CheckCircle2 className="w-6 h-6" />
+                       </div>
                     )}
                   </button>
                 ))}
@@ -279,23 +268,18 @@ export default function AIPlanner() {
             </div>
 
             {/* Location Input */}
-            <div>
-              <label className="flex items-center gap-2 text-purple-300 mb-4 font-bold text-lg">
-                <MapPin className="w-5 h-5" />
-                Starting Location
+            <div className="space-y-4 mb-8">
+              <label className="text-lg sm:text-xl font-medium text-yellow-400 flex items-center gap-2">
+                <MapPin className="w-5 h-5" /> Starting Location
               </label>
-              <div className="relative group/input">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <MapPin className="h-5 w-5 text-gray-500 group-focus-within/input:text-purple-400 transition-colors" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="e.g., Vasai Railway Station, Virar East, Arnala..."
-                  value={startLocation}
-                  onChange={(e) => setStartLocation(e.target.value)}
-                  className="w-full bg-black/30 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white text-lg placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all hover:border-white/20"
-                />
-              </div>
+
+              <input
+                type="text"
+                placeholder="e.g., Vasai Railway Station, Virar East"
+                value={startLocation}
+                onChange={(e) => setStartLocation(e.target.value)}
+                className="w-full px-4 py-4 sm:py-3 text-base sm:text-lg rounded-xl bg-gray-800 border-2 border-gray-700 text-white placeholder-gray-500 focus:border-yellow-400 focus:outline-none transition-colors"
+              />
             </div>
 
             {/* Error Message */}
@@ -310,21 +294,17 @@ export default function AIPlanner() {
             <button
               onClick={handleGenerate}
               disabled={loading || !isAuthenticated || !startLocation.trim() || usageCount >= MAX_DAILY_USAGE}
-              className="w-full relative group overflow-hidden bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 p-[2px] rounded-xl transition-all hover:shadow-[0_0_40px_rgba(168,85,247,0.4)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
+              className="w-full py-5 sm:py-4 text-lg sm:text-xl font-bold rounded-xl bg-gradient-to-r from-cyan-500 via-yellow-400 to-pink-500 text-black disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-2xl transition-all active:scale-95"
             >
-              <div className="relative bg-black/80 hover:bg-transparent transition-colors rounded-[10px] py-4 px-6 flex items-center justify-center gap-3 h-full">
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    <span className="text-white font-bold text-lg">Crafting your plan...</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-5 h-5 text-yellow-300 group-hover:animate-spin-slow" />
-                    <span className="text-white font-bold text-lg">Generate Itinerary</span>
-                  </>
-                )}
-              </div>
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="animate-spin">⚡</span> Generating...
+                </span>
+              ) : (
+                <span className="flex items-center justify-center gap-2">
+                  ✨ Generate AI Itinerary 🚀
+                </span>
+              )}
             </button>
           </div>
         </div>
