@@ -163,18 +163,23 @@ function getNeonDotIcon(color: string) {
   return icon;
 }
 
-const MAP_TILE_URLS = {
-  cyberpunk: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-  genshin: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-  lofi: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-  rdr2: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
-};
-
-const MAP_FILTERS = {
-  cyberpunk: 'none',
-  genshin: 'saturate(1.1) brightness(1.02) contrast(0.98)',
-  lofi: 'sepia(0.15) saturate(0.95) hue-rotate(-3deg) brightness(0.98) contrast(1.02)',
-  rdr2: 'sepia(0.25) saturate(1.1) hue-rotate(-8deg) contrast(1.05) brightness(0.95)'
+const MAP_TILES = {
+  cyberpunk: {
+    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    filter: 'none'
+  },
+  genshin: {
+    url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    filter: 'none'
+  },
+  lofi: {
+    url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    filter: 'none'
+  },
+  rdr2: {
+    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    filter: 'none'
+  }
 };
 
 const DEFAULT_CENTER: [number, number] = [19.3919, 72.8397] // Vasai-Virar
@@ -315,14 +320,14 @@ export function MapView({
   }, [viewMode, isVisible])
 
   const activeTheme = (theme as keyof typeof themes) || "cyberpunk"
-  const tileLayerUrl = MAP_TILE_URLS[activeTheme] || MAP_TILE_URLS.cyberpunk;
+  const activeMapConfig = MAP_TILES[activeTheme] || MAP_TILES.cyberpunk;
 
   return (
     <div
         key={containerId.current}
         id={containerId.current}
         className={`relative w-full h-full bg-muted z-0 ${isMobile ? "mobile-map-view" : "desktop-map-view"}`}
-        style={{ filter: MAP_FILTERS[activeTheme] || 'none' }}
+        style={{ filter: activeMapConfig.filter }}
     >
       <MapContainer
         center={DEFAULT_CENTER}
@@ -338,7 +343,7 @@ export function MapView({
         <TileLayer
           key={activeTheme}
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url={tileLayerUrl}
+          url={activeMapConfig.url}
           maxZoom={20}
         />
 
