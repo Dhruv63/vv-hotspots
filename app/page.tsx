@@ -1,220 +1,160 @@
-import Link from "next/link"
-import { MapPin, Users, Star, Zap, Instagram, Twitter, Shield, FileText } from "lucide-react"
-import { createClient } from "@/lib/supabase/server"
-import { Navbar } from "@/components/navbar"
-import { CyberButton } from "@/components/ui/cyber-button"
-import { CyberCard } from "@/components/ui/cyber-card"
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import { MapPin, Moon, Bell, Menu, Users, CheckCircle, Compass, Star } from "lucide-react";
 
 export default async function HomePage() {
-  const supabase = await createClient()
+  const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser()
-
-  const features = [
-    {
-      icon: MapPin,
-      title: "Discover Spots",
-      description: "Find the coolest hangout locations across Vasai-Virar",
-      color: "cyan",
-    },
-    {
-      icon: Users,
-      title: "See Who's There",
-      description: "Check live activity and connect with others at your favorite spots",
-      color: "pink",
-    },
-    {
-      icon: Star,
-      title: "Rate & Review",
-      description: "Share your experiences and help others find the best places",
-      color: "purple",
-    },
-    {
-      icon: Zap,
-      title: "Quick Check-in",
-      description: "One tap to let friends know where you're hanging out",
-      color: "cyan",
-    },
-  ]
+  } = await supabase.auth.getUser();
 
   return (
-    <div className="min-h-screen bg-cyber-black scanlines flex flex-col">
-      <Navbar user={user} />
+    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 relative overflow-hidden font-sans">
+      {/* Animated background blobs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-yellow-400/30 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-cyan-400/30 rounded-full blur-3xl animate-pulse delay-1000"></div>
+      </div>
 
-      {/* Hero Section */}
-      <section className="relative pt-24 pb-16 px-4 md:pt-32 md:pb-24 overflow-hidden flex-1 flex items-center">
-        {/* Background grid effect */}
-        <div className="absolute inset-0 opacity-10 pointer-events-none">
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `
-                linear-gradient(rgba(232, 255, 0, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(232, 255, 0, 0.1) 1px, transparent 1px)
-              `,
-              backgroundSize: "50px 50px",
-            }}
-          />
+      {/* Header */}
+      <header className="absolute top-0 left-0 right-0 z-50 px-6 py-4 flex justify-between items-center">
+        <button className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-lg border border-white/20 flex items-center justify-center shadow-lg text-white">
+          <MapPin className="w-6 h-6" />
+        </button>
+
+        <div className="flex gap-3">
+          <button className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-lg border border-white/20 flex items-center justify-center shadow-lg text-white">
+            <Moon className="w-5 h-5" />
+          </button>
+          <button className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-lg border border-white/20 flex items-center justify-center shadow-lg text-white">
+            <Bell className="w-5 h-5" />
+          </button>
+          <button className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-lg border border-white/20 flex items-center justify-center shadow-lg text-white">
+            <Menu className="w-5 h-5" />
+          </button>
+        </div>
+      </header>
+
+      {/* Content */}
+      <div className="relative z-10 px-6 pt-24 pb-12 flex flex-col items-center">
+
+        {/* Animated Hero Text */}
+        <div className="text-center mb-8 w-full max-w-2xl">
+          <h1 className="text-5xl sm:text-6xl font-black mb-4 leading-tight">
+            <span className="block text-white drop-shadow-2xl animate-fade-in-down">
+              Find Where
+            </span>
+            <span className="block bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 bg-clip-text text-transparent animate-fade-in-up">
+              Your Crew
+            </span>
+            <span className="block text-white drop-shadow-2xl animate-fade-in-down delay-200">
+              Is
+            </span>
+          </h1>
+
+          <p className="text-lg sm:text-xl text-white/90 font-medium max-w-sm mx-auto drop-shadow-lg animate-fade-in delay-300">
+            Real-time hangout discovery for Vasai-Virar locals
+          </p>
         </div>
 
-        <div className="max-w-7xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-12 items-center relative z-10">
-          {/* Left Side: Content */}
-          <div className="text-left space-y-8">
-            <h1 className="font-sans text-5xl md:text-7xl font-bold leading-tight text-foreground">
-              Find Where Your <span className="text-gradient-animated bg-clip-text text-transparent font-extrabold tracking-tight">Crew</span> Is
-            </h1>
-            <p className="text-xl md:text-2xl text-cyber-gray max-w-lg font-sans">
-              Real-time hangout discovery for Vasai-Virar locals
-            </p>
+        {/* Stunning CTA Button */}
+        <Link href={user ? "/dashboard" : "/login"} className="w-full max-w-sm mx-auto block mb-12 group relative overflow-hidden">
+          {/* Animated shine effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
 
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Link href={user ? "/dashboard" : "/auth/sign-up"}>
-                <CyberButton variant="cyan" size="lg" glowing className="w-full sm:w-auto font-bold text-black">
-                  {user ? "EXPLORE MAP" : "GET STARTED"}
-                </CyberButton>
-              </Link>
-              {!user && (
-                <Link href="/login">
-                  <CyberButton variant="outline" size="lg" className="w-full sm:w-auto">
-                    LOGIN
-                  </CyberButton>
-                </Link>
-              )}
-            </div>
+          {/* Button content */}
+          <div className="relative bg-gradient-to-r from-yellow-400 via-orange-400 to-pink-500 px-8 py-5 rounded-2xl shadow-2xl hover:shadow-yellow-500/50 transition-all active:scale-95 text-center">
+            <span className="text-xl font-black text-gray-900 flex items-center justify-center gap-3">
+              {user ? "🗺️ EXPLORE MAP" : "🚀 GET STARTED"}
+              <span className="inline-block group-hover:translate-x-2 transition-transform">
+                →
+              </span>
+            </span>
           </div>
+        </Link>
 
-          {/* Right Side: Animated Phone Mockup */}
-          <div className="relative flex justify-center md:justify-end animate-float">
-             {/* Phone Body */}
-             <div className="relative w-[300px] h-[600px] bg-background border-[12px] border-border rounded-[3rem] shadow-[0_0_50px_rgba(var(--primary),0.15)] overflow-hidden transform rotate-[-5deg] hover:rotate-0 transition-transform duration-500">
-                {/* Notch */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-[#2A3055] rounded-b-xl z-20"></div>
+        {/* Interactive Map Preview */}
+        <div className="relative w-full max-w-sm">
+          {/* Glowing container */}
+          <div className="relative mx-auto">
+            {/* Glow effect */}
+            <div className="absolute inset-0 bg-gradient-to-t from-purple-500/50 to-transparent blur-2xl"></div>
 
-                {/* Screen Content - Map Simulation */}
-                <div className="w-full h-full bg-[#1A1F3A] relative overflow-hidden">
-                   {/* Map Grid */}
-                   <div className="absolute inset-0 opacity-20"
-                        style={{
-                            backgroundImage: `linear-gradient(#2A3055 1px, transparent 1px), linear-gradient(90deg, #2A3055 1px, transparent 1px)`,
-                            backgroundSize: "20px 20px"
-                        }}>
-                   </div>
+            {/* Map preview with tilt effect */}
+            <div className="relative bg-gray-900 rounded-3xl shadow-2xl overflow-hidden border-4 border-white/20 transform hover:scale-105 transition-transform">
+              {/* Mini map or image */}
+              <div className="aspect-[9/16] bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 p-6 relative">
+                {/* Animated dots representing users/hotspots */}
+                <div className="relative h-full w-full">
+                  <div className="absolute top-1/4 left-1/3 w-4 h-4 bg-pink-500 rounded-full animate-ping"></div>
+                  <div className="absolute top-1/4 left-1/3 w-4 h-4 bg-pink-500 rounded-full shadow-[0_0_10px_rgba(236,72,153,0.8)]"></div>
 
-                   {/* Random Map Markers */}
-                   <div className="absolute top-[30%] left-[20%] w-4 h-4 bg-cyber-yellow rounded-full shadow-[0_0_10px_#E8FF00] animate-pulse"></div>
-                   <div className="absolute top-[50%] right-[30%] w-4 h-4 bg-cyber-pink rounded-full shadow-[0_0_10px_#FF006E] animate-pulse delay-700"></div>
-                   <div className="absolute bottom-[25%] left-[40%] w-4 h-4 bg-cyber-cyan rounded-full shadow-[0_0_10px_#00D9FF] animate-pulse delay-300"></div>
+                  <div className="absolute top-1/2 right-1/4 w-4 h-4 bg-yellow-400 rounded-full animate-ping delay-300"></div>
+                  <div className="absolute top-1/2 right-1/4 w-4 h-4 bg-yellow-400 rounded-full shadow-[0_0_10px_rgba(250,204,21,0.8)]"></div>
 
-                   {/* Fake UI Overlay */}
-                   <div className="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-cyber-black via-cyber-black/80 to-transparent pt-12">
-                      <div className="bg-cyber-navy/90 backdrop-blur border border-cyber-yellow/30 p-3 rounded-xl shadow-lg">
-                        <div className="flex items-center gap-2 mb-1">
-                            <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                            <span className="text-xs font-bold text-cyber-yellow uppercase">Trending Now</span>
-                        </div>
-                        <p className="text-cyber-light text-sm">12 spots • 342 checked in</p>
-                        <p className="text-cyber-cyan text-xs mt-1">89 new reviews today</p>
-                      </div>
-                   </div>
-                </div>
-             </div>
+                  <div className="absolute bottom-1/3 left-1/2 w-4 h-4 bg-cyan-400 rounded-full animate-ping delay-700"></div>
+                  <div className="absolute bottom-1/3 left-1/2 w-4 h-4 bg-cyan-400 rounded-full shadow-[0_0_10px_rgba(34,211,238,0.8)]"></div>
 
-             {/* Glow behind phone */}
-             <div className="absolute inset-0 bg-cyber-yellow/20 blur-[100px] -z-10 rounded-full transform translate-y-20"></div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Grid - Updated Styling */}
-      <section className="py-20 px-4 bg-cyber-dark/50 border-y border-white/5">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="font-sans text-3xl font-bold text-center mb-16 text-cyber-light">
-             Why Join the Map?
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature) => {
-              const Icon = feature.icon
-              const colorClasses = {
-                cyan: "text-cyber-cyan",
-                pink: "text-cyber-pink",
-                purple: "text-cyber-pink", // Using pink as secondary/purple replacement
-              }[feature.color]
-
-              return (
-                <div key={feature.title} className="glass-panel p-6 rounded-2xl transition-all duration-300 hover-float group">
-                  <div className={`w-12 h-12 mb-4 rounded-xl bg-background/50 flex items-center justify-center border border-white/10 group-hover:border-${feature.color === 'cyan' ? 'cyber-cyan' : 'cyber-pink'} shadow-inner`}>
-                    <Icon className={`w-6 h-6 ${colorClasses}`} />
+                  {/* Map placeholder text */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="text-center">
+                      <div className="text-6xl mb-4 animate-bounce">📍</div>
+                      <div className="text-white/60 text-sm font-medium">Live Activity</div>
+                    </div>
                   </div>
-                  <h3 className="font-sans text-xl font-bold text-foreground mb-2">{feature.title}</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">{feature.description}</p>
                 </div>
-              )
-            })}
+              </div>
+
+              {/* Live indicator */}
+              <div className="absolute top-4 right-4 flex items-center gap-2 bg-red-500 px-3 py-1.5 rounded-full shadow-lg z-10">
+                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                <span className="text-white text-xs font-bold">LIVE</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Feature badges floating around map */}
+          <div className="absolute -top-4 -left-4 bg-white/90 backdrop-blur-md px-4 py-2 rounded-full shadow-xl animate-float z-20 border border-white/50">
+            <span className="text-sm font-bold text-gray-900">🔥 12 Active Now</span>
+          </div>
+
+          <div className="absolute -bottom-4 -right-4 bg-white/90 backdrop-blur-md px-4 py-2 rounded-full shadow-xl animate-float delay-500 z-20 border border-white/50">
+            <span className="text-sm font-bold text-gray-900">⚡ Real-time</span>
           </div>
         </div>
-      </section>
 
-      {/* Footer */}
-      <footer className="py-12 px-4 border-t border-white/10 bg-cyber-black mt-auto">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-            <div>
-                <span className="text-xl font-bold block mb-4">
-                    <span className="text-cyber-yellow">VV</span>
-                    <span className="text-cyber-light"> HOTSPOTS</span>
-                </span>
-                <p className="text-cyber-gray text-sm">
-                    Built by locals, for locals.
-                </p>
+        {/* Feature Highlights */}
+        <div className="grid grid-cols-2 gap-4 mt-16 w-full max-w-sm">
+          <div className="bg-white/10 backdrop-blur-lg p-4 rounded-2xl border border-white/20 flex flex-col items-center justify-center text-center hover:bg-white/20 transition-colors">
+            <div className="text-3xl mb-2 text-white">
+              <Users className="w-8 h-8 mx-auto" />
             </div>
+            <div className="text-white font-semibold text-sm">Find Friends</div>
+          </div>
 
-            <div>
-                <h4 className="font-bold text-cyber-light mb-4">Quick Links</h4>
-                <ul className="space-y-2 text-sm text-cyber-gray">
-                    <li><Link href="/" className="hover:text-cyber-yellow transition-colors">Home</Link></li>
-                    <li><Link href="/dashboard" className="hover:text-cyber-yellow transition-colors">Map</Link></li>
-                    <li><Link href="#" className="hover:text-cyber-yellow transition-colors">About Us</Link></li>
-                </ul>
+          <div className="bg-white/10 backdrop-blur-lg p-4 rounded-2xl border border-white/20 flex flex-col items-center justify-center text-center hover:bg-white/20 transition-colors">
+            <div className="text-3xl mb-2 text-white">
+              <CheckCircle className="w-8 h-8 mx-auto" />
             </div>
+            <div className="text-white font-semibold text-sm">Check In</div>
+          </div>
 
-            <div>
-                <h4 className="font-bold text-cyber-light mb-4">Social</h4>
-                <ul className="space-y-2 text-sm text-cyber-gray">
-                    <li>
-                        <Link href="#" className="flex items-center gap-2 hover:text-cyber-pink transition-colors">
-                            <Twitter className="w-4 h-4" /> Twitter
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href="#" className="flex items-center gap-2 hover:text-cyber-pink transition-colors">
-                            <Instagram className="w-4 h-4" /> Instagram
-                        </Link>
-                    </li>
-                </ul>
+          <div className="bg-white/10 backdrop-blur-lg p-4 rounded-2xl border border-white/20 flex flex-col items-center justify-center text-center hover:bg-white/20 transition-colors">
+            <div className="text-3xl mb-2 text-white">
+              <Compass className="w-8 h-8 mx-auto" />
             </div>
+            <div className="text-white font-semibold text-sm">Explore</div>
+          </div>
 
-            <div>
-                <h4 className="font-bold text-cyber-light mb-4">Legal</h4>
-                <ul className="space-y-2 text-sm text-cyber-gray">
-                    <li>
-                        <Link href="#" className="flex items-center gap-2 hover:text-cyber-cyan transition-colors">
-                            <Shield className="w-4 h-4" /> Privacy Policy
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href="#" className="flex items-center gap-2 hover:text-cyber-cyan transition-colors">
-                            <FileText className="w-4 h-4" /> Terms of Service
-                        </Link>
-                    </li>
-                </ul>
+          <div className="bg-white/10 backdrop-blur-lg p-4 rounded-2xl border border-white/20 flex flex-col items-center justify-center text-center hover:bg-white/20 transition-colors">
+            <div className="text-3xl mb-2 text-white">
+              <Star className="w-8 h-8 mx-auto" />
             </div>
+            <div className="text-white font-semibold text-sm">Rate Places</div>
+          </div>
         </div>
 
-        <div className="border-t border-white/5 pt-8 text-center">
-          <p className="text-cyber-gray/50 text-xs">© 2025 VV Hotspots. All rights reserved.</p>
-        </div>
-      </footer>
+      </div>
     </div>
-  )
+  );
 }
