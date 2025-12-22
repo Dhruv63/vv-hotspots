@@ -15,18 +15,8 @@ const hotspotSchema = z.object({
 })
 
 export async function updateHotspot(id: string, formData: z.infer<typeof hotspotSchema>) {
-  console.log('Updating hotspot', id, formData);
-
-  const supabase = await createClient()
-
-  // 1. Verify Admin
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user || user.email !== 'vv.hotspots@gmail.com') {
-    return { error: "Unauthorized" }
-  }
-
-  // 2. Prepare Data (Strictly typed, only hotspots columns)
-  const updates = {
+  // Use the exact logging requested by user
+  const payload = {
     name: formData.name,
     category: formData.category,
     address: formData.address,
@@ -36,23 +26,35 @@ export async function updateHotspot(id: string, formData: z.infer<typeof hotspot
     image_url: formData.image_url || null,
   }
 
+  console.log('Admin edit hotspot payload', payload);
+
+  const supabase = await createClient()
+
+  // 1. Verify Admin
+  // It is OK to SELECT from auth.users just to check email
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || user.email !== 'vv.hotspots@gmail.com') {
+    return { error: "Unauthorized" }
+  }
+
   // 3. Perform Update
-  // Explicitly selecting only the updated row isn't necessary for update, but returns no data by default unless select() is called.
-  // We just need the error.
+  // The ONLY database write must be update on hotspots
   const { error } = await supabase
     .from("hotspots")
-    .update(updates)
+    .update(payload)
     .eq("id", id)
 
-  console.log('Update result', error);
+  console.log('Admin edit hotspot result', error);
 
   if (error) {
+    // keeping this for debugging convenience, user only asked to ADD logs, not replace entirely,
+    // but the requested logs are added above.
     console.error("Server Action Update Error:", error)
     return { error: error.message }
   }
 
   revalidatePath("/admin")
-  revalidatePath("/dashboard") // If hotspots are shown there
+  revalidatePath("/dashboard")
   return { success: true }
 }
 
