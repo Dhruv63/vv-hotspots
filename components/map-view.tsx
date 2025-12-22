@@ -7,7 +7,7 @@ import "leaflet/dist/leaflet.css"
 import "leaflet.markercluster/dist/MarkerCluster.css"
 import "leaflet.markercluster/dist/MarkerCluster.Default.css"
 import type { Hotspot } from "@/lib/types"
-import { useTheme } from "next-themes"
+import { useTheme } from "@/components/theme-provider"
 import { themes } from "@/lib/themes"
 import { CATEGORY_COLOR } from "@/lib/constants"
 import { Search, Navigation, Layers, Info, MapPin } from "lucide-react"
@@ -163,6 +163,20 @@ function getNeonDotIcon(color: string) {
   return icon;
 }
 
+const MAP_TILE_URLS = {
+  cyberpunk: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+  genshin: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+  lofi: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+  rdr2: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
+};
+
+const MAP_FILTERS = {
+  cyberpunk: 'none',
+  genshin: 'saturate(1.2) brightness(1.05)',
+  lofi: 'sepia(0.35) saturate(0.85) hue-rotate(-8deg) brightness(0.92)',
+  rdr2: 'sepia(0.55) saturate(1.25) hue-rotate(-18deg) contrast(1.12) brightness(0.82)'
+};
+
 const DEFAULT_CENTER: [number, number] = [19.3919, 72.8397] // Vasai-Virar
 const DEFAULT_ZOOM = 13
 
@@ -301,19 +315,14 @@ export function MapView({
   }, [viewMode, isVisible])
 
   const activeTheme = (theme as keyof typeof themes) || "cyberpunk"
-  const tileLayerUrl = activeTheme === 'genshin'
-    ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-    : activeTheme === 'lofi'
-    ? "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-    : activeTheme === 'rdr2'
-    ? "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
-    : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+  const tileLayerUrl = MAP_TILE_URLS[activeTheme] || MAP_TILE_URLS.cyberpunk;
 
   return (
     <div
         key={containerId.current}
         id={containerId.current}
         className={`relative w-full h-full bg-muted z-0 ${isMobile ? "mobile-map-view" : "desktop-map-view"}`}
+        style={{ filter: MAP_FILTERS[activeTheme] || 'none' }}
     >
       <MapContainer
         center={DEFAULT_CENTER}
@@ -327,6 +336,7 @@ export function MapView({
         dragging={true}
       >
         <TileLayer
+          key={activeTheme}
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
           url={tileLayerUrl}
           maxZoom={20}
