@@ -230,15 +230,17 @@ export default function AIPlannerDesktop() {
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={handleCopy}
-                    className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm text-gray-300 transition-all hover:text-white"
+                    disabled={!itinerary}
+                    className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm text-gray-300 transition-all hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Copy className="w-4 h-4" /> Copy
                   </button>
                   <button
                     onClick={handleShare}
-                    className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm text-gray-300 transition-all hover:text-white"
+                    disabled={!itinerary}
+                    className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm text-gray-300 transition-all hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <Share2 className="w-4 h-4" /> Share
+                    <Share2 className="w-4 h-4" /> Share Itinerary
                   </button>
                   <button
                     onClick={resetPlanner}
