@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
-import { ProfileClient } from "./profile-client"
+import ProfileDesktop from "./components/ProfileDesktop"
+import ProfileMobile from "./components/ProfileMobile"
 
 export default async function ProfilePage() {
   const supabase = await createServerSupabaseClient()
@@ -99,15 +100,24 @@ export default async function ProfilePage() {
     profile = newProfile
   }
 
+  const props = {
+    user,
+    profile,
+    checkIns: checkIns || [],
+    ratings: ratings || [],
+    userPhotos: userPhotos || [],
+    popularHotspots: popularHotspots || [],
+    savedHotspots: savedHotspots || [],
+  }
+
   return (
-    <ProfileClient
-      user={user}
-      profile={profile}
-      checkIns={checkIns || []}
-      ratings={ratings || []}
-      userPhotos={userPhotos || []}
-      popularHotspots={popularHotspots || []}
-      savedHotspots={savedHotspots || []}
-    />
+    <>
+      <div className="block md:hidden">
+        <ProfileMobile {...props} />
+      </div>
+      <div className="hidden md:block">
+        <ProfileDesktop {...props} />
+      </div>
+    </>
   )
 }

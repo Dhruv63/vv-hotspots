@@ -12,8 +12,9 @@ import { Navbar } from "@/components/navbar"
 import { CategoryBadge } from "@/components/ui/category-badge"
 import { sanitizeUsername, sanitizeAvatarUrl, checkRateLimit, RATE_LIMITS } from "@/lib/security"
 import type { User as SupabaseUser } from "@supabase/supabase-js"
+import { ThemeSelector } from "@/app/(main)/settings/theme-selector"
 
-interface ProfileClientProps {
+interface ProfileDesktopProps {
   user: SupabaseUser
   profile: any
   checkIns: any[]
@@ -23,7 +24,7 @@ interface ProfileClientProps {
   savedHotspots: any[]
 }
 
-export function ProfileClient({ user, profile: initialProfile, checkIns, ratings, userPhotos, popularHotspots, savedHotspots }: ProfileClientProps) {
+export default function ProfileDesktop({ user, profile: initialProfile, checkIns, ratings, userPhotos, popularHotspots, savedHotspots }: ProfileDesktopProps) {
   const router = useRouter()
   const [profile, setProfile] = useState(initialProfile)
   const [activeTab, setActiveTab] = useState<'history' | 'reviews' | 'saved' | 'photos' | 'visited'>('history')
@@ -63,27 +64,25 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
     <div className="min-h-screen bg-background pb-12 pointer-events-auto">
       <Navbar user={user} />
 
-      <main className="pt-20 px-4 max-w-4xl mx-auto">
-        {/* Back button */}
-        <Link href="/dashboard" className="inline-flex items-center gap-2 text-accent hover:underline mb-6">
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to Map</span>
-        </Link>
+      <main className="pt-20 px-4 max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-        {/* Profile Header */}
-        <div className="glass-panel p-6 mb-6 rounded-2xl relative overflow-hidden group/header border border-white/10">
-          <div className="absolute inset-0 bg-gradient-to-r from-accent/5 to-primary/5 opacity-0 group-hover/header:opacity-100 transition-opacity duration-500 pointer-events-none" />
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 relative z-10">
-            {/* Avatar */}
-            <div className="relative group">
-              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full p-[3px] bg-gradient-to-tr from-accent via-primary to-accent bg-[length:200%_200%] animate-gradient-x shadow-lg">
+        {/* Left Column: Profile Info */}
+        <div className="lg:col-span-4 space-y-6">
+          <Link href="/dashboard" className="inline-flex items-center gap-2 text-accent hover:underline mb-2">
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Map</span>
+          </Link>
+
+          <div className="glass-panel p-6 rounded-2xl border border-white/10 relative overflow-hidden">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-32 h-32 rounded-full p-[3px] bg-gradient-to-tr from-accent via-primary to-accent bg-[length:200%_200%] animate-gradient-x shadow-lg mb-4 relative group">
                 <div className="w-full h-full rounded-full overflow-hidden bg-background relative">
                   {profile?.avatar_url ? (
                     <Image
                       src={profile.avatar_url || "/placeholder.svg"}
                       alt={profile.username || "User avatar"}
-                      width={112}
-                      height={112}
+                      width={128}
+                      height={128}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -92,111 +91,92 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                     </div>
                   )}
                 </div>
-              </div>
-              <Link
-                href="/profile/edit"
-                className="absolute bottom-0 right-0 w-8 h-8 bg-primary rounded-full flex items-center justify-center border-2 border-background hover:scale-110 transition-transform shadow-sm"
-              >
-                <Camera className="w-4 h-4 text-primary-foreground" />
-              </Link>
-            </div>
-
-            <div className="flex-1 text-center sm:text-left">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-2">
-                <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-                  {profile?.username || user.email?.split("@")[0] || "Anonymous"}
-                </h1>
                 <Link
                   href="/profile/edit"
-                  className="inline-flex items-center gap-1 text-primary hover:text-foreground transition-colors text-sm"
+                  className="absolute bottom-0 right-0 w-8 h-8 bg-primary rounded-full flex items-center justify-center border-2 border-background hover:scale-110 transition-transform shadow-sm"
                 >
-                  <Edit2 className="w-4 h-4" />
-                  Edit Profile
+                  <Camera className="w-4 h-4 text-primary-foreground" />
                 </Link>
               </div>
+
+              <h1 className="text-2xl font-bold text-foreground mb-1">
+                {profile?.username || user.email?.split("@")[0] || "Anonymous"}
+              </h1>
               <p className="text-muted-foreground text-sm mb-4">{user.email}</p>
 
-              <div className="flex flex-col gap-2 mb-4">
-                {profile?.city && (
-                  <div className="flex items-center gap-2 text-accent text-sm">
-                    <MapPin className="w-4 h-4" />
-                    <span>{profile.city}</span>
-                  </div>
-                )}
-                {profile?.bio && (
-                  <p className="text-muted-foreground text-sm italic max-w-lg">{profile.bio}</p>
-                )}
-                <div className="flex gap-3 mt-1">
-                  {profile?.instagram_username && (
-                    <a
-                      href={`https://instagram.com/${profile.instagram_username}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-pink-500 hover:text-pink-400"
-                    >
-                      <Instagram className="w-5 h-5" />
-                    </a>
-                  )}
-                  {profile?.twitter_username && (
-                    <a
-                      href={`https://twitter.com/${profile.twitter_username}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-400 hover:text-blue-300"
-                    >
-                      <Twitter className="w-5 h-5" />
-                    </a>
-                  )}
+              {profile?.city && (
+                <div className="flex items-center gap-2 text-accent text-sm mb-2">
+                  <MapPin className="w-4 h-4" />
+                  <span>{profile.city}</span>
                 </div>
+              )}
+
+              {profile?.bio && (
+                <p className="text-muted-foreground text-sm italic mb-4 max-w-xs">{profile.bio}</p>
+              )}
+
+              <div className="flex gap-3 justify-center mb-6">
+                {profile?.instagram_username && (
+                  <a
+                    href={`https://instagram.com/${profile.instagram_username}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-pink-500 hover:text-pink-400 p-2 glass rounded-full"
+                  >
+                    <Instagram className="w-5 h-5" />
+                  </a>
+                )}
+                {profile?.twitter_username && (
+                  <a
+                    href={`https://twitter.com/${profile.twitter_username}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:text-blue-300 p-2 glass rounded-full"
+                  >
+                    <Twitter className="w-5 h-5" />
+                  </a>
+                )}
               </div>
 
-              {/* Stats */}
-              <div className="flex justify-center sm:justify-start gap-6 sm:gap-8">
-                <div
-                  className={`text-center cursor-pointer transition-transform hover:scale-105 ${activeTab === 'history' ? 'border-b-2 border-primary pb-1' : ''}`}
-                  onClick={() => setActiveTab('history')}
-                >
-                  <p className="text-2xl sm:text-3xl text-primary font-bold animate-count-up">{totalCheckIns}</p>
-                  <p className="text-muted-foreground text-xs sm:text-sm">Check-ins</p>
-                </div>
-                <div
-                  className={`text-center cursor-pointer transition-transform hover:scale-105 ${activeTab === 'visited' ? 'border-b-2 border-primary pb-1' : ''}`}
-                  onClick={() => setActiveTab('visited')}
-                >
-                  <p className="text-2xl sm:text-3xl text-primary font-bold animate-count-up" style={{ animationDelay: '100ms' }}>{uniqueSpots}</p>
-                  <p className="text-muted-foreground text-xs sm:text-sm">Spots Visited</p>
-                </div>
-                <div
-                  className={`text-center cursor-pointer transition-transform hover:scale-105 ${activeTab === 'reviews' ? 'border-b-2 border-primary pb-1' : ''}`}
-                  onClick={() => setActiveTab('reviews')}
-                >
-                  <p className="text-2xl sm:text-3xl text-primary font-bold animate-count-up" style={{ animationDelay: '200ms' }}>{totalRatings}</p>
-                  <p className="text-muted-foreground text-xs sm:text-sm">Ratings</p>
-                </div>
-                <div
-                  className={`text-center cursor-pointer transition-transform hover:scale-105 ${activeTab === 'photos' ? 'border-b-2 border-primary pb-1' : ''}`}
-                  onClick={() => setActiveTab('photos')}
-                >
-                  <p className="text-2xl sm:text-3xl text-primary font-bold animate-count-up" style={{ animationDelay: '300ms' }}>{totalPhotos}</p>
-                  <p className="text-muted-foreground text-xs sm:text-sm">Photos</p>
-                </div>
-                {avgRating && (
-                  <div
-                    className={`text-center cursor-pointer transition-transform hover:scale-105 ${activeTab === 'reviews' ? 'border-b-2 border-primary pb-1' : ''}`}
-                    onClick={() => setActiveTab('reviews')}
-                  >
-                    <p className="text-2xl sm:text-3xl text-primary font-bold animate-count-up" style={{ animationDelay: '400ms' }}>{avgRating}</p>
-                    <p className="text-muted-foreground text-xs sm:text-sm">Avg Rating</p>
-                  </div>
-                )}
-              </div>
+              <Link href="/profile/edit" className="w-full">
+                <button className="w-full py-2 bg-primary/10 border border-primary/20 text-primary rounded-lg hover:bg-primary/20 transition-colors flex items-center justify-center gap-2">
+                  <Edit2 className="w-4 h-4" />
+                  Edit Profile
+                </button>
+              </Link>
             </div>
+          </div>
+
+          {/* Theme Selector Section */}
+          <div className="glass-panel p-6 rounded-2xl border border-white/10">
+             <ThemeSelector />
           </div>
         </div>
 
-        <div className="mt-8">
-          {/* Tabs Navigation */}
-          <div className="flex overflow-x-auto border-b border-border mb-6">
+        {/* Right Column: Content */}
+        <div className="lg:col-span-8">
+           {/* Stats Row */}
+           <div className="glass-panel p-6 rounded-2xl border border-white/10 mb-8 flex justify-around items-center">
+              <div className="text-center cursor-pointer hover:scale-105 transition-transform" onClick={() => setActiveTab('history')}>
+                 <p className="text-3xl text-primary font-bold animate-count-up">{totalCheckIns}</p>
+                 <p className="text-muted-foreground text-sm">Check-ins</p>
+              </div>
+              <div className="text-center cursor-pointer hover:scale-105 transition-transform" onClick={() => setActiveTab('visited')}>
+                 <p className="text-3xl text-primary font-bold animate-count-up" style={{ animationDelay: '100ms' }}>{uniqueSpots}</p>
+                 <p className="text-muted-foreground text-sm">Spots Visited</p>
+              </div>
+              <div className="text-center cursor-pointer hover:scale-105 transition-transform" onClick={() => setActiveTab('reviews')}>
+                 <p className="text-3xl text-primary font-bold animate-count-up" style={{ animationDelay: '200ms' }}>{totalRatings}</p>
+                 <p className="text-muted-foreground text-sm">Ratings</p>
+              </div>
+              <div className="text-center cursor-pointer hover:scale-105 transition-transform" onClick={() => setActiveTab('photos')}>
+                 <p className="text-3xl text-primary font-bold animate-count-up" style={{ animationDelay: '300ms' }}>{totalPhotos}</p>
+                 <p className="text-muted-foreground text-sm">Photos</p>
+              </div>
+           </div>
+
+           {/* Tabs Navigation */}
+          <div className="flex overflow-x-auto border-b border-border mb-6 scrollbar-hide">
             {['history', 'reviews', 'saved', 'photos', 'visited'].map((tab) => (
               <button
                 key={tab}
@@ -208,10 +188,10 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                 }`}
               >
                 {tab === 'history' && 'Check-in History'}
-                {tab === 'reviews' && 'My Reviews'}
-                {tab === 'saved' && 'Saved Hotspots'}
-                {tab === 'photos' && 'My Photos'}
-                {tab === 'visited' && 'Spots Visited'}
+                {tab === 'reviews' && 'Reviews'}
+                {tab === 'saved' && 'Saved'}
+                {tab === 'photos' && 'Photos'}
+                {tab === 'visited' && 'Visited'}
               </button>
             ))}
           </div>
@@ -220,7 +200,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
           <div className="min-h-[400px]">
 
             {activeTab === 'history' && (
-              <div className="glass-panel p-4 animate-in fade-in slide-in-from-bottom-4 duration-300 rounded-2xl">
+              <div className="glass-panel p-6 animate-in fade-in slide-in-from-bottom-4 duration-300 rounded-2xl">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg text-foreground flex items-center gap-2 font-bold">
                     <MapPin className="w-5 h-5 text-accent" />
@@ -278,7 +258,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
             )}
 
             {activeTab === 'reviews' && (
-              <div className="glass-panel p-4 animate-in fade-in slide-in-from-bottom-4 duration-300 rounded-2xl">
+              <div className="glass-panel p-6 animate-in fade-in slide-in-from-bottom-4 duration-300 rounded-2xl">
                  <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg text-foreground flex items-center gap-2 font-bold">
                     <Star className="w-5 h-5 text-primary" />
@@ -324,7 +304,6 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                   <div className="text-center py-12 text-muted-foreground">
                     <Star className="w-12 h-12 mx-auto mb-4 opacity-30" />
                     <p className="font-bold">No reviews yet</p>
-                    <p className="text-sm">Rate hotspots to keep track of your favorites!</p>
                   </div>
                 )}
               </div>
@@ -377,20 +356,13 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                 <div className="text-center py-8">
                     <Heart className="w-16 h-16 mx-auto mb-6 text-muted-foreground/30" />
                     <p className="font-heading text-xl text-foreground mb-2">No saved hotspots yet</p>
-                    <p className="text-muted-foreground mb-8 max-w-md mx-auto">Save your favorite spots for quick access.</p>
-                    <Link href="/dashboard">
-                      <button className="px-8 py-4 bg-primary text-primary-foreground font-heading font-bold text-lg rounded-lg hover:bg-primary/90 shadow-[var(--shadow-hover)] transition-all active:scale-95 flex items-center gap-3 mx-auto">
-                        <MapPin className="w-5 h-5" />
-                        BROWSE HOTSPOTS
-                      </button>
-                    </Link>
                 </div>
                 )}
                </div>
             )}
 
             {activeTab === 'visited' && (
-              <div className="glass-panel p-4 animate-in fade-in slide-in-from-bottom-4 duration-300 rounded-2xl">
+              <div className="glass-panel p-6 animate-in fade-in slide-in-from-bottom-4 duration-300 rounded-2xl">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg text-foreground flex items-center gap-2 font-bold">
                     <MapPin className="w-5 h-5 text-accent" />
@@ -423,7 +395,7 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
             )}
 
             {activeTab === 'photos' && (
-              <div className="glass-panel p-4 animate-in fade-in slide-in-from-bottom-4 duration-300 rounded-2xl">
+              <div className="glass-panel p-6 animate-in fade-in slide-in-from-bottom-4 duration-300 rounded-2xl">
                  <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg text-foreground flex items-center gap-2 font-bold">
                     <Camera className="w-5 h-5 text-accent" />
@@ -444,34 +416,14 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
                             <p className="text-xs text-white font-bold truncate">{photo.hotspots?.name}</p>
-                            <p className="text-[10px] text-muted-foreground">{new Date(photo.created_at).toLocaleDateString()}</p>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="space-y-8">
-                     <div
-                        className="border-2 border-dashed border-border rounded-xl p-12 text-center hover:border-accent/60 hover:bg-accent/5 transition-all cursor-pointer group"
-                        onClick={() => toast("Please go to a hotspot on the map to upload photos.")}
-                     >
-                        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                           <Upload className="w-8 h-8 text-muted-foreground group-hover:text-accent transition-colors" />
-                        </div>
-                        <h3 className="text-lg text-foreground font-bold mb-2">Drag photos here or click to upload</h3>
-                        <p className="text-muted-foreground text-sm">Share your best moments with the community</p>
-                     </div>
-
-                     <div>
-                        <p className="text-muted-foreground text-xs mb-4 uppercase tracking-widest">Inspiration from others</p>
-                        <div className="grid grid-cols-3 gap-4">
-                           {popularHotspots.slice(0, 3).map((spot: any) => (
-                              <div key={spot.id} className="relative aspect-square rounded-xl overflow-hidden opacity-60 hover:opacity-100 transition-opacity">
-                                 <Image src={spot.image_url || "/placeholder.svg"} alt="Inspiration" fill className="object-cover grayscale hover:grayscale-0 transition-all" />
-                              </div>
-                           ))}
-                        </div>
-                     </div>
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Camera className="w-12 h-12 mx-auto mb-4 opacity-30" />
+                    <p className="font-bold">No photos yet</p>
                   </div>
                 )}
               </div>
@@ -479,7 +431,6 @@ export function ProfileClient({ user, profile: initialProfile, checkIns, ratings
           </div>
         </div>
       </main>
-
     </div>
   )
 }
