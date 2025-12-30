@@ -226,7 +226,7 @@ export function HotspotDetail({
   }
 
   const openInMaps = () => {
-    const url = `https://www.google.com/maps/search/?api=1&query=${hotspot.latitude},${hotspot.longitude}`
+    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hotspot.name + " Vasai Virar")}`
     window.open(url, "_blank")
   }
 
