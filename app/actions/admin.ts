@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { createClient as createSupabaseAdminClient } from "@supabase/supabase-js"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
@@ -13,6 +14,20 @@ const hotspotSchema = z.object({
   description: z.string().optional(),
   image_url: z.string().optional(),
 })
+
+// Helper to get admin client
+const getAdminClient = () => {
+  return createSupabaseAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    }
+  )
+}
 
 export async function updateHotspot(id: string, formData: z.infer<typeof hotspotSchema>) {
   // Use the exact logging requested by user
@@ -37,9 +52,11 @@ export async function updateHotspot(id: string, formData: z.infer<typeof hotspot
     return { error: "Unauthorized" }
   }
 
+  const adminClient = getAdminClient()
+
   // 3. Perform Update
   // The ONLY database write must be update on hotspots
-  const { error } = await supabase
+  const { error } = await adminClient
     .from("hotspots")
     .update(payload)
     .eq("id", id)
@@ -67,6 +84,8 @@ export async function createHotspot(formData: z.infer<typeof hotspotSchema>) {
     return { error: "Unauthorized" }
   }
 
+  const adminClient = getAdminClient()
+
   // 2. Prepare Data
   const updates = {
     name: formData.name,
@@ -79,7 +98,7 @@ export async function createHotspot(formData: z.infer<typeof hotspotSchema>) {
   }
 
   // 3. Perform Insert
-  const { data, error } = await supabase
+  const { data, error } = await adminClient
     .from("hotspots")
     .insert(updates)
     .select()
@@ -103,8 +122,10 @@ export async function deleteHotspot(id: string) {
     return { error: "Unauthorized" }
   }
 
+  const adminClient = getAdminClient()
+
   // 2. Perform Delete
-  const { error } = await supabase
+  const { error } = await adminClient
     .from("hotspots")
     .delete()
     .eq("id", id)
