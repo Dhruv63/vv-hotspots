@@ -213,15 +213,15 @@ export default function AIPlannerMobile() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-3 mb-8">
-                        <button onClick={handleCopy} className="py-4 bg-white/5 active:bg-white/10 border border-white/10 rounded-2xl text-white font-medium flex items-center justify-center gap-2 transition-colors">
+                        <button onClick={handleCopy} disabled={!itinerary} className="py-4 bg-white/5 active:bg-white/10 border border-white/10 rounded-2xl text-white font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                             <Copy className="w-5 h-5" /> Copy
                         </button>
-                        <button onClick={handleShare} className="py-4 bg-white/5 active:bg-white/10 border border-white/10 rounded-2xl text-white font-medium flex items-center justify-center gap-2 transition-colors">
+                        <button onClick={handleShare} disabled={!itinerary} className="py-4 bg-white/5 active:bg-white/10 border border-white/10 rounded-2xl text-white font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                             <Share2 className="w-5 h-5" /> Share
                         </button>
                     </div>
 
-                    <div className="prose prose-invert prose-lg max-w-none">
+                    <div className="prose prose-invert prose-lg max-w-none mb-8">
                          <ReactMarkdown
                             components={{
                                 h1: ({node, ...props}) => <h1 className="text-2xl font-bold text-yellow-400 mb-6 border-b border-white/10 pb-4" {...props} />,
@@ -237,9 +237,13 @@ export default function AIPlannerMobile() {
                          </ReactMarkdown>
                     </div>
 
+                    <button onClick={handleShare} disabled={!itinerary} className="w-full mb-4 py-4 bg-gradient-to-r from-green-600 to-emerald-600 active:from-green-700 active:to-emerald-700 rounded-2xl text-white font-bold text-lg flex items-center justify-center gap-2 shadow-lg shadow-green-900/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                        <Share2 className="w-6 h-6" /> Share with Friends
+                    </button>
+
                     <button
                         onClick={resetPlanner}
-                        className="w-full mt-8 py-5 bg-white/5 border border-white/10 rounded-2xl text-cyan-400 font-bold flex items-center justify-center gap-2 active:bg-white/10 transition-colors"
+                        className="w-full py-5 bg-white/5 border border-white/10 rounded-2xl text-cyan-400 font-bold flex items-center justify-center gap-2 active:bg-white/10 transition-colors"
                     >
                         <RefreshCw className="w-5 h-5" /> Start New Plan
                     </button>
