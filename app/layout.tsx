@@ -15,18 +15,26 @@ export const metadata: Metadata = {
     "Discover the hottest hangout spots in Vasai-Virar. Check-in, connect, and explore cafes, parks, gaming zones, and street food spots.",
   keywords: ["Vasai", "Virar", "hangout", "social", "cafes", "gaming", "food"],
   generator: "v0.app",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
   icons: {
     icon: [
       { url: "/icon-light-32x32.png", media: "(prefers-color-scheme: light)" },
       { url: "/icon-dark-32x32.png", media: "(prefers-color-scheme: dark)" },
       { url: "/icon.svg", type: "image/svg+xml" },
     ],
-    apple: "/apple-icon.png",
+    apple: "/icon-192.png",
   },
 }
 
 export const viewport: Viewport = {
-  themeColor: "#000000",
+  themeColor: "#06b6d4",
   width: "device-width",
   initialScale: 1,
 }
