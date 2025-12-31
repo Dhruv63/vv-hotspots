@@ -7,6 +7,7 @@ import { Loader2, Check, MapPin, Globe, Lock } from "lucide-react"
 import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
 import { sanitizeInput, checkRateLimit } from "@/lib/security"
+import { calculateDistance } from "@/lib/utils"
 
 interface CheckInModalProps {
   isOpen: boolean
@@ -37,6 +38,40 @@ export function CheckInModal({ isOpen, onClose, hotspot, onCheckInSuccess }: Che
     const supabase = createClient()
 
     try {
+      // 0. Verify Location (Strict Geofencing)
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        if (!navigator.geolocation) {
+          reject(new Error("Geolocation is not supported by your browser"))
+        } else {
+          navigator.geolocation.getCurrentPosition(
+            resolve,
+            () => reject(new Error("Unable to retrieve your location. Please enable GPS.")),
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+          )
+        }
+      })
+
+      const { latitude, longitude, accuracy } = position.coords
+      const distanceKm = calculateDistance(
+        latitude,
+        longitude,
+        Number(hotspot.latitude),
+        Number(hotspot.longitude)
+      )
+      const distanceMeters = Math.round(distanceKm * 1000)
+
+      console.log(`Check-in Debug: Distance ${distanceMeters}m, Accuracy ${accuracy}m`)
+
+      // Warn if accuracy is poor
+      if (accuracy > 100) {
+        toast.warning(`Your GPS signal is weak (${Math.round(accuracy)}m accuracy). Try moving outside.`)
+      }
+
+      // STRICT 100m Check
+      if (distanceMeters > 100) {
+        throw new Error(`You are ${distanceMeters}m away! Move closer to the entrance to check in.`)
+      }
+
       // 1. Get User
       const { data: { user }, error: authError } = await supabase.auth.getUser()
 
@@ -86,7 +121,14 @@ export function CheckInModal({ isOpen, onClose, hotspot, onCheckInSuccess }: Che
 
       // Success
       setIsSuccess(true)
-      toast.success(`Checked in at ${hotspot.name}!`)
+      toast.success(
+        <div className="flex flex-col gap-1">
+          <span className="font-bold">Checked in at {hotspot.name}!</span>
+          <span className="text-xs flex items-center gap-1">
+            <Check className="w-3 h-3" /> Verified Visit (&lt;100m)
+          </span>
+        </div>
+      )
 
       // Delay closing to show success state and trigger refresh
       setTimeout(() => {
