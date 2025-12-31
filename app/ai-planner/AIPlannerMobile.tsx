@@ -32,7 +32,10 @@ export default function AIPlannerMobile() {
     handleGenerate,
     handleCopy,
     handleShare,
-    resetPlanner
+    resetPlanner,
+    handleUseLocation,
+    isLocating,
+    handleManualLocationChange
   } = useAIPlanner()
 
   return (
@@ -161,9 +164,17 @@ export default function AIPlannerMobile() {
                       type="text"
                       placeholder="e.g. Vasai Station..."
                       value={startLocation}
-                      onChange={(e) => setStartLocation(e.target.value)}
-                      className="w-full bg-black/40 border border-white/10 rounded-2xl py-5 pl-14 pr-5 text-white text-xl placeholder-gray-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
+                      onChange={(e) => handleManualLocationChange(e.target.value)}
+                      className="w-full bg-black/40 border border-white/10 rounded-2xl py-5 pl-14 pr-32 text-white text-xl placeholder-gray-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
                     />
+                    <button
+                        onClick={handleUseLocation}
+                        disabled={isLocating}
+                        className="absolute inset-y-2 right-2 px-3 flex items-center gap-2 bg-purple-500/20 active:bg-purple-500/30 text-purple-300 text-sm font-bold rounded-xl transition-colors disabled:opacity-50 z-10"
+                    >
+                        {isLocating ? <div className="animate-spin h-4 w-4 border-2 border-purple-300 border-t-transparent rounded-full" /> : <MapPin className="w-4 h-4" />}
+                        Locate
+                    </button>
                 </div>
              </div>
 
