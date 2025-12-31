@@ -14,7 +14,8 @@ import {
   ArrowLeft,
   Calendar,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  Locate
 } from 'lucide-react'
 import { useAIPlanner, companionOptions, MAX_DAILY_USAGE } from './useAIPlanner'
 
@@ -23,6 +24,7 @@ export default function AIPlannerMobile() {
     timeAvailable, setTimeAvailable,
     companionType, setCompanionType,
     startLocation, setStartLocation,
+    isLocating, handleUseMyLocation,
     loading,
     itinerary, setItinerary,
     generatedAt,
@@ -162,8 +164,20 @@ export default function AIPlannerMobile() {
                       placeholder="e.g. Vasai Station..."
                       value={startLocation}
                       onChange={(e) => setStartLocation(e.target.value)}
-                      className="w-full bg-black/40 border border-white/10 rounded-2xl py-5 pl-14 pr-5 text-white text-xl placeholder-gray-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
+                      className="w-full bg-black/40 border border-white/10 rounded-2xl py-5 pl-14 pr-14 text-white text-xl placeholder-gray-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
                     />
+                    <button
+                        onClick={handleUseMyLocation}
+                        disabled={isLocating}
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-purple-400 hover:text-purple-300 disabled:opacity-50 transition-colors"
+                        title="Use my location"
+                    >
+                        {isLocating ? (
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500"></div>
+                        ) : (
+                            <Locate className="h-6 w-6" />
+                        )}
+                    </button>
                 </div>
              </div>
 
