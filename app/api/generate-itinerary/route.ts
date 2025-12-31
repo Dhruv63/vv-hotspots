@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { timeAvailable, companionType, startLocation } = body
+    const { timeAvailable, companionType, startLocation, userLocation } = body
 
     if (!timeAvailable || !companionType || !startLocation) {
       return NextResponse.json(
@@ -101,9 +101,14 @@ export async function POST(request: NextRequest) {
 
     const companionText = companionMap[companionType] || companionType
 
+    let startContext = `Starting: ${startLocation}`
+    if (userLocation && userLocation.lat && userLocation.lng) {
+      startContext += `\nThe user is currently at coordinates ${userLocation.lat}, ${userLocation.lng}. Plan the itinerary starting from the nearest hotspot to this location.`
+    }
+
     const prompt = `Create a concise ${timeAvailable}-hour itinerary in Vasai-Virar for ${companionText}.
 
-Starting: ${startLocation}
+${startContext}
 
 FORMAT (keep it SHORT and practical!):
 
