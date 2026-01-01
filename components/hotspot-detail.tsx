@@ -7,6 +7,7 @@ import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
 import { StarRating } from "@/components/ui/star-rating"
 import { ActiveUsersList } from "@/components/active-users-list"
+import { CrowdInsights } from "@/components/crowd-insights"
 import { PhotoGallery } from "@/components/photo-gallery"
 import { ReviewsTab } from "@/components/reviews-tab"
 import { modalStack } from "@/lib/modal-stack"
@@ -348,6 +349,10 @@ export function HotspotDetail({
                <Copy className="w-5 h-5 text-cyber-cyan" />
                <span className="text-[10px] font-bold text-cyber-cyan">Copy Link</span>
              </button>
+          </div>
+
+          <div className="p-4 bg-cyber-black/30 border border-cyber-cyan/20 rounded-lg">
+             <CrowdInsights hotspotId={hotspot.id} />
           </div>
 
           <ActiveUsersList hotspotId={hotspot.id} />
