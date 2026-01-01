@@ -33,7 +33,7 @@ export default async function DashboardPage() {
     friends
   ] = await Promise.all([
     // Hotspots
-    supabase.from("hotspots").select("*").order("name"),
+    supabase.from("hotspots").select("id, name, category, description, address, latitude, longitude, image_url").order("name"),
 
     // Active Check-ins (Global)
     supabase
