@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { Search, Filter, List, Grid, Zap, Star, X, MessageSquare, Loader2, Clock, Coffee, Trees, Gamepad2, Utensils, Beer, MapPin } from "lucide-react"
 import { HotspotCard } from "@/components/hotspot-card"
+import { TrendingHotspots } from "@/components/trending-hotspots"
 import { Input } from "@/components/ui/input"
 import type { Hotspot } from "@/lib/types"
 import { cn, calculateDistance } from "@/lib/utils"
@@ -228,6 +229,10 @@ export function HotspotList({
       </div>
 
       <div className="px-3 pt-3 md:px-4 md:pt-4">
+        {(!search && activeFilterCount === 0) && (
+           <TrendingHotspots />
+        )}
+
         <Link
           href="/ai-planner"
           className="block glass-panel rounded-2xl p-6 hover-float group relative overflow-hidden"

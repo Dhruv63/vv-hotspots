@@ -393,6 +393,7 @@ export function MapView({
                         hotspot={hotspot}
                         isSelected={selectedHotspot?.id === hotspot.id}
                         onClick={handleMarkerClick}
+                        crowdCount={activeCheckins[hotspot.id] || 0}
                     />
                 ))}
             </MarkerClusterGroup>

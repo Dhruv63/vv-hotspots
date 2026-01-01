@@ -68,6 +68,13 @@ const getCategoryColor = (category: string) => {
   }
 }
 
+const getCrowdStatus = (count: number) => {
+  if (count >= 20) return { label: "Packed", color: "bg-black text-white border-white", dot: "bg-white" }
+  if (count >= 9) return { label: "Busy", color: "bg-red-500 text-white border-red-400", dot: "bg-white" }
+  if (count >= 3) return { label: "Moderate", color: "bg-yellow-500 text-black border-yellow-400", dot: "bg-black" }
+  return { label: "Empty", color: "bg-green-500 text-white border-green-400", dot: "bg-white" }
+}
+
 export function HotspotCard({
   hotspot,
   activeCheckins = 0,
@@ -82,6 +89,7 @@ export function HotspotCard({
   variant = "list",
 }: HotspotCardProps) {
   const imageUrl = getHotspotImage(hotspot)
+  const crowdStatus = getCrowdStatus(activeCheckins)
 
   const renderStars = (rating: number) => {
     const stars = []
@@ -120,7 +128,8 @@ export function HotspotCard({
   }
 
   const isGrid = variant === "grid"
-  const imageHeight = isGrid ? "h-[140px]" : "h-[180px]"
+  const isCompact = variant === "compact"
+  const imageHeight = isGrid ? "h-[140px]" : isCompact ? "h-[120px]" : "h-[180px]"
 
   return (
     <div
@@ -130,7 +139,7 @@ export function HotspotCard({
         isSelected
           ? "border-primary shadow-[var(--shadow-hover)]"
           : "hover:border-transparent", // Make border transparent on hover to show gradient
-        isGrid ? "w-full" : "w-full mb-3 last:mb-0"
+        (isGrid || isCompact) ? "w-full" : "w-full mb-3 last:mb-0"
       )}
     >
       {/* Gradient Border on Hover */}
@@ -144,29 +153,35 @@ export function HotspotCard({
           alt={hotspot.name}
           fill
           className="object-cover transition-all duration-500 group-hover:scale-110"
-          sizes={isGrid ? "(max-width: 768px) 50vw, 320px" : "(max-width: 768px) 100vw, 320px"}
+          sizes={isGrid || isCompact ? "(max-width: 768px) 50vw, 320px" : "(max-width: 768px) 100vw, 320px"}
           loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-80" />
 
         {/* Category badge */}
-        <div className="absolute top-2 left-2 z-10">
-          <span
-            className={`px-3 py-1 text-[10px] font-bold uppercase rounded-full shadow-sm ${getCategoryColor(hotspot.category)}`}
-          >
-            {hotspot.category}
-          </span>
-        </div>
+        {!isCompact && (
+          <div className="absolute top-2 left-2 z-10">
+            <span
+              className={`px-3 py-1 text-[10px] font-bold uppercase rounded-full shadow-sm ${getCategoryColor(hotspot.category)}`}
+            >
+              {hotspot.category}
+            </span>
+          </div>
+        )}
 
         {/* Active users badge & Save Button */}
         <div className="absolute top-2 right-2 z-10 flex items-center gap-2">
-          {activeCheckins > 0 && (
-            <div className="flex items-center gap-1 px-3 py-1 bg-background/90 border border-accent text-accent text-[10px] font-bold rounded-full backdrop-blur-sm shadow-[0_0_10px_rgba(var(--accent),0.5)] animate-pulse">
-              <Users className="w-3 h-3" />
-              <span>{activeCheckins}</span>
+          {activeCheckins > 0 ? (
+            <div className={cn(
+              "flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold rounded-full backdrop-blur-sm shadow-lg border",
+              crowdStatus.color,
+              activeCheckins >= 3 && "animate-pulse"
+            )}>
+              <span className={cn("w-1.5 h-1.5 rounded-full", crowdStatus.dot)} />
+              <span>{activeCheckins} people</span>
             </div>
-          )}
-          {onToggleSave && (
+          ) : null}
+          {onToggleSave && !isCompact && (
              <button
                 onClick={(e) => { e.stopPropagation(); onToggleSave(hotspot.id) }}
                 className={cn(
@@ -182,7 +197,7 @@ export function HotspotCard({
         </div>
 
         {/* Distance */}
-        {distance !== undefined && distance !== null && (
+        {!isCompact && distance !== undefined && distance !== null && (
           <div className="absolute bottom-2 left-2 z-10">
              <span className="text-[10px] font-bold text-white/90 bg-black/50 px-2 py-1 rounded-full backdrop-blur-sm border border-white/10">
                 {distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)} km`}
@@ -192,17 +207,17 @@ export function HotspotCard({
       </div>
 
       {/* Content section */}
-      <div className="p-3 flex flex-col flex-1 overflow-hidden relative z-10">
+      <div className={cn("flex flex-col flex-1 overflow-hidden relative z-10", isCompact ? "p-2" : "p-3")}>
         <div className="flex justify-between items-start mb-1 gap-2">
             <h3 className={cn(
               "font-bold text-foreground leading-tight line-clamp-1 group-hover:text-primary transition-colors duration-300",
-              isGrid ? "text-[14px]" : "text-[18px]"
+              (isGrid || isCompact) ? "text-[14px]" : "text-[18px]"
             )}>
               {hotspot.name}
             </h3>
         </div>
 
-        {!isGrid && (
+        {!isGrid && !isCompact && (
           <div className="flex items-center gap-1 text-muted-foreground text-[12px] mb-2">
             <MapPin className="w-3 h-3 flex-shrink-0" />
             <span className="leading-tight line-clamp-1 text-ellipsis overflow-hidden">{hotspot.address}</span>
@@ -210,22 +225,26 @@ export function HotspotCard({
         )}
 
         {/* Rating display */}
-        <div className="flex items-center gap-1 mt-auto mb-2">
+        <div className="flex items-center gap-1 mt-auto mb-1">
           {averageRating > 0 ? (
             <div className="flex items-center gap-1.5">
                <div className="flex items-center">
                   {renderStars(averageRating)}
                </div>
-               {!isGrid && <span className="text-muted-foreground text-xs">({ratingCount})</span>}
+               {!isGrid && !isCompact && <span className="text-muted-foreground text-xs">({ratingCount})</span>}
             </div>
           ) : (
             <span className="text-muted-foreground text-xs">No ratings</span>
           )}
         </div>
 
-        {/* Buttons */}
+        {/* Status Pill for Empty/Moderate etc if no checkins > 0 shown above, or to reinforce */}
+        {/* Actually, the badge on image handles it. But we can add a text status here too if needed. */}
+        {/* The requirement says: "status pill + '12 people here now'" on hotspot cards. */}
+        {/* I put it on the image which is prominent. */}
+
         {children && (
-          <div className={cn("mt-auto w-full", isGrid ? "pt-1" : "pt-2")}>
+          <div className={cn("mt-auto w-full", (isGrid || isCompact) ? "pt-1" : "pt-2")}>
             {children}
           </div>
         )}

@@ -5,6 +5,7 @@ import { AppProvider, useAppContext } from "@/context/app-context"
 import dynamic from "next/dynamic"
 import { ReactNode, useEffect, useState } from "react"
 import { Hotspot } from "@/lib/types"
+import { createClient } from "@/lib/supabase/client"
 
 // Dynamic import for MapView to avoid SSR issues
 const MapView = dynamic(() => import("@/components/map-view").then((mod) => mod.MapView), {
@@ -23,8 +24,8 @@ interface MainLayoutShellProps {
 function PersistentMapShell({
   children,
   hotspots,
-  activeCheckins,
-  userCurrentCheckin,
+  activeCheckins: initialActiveCheckins,
+  userCurrentCheckin: initialUserCheckin,
   userRatings,
 }: MainLayoutShellProps) {
   const pathname = usePathname()
@@ -42,6 +43,49 @@ function PersistentMapShell({
     setActionHotspot,
     setIsCheckInModalOpen
   } = useAppContext()
+
+  const [activeCheckins, setActiveCheckins] = useState(initialActiveCheckins)
+  const [userCurrentCheckin, setUserCurrentCheckin] = useState(initialUserCheckin)
+
+  // Sync props if they change (e.g. initial load)
+  useEffect(() => {
+    setActiveCheckins(initialActiveCheckins)
+  }, [initialActiveCheckins])
+
+  useEffect(() => {
+      setUserCurrentCheckin(initialUserCheckin)
+  }, [initialUserCheckin])
+
+  // Real-time subscription for global checkins
+  useEffect(() => {
+      const supabase = createClient()
+      const handleCheckInChange = async (payload: any) => {
+        const hotspotIds = new Set<string>()
+        if (payload.new && payload.new.hotspot_id) hotspotIds.add(payload.new.hotspot_id)
+        if (payload.old && payload.old.hotspot_id) hotspotIds.add(payload.old.hotspot_id)
+
+        for (const id of hotspotIds) {
+          const { count, error } = await supabase
+            .from("check_ins")
+            .select("*", { count: "exact", head: true })
+            .eq("hotspot_id", id)
+            .eq("is_active", true)
+
+          if (!error && count !== null) {
+            setActiveCheckins((prev) => ({ ...prev, [id]: count }))
+          }
+        }
+      }
+
+      const channel = supabase
+        .channel("global-checkins-map")
+        .on("postgres_changes", { event: "*", schema: "public", table: "check_ins" }, handleCheckInChange)
+        .subscribe()
+
+      return () => {
+        supabase.removeChannel(channel)
+      }
+    }, [])
 
   // Determine if map should be visible
   const isDashboard = pathname === "/dashboard"
@@ -66,12 +110,6 @@ function PersistentMapShell({
 
   return (
     <div className="relative w-full h-full overflow-hidden bg-background/0">
-        {/* Persistent Map Layer */}
-        {/*
-            NOTE: Conditional rendering ensures the MapView unmounts when leaving the dashboard,
-            preventing potential conflicts with other map instances (e.g., "Map container is being reused" errors).
-            While this sacrifices state persistence across routes, it ensures stability.
-        */}
         {shouldShowMap && (
             <div
                 className="absolute inset-0 z-0"

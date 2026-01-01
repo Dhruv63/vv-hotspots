@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client"
 import { Navbar } from "@/components/navbar"
 import { HotspotList } from "@/components/hotspot-list"
 import { ActivityFeed } from "@/components/activity-feed"
+import { toast } from "sonner"
 import { UnifiedMenuDrawer } from "@/components/unified-menu-drawer"
 import { OnboardingFlow } from "@/components/onboarding-flow"
 import { CheckInModal } from "@/components/check-in-modal"
@@ -188,6 +189,19 @@ export function DashboardClient({
 
         if (!error && count !== null) {
           setActiveCheckins((prev) => ({ ...prev, [id]: count }))
+        }
+      }
+
+      // Friend Check-in Notification
+      if (payload.eventType === 'INSERT' && payload.new.is_active) {
+        if (friendIds.includes(payload.new.user_id)) {
+           // Fetch details for notification
+           const { data: userData } = await supabase.from('profiles').select('username').eq('id', payload.new.user_id).single()
+           const { data: hotspotData } = await supabase.from('hotspots').select('name').eq('id', payload.new.hotspot_id).single()
+
+           if (userData && hotspotData) {
+               toast("🔥 " + userData.username + " just checked in at " + hotspotData.name)
+           }
         }
       }
     }
