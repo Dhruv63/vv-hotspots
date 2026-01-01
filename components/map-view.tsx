@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react"
 import L from "leaflet"
-import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl, Tooltip } from "react-leaflet"
+import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl, Tooltip, useMapEvents } from "react-leaflet"
 import "leaflet/dist/leaflet.css"
 import "leaflet.markercluster/dist/MarkerCluster.css"
 import "leaflet.markercluster/dist/MarkerCluster.Default.css"
@@ -10,7 +10,7 @@ import type { Hotspot } from "@/lib/types"
 import { useTheme } from "@/components/theme-provider"
 import { themes } from "@/lib/themes"
 import { CATEGORY_COLOR } from "@/lib/constants"
-import { Search, Navigation, Layers, Info, MapPin } from "lucide-react"
+import { Search, Navigation, Layers, Info, MapPin, LocateFixed } from "lucide-react"
 import { HotspotCard } from "@/components/hotspot-card"
 import MarkerClusterGroup from "@/components/ui/marker-cluster"
 import { CategoryBadge } from "@/components/ui/category-badge"
@@ -52,34 +52,37 @@ interface MapViewProps {
   isVisible?: boolean
 }
 
-function MapUpdater({ center, zoom }: { center: [number, number]; zoom: number }) {
-  const map = useMap()
-  useEffect(() => {
-    if (isValidLatLng(center[0], center[1])) {
-      map.flyTo(center, zoom, { duration: 1.5 })
+// Component to handle map events and track user interaction
+function MapEventHandler({ onUserInteract }: { onUserInteract: () => void }) {
+  useMapEvents({
+    dragstart: () => {
+      onUserInteract()
+    },
+    touchstart: () => {
+      onUserInteract()
     }
-  }, [center, zoom, map])
+  })
   return null
 }
 
-function RecenterControl({ onRecenter, isTracking }: { onRecenter: () => void, isTracking: boolean }) {
+function RecenterControl({ onRecenter }: { onRecenter: () => void }) {
     return (
         <button
-            onClick={onRecenter}
-            className={`leaflet-bar leaflet-control leaflet-control-custom p-2 bg-background border-2 rounded-lg shadow-lg transition-all active:scale-95 flex items-center justify-center ${
-                isTracking ? "border-primary text-primary" : "border-muted-foreground/30 text-muted-foreground"
-            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onRecenter();
+            }}
+            className="leaflet-bar leaflet-control leaflet-control-custom p-2 bg-background border-2 border-muted-foreground/30 rounded-full shadow-lg transition-all active:scale-95 flex items-center justify-center hover:shadow-xl hover:border-primary/50 text-muted-foreground hover:text-primary z-[400]"
             style={{
                 position: 'absolute',
                 bottom: '80px', // Raised above bottom nav
                 right: '16px',
-                zIndex: 400,
                 width: '44px',
                 height: '44px'
             }}
-            aria-label="Recenter map"
+            aria-label="Recenter to my location"
         >
-            <Navigation className={`w-5 h-5 ${isTracking ? "fill-current" : ""}`} />
+            <LocateFixed className="w-5 h-5" />
         </button>
     )
 }
@@ -201,8 +204,12 @@ export function MapView({
   const { theme } = useTheme()
   const mapRef = useRef<L.Map | null>(null)
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null)
-  const [isTracking, setIsTracking] = useState(false)
-  const [mapReady, setMapReady] = useState(false)
+
+  // State to track if we have initially centered the map on user location
+  const [hasInitiallyCentered, setHasInitiallyCentered] = useState(false)
+  // State to track if user has manually interacted with map
+  const [userHasPanned, setUserHasPanned] = useState(false)
+
   const [previewHotspot, setPreviewHotspot] = useState<Hotspot | null>(null)
   const [showLegend, setShowLegend] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
@@ -233,7 +240,7 @@ export function MapView({
     };
   }, []);
 
-  // Stabilized mobile detection (Solution B)
+  // Stabilized mobile detection
   useEffect(() => {
     const checkMobile = () => {
         const mobile = window.innerWidth < 768
@@ -260,6 +267,11 @@ export function MapView({
   useEffect(() => {
     if (selectedHotspot) {
         setPreviewHotspot(selectedHotspot)
+        // Center map on selected hotspot
+        if (mapRef.current && isValidLatLng(selectedHotspot.latitude, selectedHotspot.longitude)) {
+            const latOffset = -0.005
+            mapRef.current.flyTo([Number(selectedHotspot.latitude) + latOffset, Number(selectedHotspot.longitude)], 16, { duration: 1.5 })
+        }
     }
   }, [selectedHotspot])
 
@@ -273,30 +285,33 @@ export function MapView({
         const newLoc: [number, number] = [latitude, longitude]
         setUserLocation(newLoc)
         if (onLocationUpdate) onLocationUpdate(newLoc)
-
-        // Initial center
-        if (!mapReady && mapRef.current) {
-             mapRef.current.setView(newLoc, 15)
-             setMapReady(true)
-        }
       },
       (error) => {
         console.error("Geolocation error:", error)
-        setIsTracking(false)
       },
       { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
     )
 
     return () => navigator.geolocation.clearWatch(watchId)
-  }, [onLocationUpdate, mapReady])
+  }, [onLocationUpdate])
+
+  // Initial center on user location (only once)
+  useEffect(() => {
+    if (userLocation && !hasInitiallyCentered && !userHasPanned && mapRef.current) {
+        mapRef.current.flyTo(userLocation, 15, { duration: 1.5 })
+        setHasInitiallyCentered(true)
+    }
+  }, [userLocation, hasInitiallyCentered, userHasPanned])
 
   // Recenter function
   const handleRecenter = () => {
     if (userLocation && isValidLatLng(userLocation[0], userLocation[1]) && mapRef.current) {
       mapRef.current.flyTo(userLocation, 16, { duration: 1.5 })
-      setIsTracking(true)
+      // We don't necessarily reset userHasPanned here,
+      // because we want the user to stay in control.
+      // But clicking "Recenter" is a manual action that requests seeing the location.
     } else {
-        mapRef.current?.flyTo(DEFAULT_CENTER, DEFAULT_ZOOM)
+      mapRef.current?.flyTo(DEFAULT_CENTER, DEFAULT_ZOOM)
     }
   }
 
@@ -340,6 +355,8 @@ export function MapView({
         touchZoom={true}
         dragging={true}
       >
+        <MapEventHandler onUserInteract={() => setUserHasPanned(true)} />
+
         <TileLayer
           key={activeTheme}
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
@@ -349,7 +366,7 @@ export function MapView({
 
         <ZoomControl position="bottomright" />
 
-        <RecenterControl onRecenter={handleRecenter} isTracking={isTracking} />
+        <RecenterControl onRecenter={handleRecenter} />
         <LegendControl isOpen={showLegend} onToggle={() => setShowLegend(!showLegend)} />
         <SearchTrigger onClick={() => onSearchClick?.()} />
 
@@ -404,8 +421,6 @@ export function MapView({
                          <Popup className="cyber-popup" closeButton={true}>
                              <div className="flex flex-col">
                                  <div className="relative h-24 w-full bg-muted">
-                                     {/* We could show a thumbnail here if available */}
-                                     {/* For now, just a gradient or color pattern */}
                                      <div
                                          className="absolute inset-0 opacity-50"
                                          style={{
@@ -426,8 +441,6 @@ export function MapView({
                                          onClick={(e) => {
                                              e.stopPropagation()
                                              handleMarkerClick(hotspot)
-                                             // Close popup if needed, but clicking View Details usually implies selecting it.
-                                             // The handleMarkerClick already selects it.
                                          }}
                                          className="w-full mt-2 py-1.5 text-xs font-bold bg-primary/10 text-primary border border-primary/20 rounded hover:bg-primary/20 transition-colors"
                                      >
@@ -440,14 +453,6 @@ export function MapView({
                 ))}
             </MarkerClusterGroup>
         )}
-
-        <MapUpdater
-            center={selectedHotspot && isValidLatLng(selectedHotspot.latitude, selectedHotspot.longitude)
-                ? [Number(selectedHotspot.latitude), Number(selectedHotspot.longitude)]
-                : (userLocation && isValidLatLng(userLocation[0], userLocation[1]) ? userLocation : DEFAULT_CENTER)
-            }
-            zoom={selectedHotspot ? 16 : DEFAULT_ZOOM}
-        />
       </MapContainer>
 
       {/* Mobile Bottom Sheet Preview */}
@@ -460,9 +465,7 @@ export function MapView({
                       isSelected={false}
                       variant="compact"
                       onClick={() => {
-                         // Click to view details? Or maybe the preview is enough?
-                         // Let's assume clicking it does nothing or opens full detail if needed.
-                         // For now, buttons inside handle actions.
+                          // Preview click
                       }}
                   >
                      <div className="flex gap-2 mt-2">
@@ -478,19 +481,8 @@ export function MapView({
                         <button
                              onClick={(e) => {
                                  e.stopPropagation()
-                                 // Close preview to show map? Or open Details modal?
-                                 // The modal logic is in parent. We need a way to open it.
-                                 // Since onHotspotSelect sets selectedHotspot, the parent opens HotspotDetail automatically if logic dictates.
-                                 // But in DashboardClient, HotspotDetail is rendered if selectedHotspot is set.
-                                 // Wait, if HotspotDetail is open, it might cover the map.
-                                 // Let's assume 'Details' button just ensures selectedHotspot is set and maybe closes preview?
-                                 // Actually preview is shown *because* selectedHotspot is set.
-                                 // So HotspotDetail might already be open or hidden.
-                                 // In DashboardClient, `selectedHotspot && <HotspotDetail ...>`
-                                 // So selecting a hotspot opens the detail modal.
-                                 // But here we want a preview sheet INSTEAD of the full modal on map click?
-                                 // If so, we need to distinguish "Preview" vs "Full Detail".
-                                 // But for now, let's keep it simple: Preview is shown.
+                                 // Logic to show details handled by parent
+                                 onHotspotSelect(previewHotspot)
                              }}
                              className="flex-1 bg-secondary/20 text-secondary py-2 text-xs font-bold font-mono rounded hover:bg-secondary/30"
                         >
@@ -501,10 +493,6 @@ export function MapView({
                   <button
                       onClick={() => {
                           setPreviewHotspot(null)
-                          // Also deselect?
-                          // onHotspotSelect(null) - type doesn't allow null if strict, but let's see.
-                          // It expects Hotspot. So we can't deselect via this prop if it's strictly Hotspot.
-                          // But we can just hide the preview locally.
                       }}
                       className="absolute top-2 right-2 p-1 rounded-full bg-black/50 text-white hover:bg-black/70"
                   >
