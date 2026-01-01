@@ -14,6 +14,7 @@ import { Search, Navigation, Layers, Info, MapPin, LocateFixed } from "lucide-re
 import { HotspotCard } from "@/components/hotspot-card"
 import MarkerClusterGroup from "@/components/ui/marker-cluster"
 import { CategoryBadge } from "@/components/ui/category-badge"
+import { CustomMarker } from "@/components/custom-marker"
 
 // Fix for default marker icons in Next.js
 // @ts-ignore
@@ -149,21 +150,6 @@ function LegendControl({ isOpen, onToggle }: { isOpen: boolean, onToggle: () => 
             )}
         </>
     )
-}
-
-const iconCache = new Map<string, L.DivIcon>();
-function getNeonDotIcon(color: string) {
-  const key = color.toLowerCase();
-  const cached = iconCache.get(key);
-  if (cached) return cached;
-  const icon = L.divIcon({
-    className: "vv-neon-dot",
-    html: `<div class="vv-neon-dot__inner" style="--dot:${key}"></div>`,
-    iconSize: [18, 18],      // larger tap target
-    iconAnchor: [9, 9],      // center anchor
-  });
-  iconCache.set(key, icon);
-  return icon;
 }
 
 const MAP_TILES = {
@@ -402,54 +388,12 @@ export function MapView({
                 {hotspots
                   .filter(h => isValidLatLng(h.latitude, h.longitude))
                   .map((hotspot) => (
-                    <Marker
+                    <CustomMarker
                         key={hotspot.id}
-                        position={[Number(hotspot.latitude), Number(hotspot.longitude)]}
-                        icon={getNeonDotIcon(CATEGORY_COLOR[hotspot.category] ?? CATEGORY_COLOR.other)}
-                        eventHandlers={{
-                            click: () => handleMarkerClick(hotspot),
-                        }}
-                    >
-                         <Tooltip
-                             permanent
-                             direction="bottom"
-                             className="custom-tooltip"
-                             offset={[0, 10]}
-                         >
-                            {hotspot.name}
-                         </Tooltip>
-                         <Popup className="cyber-popup" closeButton={true}>
-                             <div className="flex flex-col">
-                                 <div className="relative h-24 w-full bg-muted">
-                                     <div
-                                         className="absolute inset-0 opacity-50"
-                                         style={{
-                                             background: `linear-gradient(to bottom right, ${CATEGORY_COLOR[hotspot.category] || 'var(--color-primary)'}, transparent)`
-                                         }}
-                                     />
-                                     <div className="absolute bottom-2 left-2">
-                                         <CategoryBadge category={hotspot.category} />
-                                     </div>
-                                 </div>
-                                 <div className="p-3 bg-card space-y-2">
-                                     <h3 className="font-bold text-sm line-clamp-1" title={hotspot.name}>{hotspot.name}</h3>
-                                     <div className="flex items-start gap-1.5 text-xs text-muted-foreground">
-                                         <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                                         <span className="line-clamp-2">{hotspot.address || "No address provided"}</span>
-                                     </div>
-                                     <button
-                                         onClick={(e) => {
-                                             e.stopPropagation()
-                                             handleMarkerClick(hotspot)
-                                         }}
-                                         className="w-full mt-2 py-1.5 text-xs font-bold bg-primary/10 text-primary border border-primary/20 rounded hover:bg-primary/20 transition-colors"
-                                     >
-                                         VIEW DETAILS
-                                     </button>
-                                 </div>
-                             </div>
-                         </Popup>
-                    </Marker>
+                        hotspot={hotspot}
+                        isSelected={selectedHotspot?.id === hotspot.id}
+                        onClick={handleMarkerClick}
+                    />
                 ))}
             </MarkerClusterGroup>
         )}

@@ -756,3 +756,79 @@ button:not(:disabled):hover {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* Custom Icon Markers */
+.custom-marker-wrapper {
+  background: transparent;
+  border: none;
+  pointer-events: auto;
+}
+
+.custom-marker-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.custom-marker-bg {
+  width: 100%;
+  height: 100%;
+  background: white;
+  border-radius: 50%;
+  border: 2px solid var(--marker-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  z-index: 2;
+}
+
+.custom-marker-icon {
+  color: var(--marker-color);
+  width: 60%;
+  height: 60%;
+}
+
+/* Pin triangle at the bottom */
+.custom-marker-pin {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 8px solid var(--marker-color);
+  z-index: 1;
+}
+
+.custom-marker-container:hover {
+  transform: scale(1.15) translateY(-5px);
+  z-index: 50;
+}
+
+.custom-marker-container.selected {
+  transform: scale(1.25) translateY(-8px);
+  z-index: 100;
+}
+
+.custom-marker-container.selected .custom-marker-bg {
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.3), 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+  background: var(--marker-color);
+  border-color: white;
+}
+
+.custom-marker-container.selected .custom-marker-icon {
+  color: white;
+}
+
+.custom-marker-container.selected .custom-marker-pin {
+  border-top-color: var(--marker-color);
+  bottom: -6px;
+  transform: translateX(-50%) scale(1.2);
+}
