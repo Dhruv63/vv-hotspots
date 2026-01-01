@@ -75,6 +75,12 @@ export default function LoginPage() {
     }
   }
 
+  // Google OAuth temporarily disabled - will add back later
+  // TODO: Re-implement Google OAuth
+  // Issue: OAuth callback not working - needs debugging
+  // Files involved: app/auth/callback/route.ts, this file
+  // Supabase redirect URLs configured, Google Cloud Console configured
+  /*
   const handleGoogleLogin = async () => {
     const supabase = createClient()
     await supabase.auth.signInWithOAuth({
@@ -84,6 +90,7 @@ export default function LoginPage() {
       },
     })
   }
+  */
 
   return (
     <div className="min-h-screen bg-cyber-black scanlines flex items-center justify-center p-4">
@@ -117,6 +124,8 @@ export default function LoginPage() {
           <h1 className="font-sans text-2xl font-bold text-cyber-light mb-2">Welcome Back</h1>
           <p className="text-cyber-gray mb-6">Login to access the real-time map</p>
 
+          {/* Google OAuth temporarily disabled - will add back later */}
+          {/*
           <div className="mb-6">
              <button
                 type="button"
@@ -134,6 +143,7 @@ export default function LoginPage() {
                  <span className="relative bg-cyber-navy px-2 text-xs text-cyber-gray uppercase">Or continue with email</span>
              </div>
           </div>
+          */}
 
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
