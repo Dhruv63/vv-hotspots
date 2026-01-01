@@ -21,7 +21,7 @@ export default async function MainLayout({
     { data: activeCheckIns },
     { data: userCheckin },
   ] = await Promise.all([
-    supabase.from("hotspots").select("*").order("name"),
+    supabase.from("hotspots").select("id, name, category, description, address, latitude, longitude, image_url").order("name"),
     supabase
       .from("check_ins")
       .select("hotspot_id")

@@ -21,6 +21,10 @@ interface HotspotCardProps {
 }
 
 const getHotspotImage = (hotspot: Hotspot): string => {
+  if (hotspot.image_url) {
+    return hotspot.image_url
+  }
+
   const locationImages: Record<string, string> = {
     "Vasai Fort": "/vasai-fort.jpg",
     "Arnala Beach": "/arnala-beach.jpg",
