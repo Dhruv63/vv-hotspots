@@ -6,7 +6,6 @@ import { useRouter, usePathname } from "next/navigation"
 import { User, LogOut, MapPin, Menu, X, List, Settings, ChevronDown, Users } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { CyberButton } from "@/components/ui/cyber-button"
-import { ThemeToggle } from "@/components/theme-toggle"
 import type { User as SupabaseUser } from "@supabase/supabase-js"
 import { NotificationsDropdown } from "@/components/notifications-dropdown"
 import { cn } from "@/lib/utils"
@@ -124,8 +123,6 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
         <div className="flex items-center gap-4">
           {/* Divider */}
           <div className="hidden md:block w-px h-6 bg-border/50" />
-
-          <ThemeToggle />
 
           {/* Notifications Dropdown */}
           {user && <NotificationsDropdown userId={user.id} />}
