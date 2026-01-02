@@ -5,6 +5,7 @@ import type { Hotspot } from '@/lib/types'
 import { CategoryBadge } from '@/components/ui/category-badge'
 import { CATEGORY_COLOR } from '@/lib/constants'
 import { MapPin } from 'lucide-react'
+import Image from 'next/image'
 import L from 'leaflet'
 
 interface CustomMarkerProps {
@@ -44,13 +45,22 @@ export function CustomMarker({ hotspot, isSelected, onClick }: CustomMarkerProps
       <Popup className="cyber-popup" closeButton={true}>
          <div className="flex flex-col min-w-[200px]">
              <div className="relative h-24 w-full bg-muted rounded-t-lg overflow-hidden">
-                 <div
-                     className="absolute inset-0 opacity-50"
-                     style={{
-                         background: `linear-gradient(to bottom right, ${color}, transparent)`
-                     }}
-                 />
-                 <div className="absolute bottom-2 left-2">
+                 {hotspot.image_url ? (
+                   <Image
+                     src={hotspot.image_url}
+                     alt={hotspot.name}
+                     fill
+                     className="object-cover"
+                   />
+                 ) : (
+                   <div
+                       className="absolute inset-0 opacity-50"
+                       style={{
+                           background: `linear-gradient(to bottom right, ${color}, transparent)`
+                       }}
+                   />
+                 )}
+                 <div className="absolute bottom-2 left-2 z-10">
                      <CategoryBadge category={category} />
                  </div>
              </div>
